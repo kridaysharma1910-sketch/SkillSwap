@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SkillSwap — Trade Skills, Grow Together</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #05040a;
+    --purple-deep: #0d0a1a;
+    --purple-mid: #1a1035;
+    --purple-bright: #7c3aed;
+    --purple-glow: #9d5cff;
+    --purple-soft: #c4a8ff;
+    --accent: #ff6bff;
+    --white: #f0ecff;
+    --text-muted: #7a6d99;
+    --border: rgba(124, 58, 237, 0.2);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* Custom cursor */
+  .cursor {
+    position: fixed;
+    width: 12px; height: 12px;
+    background: var(--purple-glow);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+    transition: transform 0.1s ease, width 0.2s, height 0.2s, background 0.2s;
+    mix-blend-mode: screen;
+  }
+  .cursor-ring {
+    position: fixed;
+    width: 36px; height: 36px;
+    border: 1px solid rgba(157, 92, 255, 0.5);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9998;
+    transform: translate(-50%, -50%);
+    transition: transform 0.15s ease, width 0.3s, height 0.3s;
+  }
+  body:has(a:hover) .cursor, body:has(button:hover) .cursor {
+    width: 20px; height: 20px;
+    background: var(--accent);
+  }
+
+  /* Canvas */
+  #globe-canvas {
+    position: fixed;
+    top: 0; right: -10%;
+    width: 70vw; height: 100vh;
+    z-index: 0;
+    opacity: 0.85;
+  }
+
+  /* Gradient overlays */
+  .overlay-left {
+    position: fixed;
+    top: 0; left: 0;
+    width: 55vw; height: 100vh;
+    background: linear-gradient(to right, var(--black) 40%, transparent);
+    z-index: 1;
+    pointer-events: none;
+  }
+  .overlay-bottom {
+    position: fixed;
+    bottom: 0; left: 0;
+    width: 100vw; height: 35vh;
+    background: linear-gradient(to top, var(--black), transparent);
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    padding: 28px 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid transparent;
+    transition: all 0.4s;
+  }
+  nav.scrolled {
+    background: rgba(5, 4, 10, 0.85);
+    backdrop-filter: blur(20px);
+    border-color: var(--border);
+    padding: 18px 60px;
+  }
+  .nav-logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.4rem;
+    letter-spacing: -0.02em;
+    color: var(--white);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .logo-dot {
+    width: 8px; height: 8px;
+    background: var(--accent);
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--accent);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+  .nav-links {
+    display: flex;
+    gap: 40px;
+    list-style: none;
+  }
+  .nav-links a {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.9rem;
+    letter-spacing: 0.02em;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--white); }
+  .nav-cta {
+    background: var(--purple-bright);
+    color: white !important;
+    padding: 10px 24px;
+    border-radius: 100px;
+    font-weight: 500;
+    transition: all 0.2s !important;
+    box-shadow: 0 0 20px rgba(124, 58, 237, 0.3);
+  }
+  .nav-cta:hover {
+    background: var(--purple-glow) !important;
+    box-shadow: 0 0 30px rgba(157, 92, 255, 0.5) !important;
+    transform: translateY(-1px);
+  }
+
+  /* HERO */
+  #hero {
+    position: relative;
+    z-index: 2;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 0 60px;
+    max-width: 700px;
+  }
+
+  .hero-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(124, 58, 237, 0.12);
+    border: 1px solid rgba(124, 58, 237, 0.3);
+    padding: 6px 16px;
+    border-radius: 100px;
+    font-size: 0.8rem;
+    color: var(--purple-soft);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 32px;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.2s forwards;
+  }
+  .tag-dot {
+    width: 6px; height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: pulse 1.5s infinite;
+  }
+
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: clamp(3rem, 5.5vw, 5.5rem);
+    line-height: 1.0;
+    letter-spacing: -0.03em;
+    margin-bottom: 28px;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.4s forwards;
+  }
+  .h1-line2 {
+    background: linear-gradient(135deg, var(--purple-glow), var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-sub {
+    font-size: 1.15rem;
+    line-height: 1.7;
+    color: var(--text-muted);
+    max-width: 480px;
+    margin-bottom: 48px;
+    font-weight: 300;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.6s forwards;
+  }
+  .hero-sub span { color: var(--purple-soft); }
+
+  .hero-actions {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.8s forwards;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--purple-bright), #a855f7);
+    color: white;
+    padding: 16px 36px;
+    border-radius: 100px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1rem;
+    font-weight: 500;
+    border: none;
+    cursor: none;
+    text-decoration: none;
+    transition: all 0.3s;
+    box-shadow: 0 8px 32px rgba(124, 58, 237, 0.4);
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+    transition: left 0.5s;
+  }
+  .btn-primary:hover::before { left: 100%; }
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(124, 58, 237, 0.6);
+  }
+  .btn-ghost {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: color 0.2s;
+    padding: 16px 20px;
+  }
+  .btn-ghost:hover { color: var(--white); }
+  .btn-ghost svg { transition: transform 0.2s; }
+  .btn-ghost:hover svg { transform: translateX(4px); }
+
+  .hero-stats {
+    display: flex;
+    gap: 48px;
+    margin-top: 72px;
+    padding-top: 48px;
+    border-top: 1px solid var(--border);
+    opacity: 0;
+    animation: fadeUp 0.8s 1s forwards;
+  }
+  .stat-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--white);
+  }
+  .stat-label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* SCROLL INDICATOR */
+  .scroll-hint {
+    position: absolute;
+    bottom: 40px;
+    left: 60px;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0;
+    animation: fadeUp 0.8s 1.2s forwards;
+  }
+  .scroll-line {
+    width: 40px; height: 1px;
+    background: var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+  .scroll-line::after {
+    content: '';
+    position: absolute;
+    left: -100%; top: 0;
+    width: 100%; height: 100%;
+    background: var(--purple-glow);
+    animation: slideLine 2s infinite;
+  }
+  @keyframes slideLine {
+    to { left: 100%; }
+  }
+
+  /* HOW IT WORKS */
+  #how {
+    position: relative;
+    z-index: 2;
+    padding: 140px 60px;
+    background: linear-gradient(to bottom, transparent, var(--purple-deep) 30%, var(--purple-deep) 70%, transparent);
+  }
+  .section-tag {
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--purple-glow);
+    margin-bottom: 16px;
+  }
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2rem, 3.5vw, 3.2rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 80px;
+    max-width: 500px;
+    line-height: 1.1;
+  }
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+  }
+  .step {
+    padding: 48px 40px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s;
+  }
+  .step:first-child { border-radius: 20px 0 0 20px; }
+  .step:last-child { border-radius: 0 20px 20px 0; }
+  .step::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--purple-bright), var(--accent));
+    opacity: 0;
+    transition: opacity 0.4s;
+  }
+  .step:hover { background: rgba(124, 58, 237, 0.08); }
+  .step:hover::before { opacity: 1; }
+  .step-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 3.5rem;
+    font-weight: 800;
+    color: rgba(124, 58, 237, 0.15);
+    line-height: 1;
+    margin-bottom: 24px;
+    transition: color 0.4s;
+  }
+  .step:hover .step-num { color: rgba(124, 58, 237, 0.35); }
+  .step-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+  .step-text {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  /* SKILLS MARQUEE */
+  #marquee-section {
+    position: relative;
+    z-index: 2;
+    padding: 80px 0;
+    overflow: hidden;
+  }
+  .marquee-label {
+    text-align: center;
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 40px;
+  }
+  .marquee-track {
+    display: flex;
+    gap: 12px;
+    animation: marquee 25s linear infinite;
+    width: max-content;
+  }
+  .marquee-track:nth-child(3) { animation-direction: reverse; margin-top: 12px; }
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  .skill-pill {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    padding: 10px 22px;
+    border-radius: 100px;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s;
+  }
+  .skill-pill:hover {
+    background: rgba(124, 58, 237, 0.12);
+    border-color: var(--purple-bright);
+    color: var(--white);
+  }
+  .skill-emoji { font-size: 1rem; }
+
+  /* FEATURES */
+  #features {
+    position: relative;
+    z-index: 2;
+    padding: 120px 60px;
+  }
+  .features-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-top: 80px;
+    max-width: 1100px;
+  }
+  .feature-card {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 40px;
+    transition: all 0.4s;
+    position: relative;
+    overflow: hidden;
+  }
+  .feature-card::after {
+    content: '';
+    position: absolute;
+    bottom: -60px; right: -60px;
+    width: 160px; height: 160px;
+    background: radial-gradient(circle, rgba(124, 58, 237, 0.15), transparent 70%);
+    transition: all 0.4s;
+  }
+  .feature-card:hover {
+    border-color: rgba(124, 58, 237, 0.4);
+    transform: translateY(-4px);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  }
+  .feature-card:hover::after {
+    bottom: -40px; right: -40px;
+  }
+  .feature-card.large {
+    grid-column: span 2;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    align-items: center;
+  }
+  .feature-icon {
+    width: 48px; height: 48px;
+    background: rgba(124, 58, 237, 0.15);
+    border: 1px solid rgba(124, 58, 237, 0.3);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    margin-bottom: 24px;
+  }
+  .feature-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  .feature-text {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  /* MINI PROFILE CARDS */
+  .profile-preview {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .mini-profile {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    animation: floatCard 4s ease-in-out infinite;
+  }
+  .mini-profile:nth-child(2) { animation-delay: -1.5s; margin-left: 20px; }
+  .mini-profile:nth-child(3) { animation-delay: -3s; }
+  @keyframes floatCard {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+  }
+  .mini-avatar {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+  }
+  .mini-name { font-weight: 500; font-size: 0.9rem; }
+  .mini-skill { font-size: 0.78rem; color: var(--purple-soft); }
+  .mini-badge {
+    margin-left: auto;
+    background: rgba(124, 58, 237, 0.2);
+    color: var(--purple-soft);
+    font-size: 0.7rem;
+    padding: 4px 10px;
+    border-radius: 100px;
+    border: 1px solid rgba(124, 58, 237, 0.3);
+  }
+
+  /* CTA SECTION */
+  #cta {
+    position: relative;
+    z-index: 2;
+    padding: 160px 60px;
+    text-align: center;
+  }
+  .cta-glow {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 600px; height: 300px;
+    background: radial-gradient(ellipse, rgba(124, 58, 237, 0.2), transparent 70%);
+    pointer-events: none;
+  }
+  .cta-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2.5rem, 5vw, 5rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+    margin-bottom: 28px;
+  }
+  .cta-sub {
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    margin-bottom: 48px;
+    max-width: 440px;
+    margin-left: auto; margin-right: auto;
+  }
+
+  /* FOOTER */
+  footer {
+    position: relative;
+    z-index: 2;
+    padding: 40px 60px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .footer-logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+  }
+  .footer-copy {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+  .footer-links {
+    display: flex;
+    gap: 24px;
+  }
+  .footer-links a {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .footer-links a:hover { color: var(--white); }
+
+  /* NOISE TEXTURE */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+    opacity: 0.025;
+    pointer-events: none;
+    z-index: 999;
+  }
+
+  @media (max-width: 768px) {
+    nav { padding: 20px 24px; }
+    nav.scrolled { padding: 14px 24px; }
+    .nav-links { display: none; }
+    #hero { padding: 0 24px; }
+    #how { padding: 80px 24px; }
+    .steps { grid-template-columns: 1fr; }
+    .step:first-child, .step:last-child { border-radius: 20px; }
+    #features { padding: 80px 24px; }
+    .features-grid { grid-template-columns: 1fr; }
+    .feature-card.large { grid-column: span 1; grid-template-columns: 1fr; }
+    #cta { padding: 100px 24px; }
+    footer { padding: 30px 24px; flex-direction: column; gap: 20px; }
+    #globe-canvas { right: -30%; width: 90vw; opacity: 0.4; }
+    .hero-stats { gap: 28px; flex-wrap: wrap; }
+  }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<canvas id="globe-canvas"></canvas>
+<div class="overlay-left"></div>
+<div class="overlay-bottom"></div>
+
+<!-- NAV -->
+<nav id="navbar">
+  <a href="#" class="nav-logo">
+    <div class="logo-dot"></div>
+    SkillSwap
+  </a>
+  <ul class="nav-links">
+    <li><a href="#how">How it works</a></li>
+    <li><a href="#features">Features</a></li>
+    <li><a href="#" class="nav-cta">Get started</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-tag">
+    <span class="tag-dot"></span>
+    Now in beta — join the waitlist
+  </div>
+  <h1>
+    Trade skills.<br>
+    <span class="h1-line2">Grow together.</span>
+  </h1>
+  <p class="hero-sub">
+    Connect with people worldwide. <span>Teach what you know.</span> Learn what you need.
+    No money. Just skills.
+  </p>
+  <div class="hero-actions">
+    <a href="#" class="btn-primary">Start swapping →</a>
+    <a href="#how" class="btn-ghost">
+      See how it works
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </a>
+  </div>
+  <div class="hero-stats">
+    <div>
+      <div class="stat-num">2,400+</div>
+      <div class="stat-label">Skills listed</div>
+    </div>
+    <div>
+      <div class="stat-num">840+</div>
+      <div class="stat-label">Swaps completed</div>
+    </div>
+    <div>
+      <div class="stat-num">60+</div>
+      <div class="stat-label">Countries</div>
+    </div>
+  </div>
+</section>
+
+<div class="scroll-hint">
+  <div class="scroll-line"></div>
+  Scroll to explore
+</div>
+
+<!-- HOW IT WORKS -->
+<section id="how">
+  <div class="section-tag">How it works</div>
+  <div class="section-title">Three steps to your next skill</div>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">01</div>
+      <div class="step-title">Post your skill</div>
+      <div class="step-text">List what you can teach — design, coding, music, cooking, languages. Anything you're good at.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">02</div>
+      <div class="step-title">Find a match</div>
+      <div class="step-text">Browse people who teach what you want to learn. Filter by skill, location, or availability.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">03</div>
+      <div class="step-title">Start swapping</div>
+      <div class="step-text">Message them, agree on a swap, and start learning. No money exchanged — just knowledge.</div>
+    </div>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<section id="marquee-section">
+  <div class="marquee-label">Skills being swapped right now</div>
+  <div style="overflow:hidden">
+    <div class="marquee-track" id="marquee1"></div>
+    <div class="marquee-track" id="marquee2"></div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="section-tag">Why SkillSwap</div>
+  <div class="section-title">Everything you need to connect and grow</div>
+  <div class="features-grid">
+    <div class="feature-card large">
+      <div>
+        <div class="feature-icon">👤</div>
+        <div class="feature-title">Rich skill profiles</div>
+        <div class="feature-text">Showcase what you teach and what you want to learn. Add your experience level, availability, and languages. Your profile is your skill passport.</div>
+      </div>
+      <div class="profile-preview">
+        <div class="mini-profile" style="background: rgba(124,58,237,0.08);">
+          <div class="mini-avatar" style="background: rgba(255,107,255,0.15);">🎨</div>
+          <div>
+            <div class="mini-name">Sofia R.</div>
+            <div class="mini-skill">Teaching: UI Design → Learning: Python</div>
+          </div>
+          <div class="mini-badge">Active</div>
+        </div>
+        <div class="mini-profile">
+          <div class="mini-avatar" style="background: rgba(124,58,237,0.15);">🎸</div>
+          <div>
+            <div class="mini-name">Marcus T.</div>
+            <div class="mini-skill">Teaching: Guitar → Learning: Spanish</div>
+          </div>
+          <div class="mini-badge">Online</div>
+        </div>
+        <div class="mini-profile" style="background: rgba(124,58,237,0.05);">
+          <div class="mini-avatar" style="background: rgba(157,92,255,0.15);">💻</div>
+          <div>
+            <div class="mini-name">Aiko M.</div>
+            <div class="mini-skill">Teaching: React → Learning: Photography</div>
+          </div>
+          <div class="mini-badge">New</div>
+        </div>
+      </div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">⚡</div>
+      <div class="feature-title">Smart matching</div>
+      <div class="feature-text">Our algorithm surfaces the most compatible swap partners based on your skills, goals, and schedule.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">💬</div>
+      <div class="feature-title">Real-time messages</div>
+      <div class="feature-text">Chat, plan sessions, share resources — all in one place. No switching between apps.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🌍</div>
+      <div class="feature-title">Global community</div>
+      <div class="feature-text">Connect with skill-traders across 60+ countries. Language filters help you find the right match.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">⭐</div>
+      <div class="feature-title">Reviews & trust</div>
+      <div class="feature-text">Every completed swap builds your reputation. Verified profiles and honest reviews keep the community safe.</div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section id="cta">
+  <div class="cta-glow"></div>
+  <div class="cta-title">
+    Your next skill is<br>
+    <span class="h1-line2">one swap away.</span>
+  </div>
+  <p class="cta-sub">Join thousands of people trading knowledge. Free forever — no subscriptions, no fees.</p>
+  <a href="#" class="btn-primary" style="font-size:1.1rem; padding: 18px 48px;">
+    Join SkillSwap free →
+  </a>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">SkillSwap</div>
+  <div class="footer-copy">© 2025 SkillSwap. All rights reserved.</div>
+  <div class="footer-links">
+    <a href="#">Privacy</a>
+    <a href="#">Terms</a>
+    <a href="#">Contact</a>
+  </div>
+</footer>
+
+<!-- THREE.JS GLOBE -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// Cursor
+const cursor = document.getElementById('cursor');
+const ring = document.getElementById('cursorRing');
+let mouseX = 0, mouseY = 0, ringX = 0, ringY = 0;
+document.addEventListener('mousemove', e => {
+  mouseX = e.clientX; mouseY = e.clientY;
+  cursor.style.left = mouseX + 'px';
+  cursor.style.top = mouseY + 'px';
+});
+function animateRing() {
+  ringX += (mouseX - ringX) * 0.12;
+  ringY += (mouseY - ringY) * 0.12;
+  ring.style.left = ringX + 'px';
+  ring.style.top = ringY + 'px';
+  requestAnimationFrame(animateRing);
+}
+animateRing();
+
+// Nav scroll
+window.addEventListener('scroll', () => {
+  document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 40);
+});
+
+// Skills marquee
+const skills = [
+  ['🎨','UI/UX Design'],['💻','Web Dev'],['🎸','Guitar'],['📷','Photography'],
+  ['🇯🇵','Japanese'],['🎬','Video Editing'],['🍳','Cooking'],['📊','Excel'],
+  ['✍️','Copywriting'],['🎹','Piano'],['🐍','Python'],['🎯','Marketing'],
+  ['🌐','SEO'],['📱','App Dev'],['🎤','Public Speaking'],['🧘','Yoga'],
+  ['🖌️','Illustration'],['🎵','Music Production'],['🗣️','Spanish'],['📈','Trading'],
+  ['🤖','AI/ML'],['🏋️','Fitness'],['🎮','Game Dev'],['📚','Tutoring']
+];
+function buildMarquee(id, offset = 0) {
+  const el = document.getElementById(id);
+  const doubled = [...skills, ...skills];
+  el.innerHTML = doubled.slice(offset, offset + 20).concat(doubled.slice(offset, offset + 20)).map(s =>
+    `<div class="skill-pill"><span class="skill-emoji">${s[0]}</span>${s[1]}</div>`
+  ).join('');
+}
+buildMarquee('marquee1', 0);
+buildMarquee('marquee2', 8);
+
+// THREE.JS GLOBE
+const canvas = document.getElementById('globe-canvas');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+renderer.setClearColor(0x000000, 0);
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(45, canvas.clientWidth / canvas.clientHeight, 0.1, 100);
+camera.position.set(0, 0, 3.2);
+
+// Globe sphere (wireframe)
+const globeGeo = new THREE.SphereGeometry(1, 48, 48);
+const globeMat = new THREE.MeshBasicMaterial({
+  color: 0x7c3aed,
+  wireframe: true,
+  transparent: true,
+  opacity: 0.12
+});
+const globe = new THREE.Mesh(globeGeo, globeMat);
+scene.add(globe);
+
+// Inner glow sphere
+const innerGeo = new THREE.SphereGeometry(0.97, 32, 32);
+const innerMat = new THREE.MeshBasicMaterial({
+  color: 0x1a1035,
+  transparent: true,
+  opacity: 0.95
+});
+scene.add(new THREE.Mesh(innerGeo, innerMat));
+
+// Dots on globe surface
+const dotGroup = new THREE.Group();
+const dotGeo = new THREE.SphereGeometry(0.012, 6, 6);
+const dotMat = new THREE.MeshBasicMaterial({ color: 0x9d5cff });
+const hotspots = [];
+for (let i = 0; i < 180; i++) {
+  const phi = Math.acos(2 * Math.random() - 1);
+  const theta = 2 * Math.PI * Math.random();
+  const dot = new THREE.Mesh(dotGeo, dotMat.clone());
+  const r = 1.01;
+  dot.position.set(
+    r * Math.sin(phi) * Math.cos(theta),
+    r * Math.cos(phi),
+    r * Math.sin(phi) * Math.sin(theta)
+  );
+  dotGroup.add(dot);
+  if (i < 30) hotspots.push(dot.position.clone());
+}
+scene.add(dotGroup);
+
+// Connection arcs between hotspots
+function createArc(p1, p2) {
+  const mid = p1.clone().add(p2).multiplyScalar(0.5).normalize().multiplyScalar(1.35);
+  const points = [];
+  for (let t = 0; t <= 1; t += 0.02) {
+    const a = p1.clone().multiplyScalar((1-t)*(1-t));
+    const b = mid.clone().multiplyScalar(2*t*(1-t));
+    const c = p2.clone().multiplyScalar(t*t);
+    points.push(a.add(b).add(c));
+  }
+  const geo = new THREE.BufferGeometry().setFromPoints(points);
+  const mat = new THREE.LineBasicMaterial({
+    color: 0xff6bff,
+    transparent: true,
+    opacity: 0.3
+  });
+  return new THREE.Line(geo, mat);
+}
+
+const arcGroup = new THREE.Group();
+for (let i = 0; i < 18; i++) {
+  const a = hotspots[Math.floor(Math.random() * hotspots.length)];
+  const b = hotspots[Math.floor(Math.random() * hotspots.length)];
+  if (a !== b) arcGroup.add(createArc(a, b));
+}
+scene.add(arcGroup);
+
+// Pulse rings
+const rings = [];
+for (let i = 0; i < 5; i++) {
+  const hs = hotspots[Math.floor(Math.random() * hotspots.length)];
+  const ringGeo = new THREE.RingGeometry(0.01, 0.025, 16);
+  const ringMat = new THREE.MeshBasicMaterial({
+    color: 0xff6bff, transparent: true, opacity: 0.8, side: THREE.DoubleSide
+  });
+  const ring = new THREE.Mesh(ringGeo, ringMat);
+  ring.position.copy(hs);
+  ring.lookAt(0, 0, 0);
+  ring.userData = { phase: Math.random() * Math.PI * 2, basePos: hs.clone() };
+  rings.push(ring);
+  scene.add(ring);
+}
+
+// Ambient particles
+const partGeo = new THREE.BufferGeometry();
+const partCount = 300;
+const partPos = new Float32Array(partCount * 3);
+for (let i = 0; i < partCount * 3; i++) partPos[i] = (Math.random() - 0.5) * 6;
+partGeo.setAttribute('position', new THREE.BufferAttribute(partPos, 3));
+const partMat = new THREE.PointsMaterial({
+  color: 0x7c3aed, size: 0.015, transparent: true, opacity: 0.5
+});
+scene.add(new THREE.Points(partGeo, partMat));
+
+// Mouse interaction
+let mouseGX = 0, mouseGY = 0;
+document.addEventListener('mousemove', e => {
+  mouseGX = (e.clientX / window.innerWidth - 0.5) * 0.5;
+  mouseGY = (e.clientY / window.innerHeight - 0.5) * 0.3;
+});
+
+// Animate
+let time = 0;
+function animate() {
+  requestAnimationFrame(animate);
+  time += 0.005;
+  globe.rotation.y += 0.0015;
+  dotGroup.rotation.y += 0.0015;
+  arcGroup.rotation.y += 0.0015;
+
+  // Mouse tilt
+  globe.rotation.x += (mouseGY - globe.rotation.x) * 0.05;
+  dotGroup.rotation.x = globe.rotation.x;
+  arcGroup.rotation.x = globe.rotation.x;
+  globe.rotation.y += (mouseGX * 0.1 - 0) * 0.02;
+
+  // Pulse rings
+  rings.forEach(r => {
+    r.userData.phase += 0.04;
+    const s = 1 + Math.sin(r.userData.phase) * 0.5;
+    r.scale.set(s, s, s);
+    r.material.opacity = 0.6 * (1 - (s - 1));
+    r.rotation.y = globe.rotation.y;
+  });
+
+  // Arc pulse
+  arcGroup.children.forEach((arc, i) => {
+    arc.material.opacity = 0.15 + 0.2 * Math.abs(Math.sin(time * 0.8 + i * 0.7));
+  });
+
+  renderer.render(scene, camera);
+}
+animate();
+
+// Resize
+window.addEventListener('resize', () => {
+  renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+  camera.aspect = canvas.clientWidth / canvas.clientHeight;
+  camera.updateProjectionMatrix();
+});
+</script>
+</body>
+</html>

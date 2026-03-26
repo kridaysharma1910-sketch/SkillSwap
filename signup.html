@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SkillSwap — Create Account</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #05040a;
+    --purple-deep: #0d0a1a;
+    --purple-mid: #1a1035;
+    --purple-bright: #7c3aed;
+    --purple-glow: #9d5cff;
+    --purple-soft: #c4a8ff;
+    --accent: #ff6bff;
+    --white: #f0ecff;
+    --text-muted: #7a6d99;
+    --border: rgba(124, 58, 237, 0.2);
+    --success: #22c55e;
+    --error: #ef4444;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* Cursor */
+  .cursor {
+    position: fixed;
+    width: 12px; height: 12px;
+    background: var(--purple-glow);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+    transition: width 0.2s, height 0.2s, background 0.2s;
+    mix-blend-mode: screen;
+  }
+  .cursor-ring {
+    position: fixed;
+    width: 36px; height: 36px;
+    border: 1px solid rgba(157, 92, 255, 0.5);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9998;
+    transform: translate(-50%, -50%);
+    transition: transform 0.15s ease;
+  }
+
+  /* LEFT PANEL */
+  .left-panel {
+    width: 45%;
+    background: var(--purple-mid);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 60px;
+  }
+  .left-panel::before {
+    content: '';
+    position: absolute;
+    top: -200px; left: -200px;
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(124,58,237,0.3) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .left-panel::after {
+    content: '';
+    position: absolute;
+    bottom: -100px; right: -100px;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(255,107,255,0.15) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .panel-logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.4rem;
+    color: var(--white);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 80px;
+    position: relative;
+    z-index: 1;
+  }
+  .logo-dot {
+    width: 8px; height: 8px;
+    background: var(--accent);
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--accent);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+
+  .panel-heading {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 2.8rem;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    margin-bottom: 20px;
+    position: relative;
+    z-index: 1;
+  }
+  .panel-heading span {
+    background: linear-gradient(135deg, var(--purple-glow), var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .panel-sub {
+    color: var(--text-muted);
+    font-size: 1rem;
+    line-height: 1.7;
+    max-width: 340px;
+    margin-bottom: 60px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .perks {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    position: relative;
+    z-index: 1;
+  }
+  .perk {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    color: var(--purple-soft);
+    font-size: 0.95rem;
+  }
+  .perk-icon {
+    width: 36px; height: 36px;
+    background: rgba(124,58,237,0.2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+
+  /* RIGHT PANEL */
+  .right-panel {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 80px;
+    position: relative;
+  }
+  .right-panel::before {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(124,58,237,0.05) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .form-container {
+    width: 100%;
+    max-width: 420px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .form-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 1.8rem;
+    margin-bottom: 8px;
+    letter-spacing: -0.02em;
+  }
+  .form-subtitle {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    margin-bottom: 40px;
+  }
+  .form-subtitle a {
+    color: var(--purple-soft);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .form-subtitle a:hover { color: var(--accent); }
+
+  /* Steps */
+  .steps {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 36px;
+  }
+  .step-bar {
+    height: 3px;
+    flex: 1;
+    background: rgba(124,58,237,0.15);
+    border-radius: 10px;
+    transition: background 0.4s;
+  }
+  .step-bar.active { background: var(--purple-bright); }
+  .step-bar.done { background: var(--accent); }
+
+  .step-label {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin-bottom: 24px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .step-label span { color: var(--purple-soft); }
+
+  /* Form fields */
+  .field {
+    margin-bottom: 20px;
+  }
+  .field label {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+    letter-spacing: 0.02em;
+  }
+  .field input, .field select, .field textarea {
+    width: 100%;
+    background: rgba(124,58,237,0.06);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 18px;
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.2s, background 0.2s;
+    -webkit-appearance: none;
+  }
+  .field input::placeholder, .field textarea::placeholder {
+    color: var(--text-muted);
+  }
+  .field input:focus, .field select:focus, .field textarea:focus {
+    border-color: var(--purple-bright);
+    background: rgba(124,58,237,0.1);
+  }
+  .field input.error { border-color: var(--error); }
+  .field select option { background: var(--purple-deep); color: var(--white); }
+  .field textarea { resize: none; height: 80px; }
+
+  .field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  /* Password strength */
+  .password-wrapper { position: relative; }
+  .password-toggle {
+    position: absolute;
+    right: 16px; top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: none;
+    font-size: 1.1rem;
+    padding: 0;
+    transition: color 0.2s;
+  }
+  .password-toggle:hover { color: var(--white); }
+
+  .strength-bar {
+    display: flex;
+    gap: 4px;
+    margin-top: 8px;
+  }
+  .strength-seg {
+    height: 3px;
+    flex: 1;
+    background: rgba(124,58,237,0.15);
+    border-radius: 10px;
+    transition: background 0.3s;
+  }
+
+  /* Skills tags */
+  .skills-input-wrap {
+    background: rgba(124,58,237,0.06);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 10px 14px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    cursor: text;
+    min-height: 52px;
+    transition: border-color 0.2s;
+  }
+  .skills-input-wrap:focus-within { border-color: var(--purple-bright); }
+  .skill-tag {
+    background: rgba(124,58,237,0.2);
+    border: 1px solid rgba(124,58,237,0.3);
+    color: var(--purple-soft);
+    padding: 4px 10px;
+    border-radius: 100px;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    animation: tagIn 0.2s ease;
+  }
+  @keyframes tagIn {
+    from { transform: scale(0.8); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  .skill-tag button {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: none;
+    font-size: 0.9rem;
+    padding: 0;
+    line-height: 1;
+    transition: color 0.2s;
+  }
+  .skill-tag button:hover { color: var(--accent); }
+  .skills-input-wrap input {
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    min-width: 120px;
+    flex: 1;
+    padding: 4px 4px;
+  }
+  .skills-input-wrap input::placeholder { color: var(--text-muted); }
+
+  /* Error message */
+  .error-msg {
+    color: var(--error);
+    font-size: 0.8rem;
+    margin-top: 6px;
+    display: none;
+  }
+  .error-msg.show { display: block; }
+
+  /* Alert */
+  .alert {
+    padding: 14px 18px;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    margin-bottom: 20px;
+    display: none;
+    animation: fadeUp 0.3s ease;
+  }
+  .alert.error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #fca5a5; display: flex; }
+  .alert.success { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); color: #86efac; display: flex; }
+
+  /* Buttons */
+  .btn-primary {
+    width: 100%;
+    background: linear-gradient(135deg, var(--purple-bright), #a855f7);
+    color: white;
+    padding: 15px;
+    border-radius: 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1rem;
+    font-weight: 500;
+    border: none;
+    cursor: none;
+    transition: all 0.3s;
+    box-shadow: 0 8px 32px rgba(124,58,237,0.3);
+    position: relative;
+    overflow: hidden;
+    margin-top: 8px;
+  }
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(124,58,237,0.5);
+  }
+  .btn-primary:disabled {
+    opacity: 0.5;
+    transform: none;
+    cursor: not-allowed;
+  }
+  .btn-primary.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 20px; height: 20px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    animation: spin 0.8s linear infinite;
+  }
+  .btn-primary.loading span { opacity: 0; }
+  @keyframes spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
+
+  .btn-back {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 15px;
+    border-radius: 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1rem;
+    cursor: none;
+    transition: all 0.2s;
+    width: 100%;
+    margin-top: 8px;
+  }
+  .btn-back:hover { border-color: var(--purple-bright); color: var(--white); }
+
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 24px 0;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+  }
+  .divider::before, .divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .oauth-btn {
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    color: var(--white);
+    padding: 13px;
+    border-radius: 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    cursor: none;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+  .oauth-btn:hover {
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(124,58,237,0.4);
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .step-content {
+    animation: fadeUp 0.35s ease;
+  }
+
+  /* Success screen */
+  .success-screen {
+    text-align: center;
+    padding: 20px 0;
+  }
+  .success-icon {
+    width: 80px; height: 80px;
+    background: rgba(34,197,94,0.1);
+    border: 1px solid rgba(34,197,94,0.3);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    margin: 0 auto 24px;
+    animation: popIn 0.5s ease;
+  }
+  @keyframes popIn {
+    from { transform: scale(0); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  .success-screen h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.6rem;
+    margin-bottom: 12px;
+  }
+  .success-screen p {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 32px;
+  }
+
+  @media (max-width: 768px) {
+    .left-panel { display: none; }
+    .right-panel { padding: 40px 24px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- LEFT PANEL -->
+<div class="left-panel">
+  <a href="index.html" class="panel-logo">
+    <div class="logo-dot"></div>
+    SkillSwap
+  </a>
+  <div class="panel-heading">
+    Trade skills.<br>
+    <span>Grow together.</span>
+  </div>
+  <p class="panel-sub">Join thousands of people exchanging knowledge. No money — just skills, sessions, and real connections.</p>
+  <div class="perks">
+    <div class="perk">
+      <div class="perk-icon">🆓</div>
+      First swap is always free
+    </div>
+    <div class="perk">
+      <div class="perk-icon">🎥</div>
+      1.5 hrs free video calling/month
+    </div>
+    <div class="perk">
+      <div class="perk-icon">🌍</div>
+      Connect with 60+ countries
+    </div>
+    <div class="perk">
+      <div class="perk-icon">⚡</div>
+      Smart skill matching algorithm
+    </div>
+    <div class="perk">
+      <div class="perk-icon">🔒</div>
+      Verified profiles & reviews
+    </div>
+  </div>
+</div>
+
+<!-- RIGHT PANEL -->
+<div class="right-panel">
+  <div class="form-container">
+
+    <div id="mainForm">
+      <div class="form-title">Create account</div>
+      <div class="form-subtitle">Already have one? <a href="login.html">Sign in →</a></div>
+
+      <!-- Step bars -->
+      <div class="steps">
+        <div class="step-bar active" id="bar1"></div>
+        <div class="step-bar" id="bar2"></div>
+        <div class="step-bar" id="bar3"></div>
+      </div>
+
+      <div class="alert" id="alertBox"></div>
+
+      <!-- STEP 1: Basic info -->
+      <div id="step1" class="step-content">
+        <div class="step-label">Step 1 of 3 — <span>Basic info</span></div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>First name</label>
+            <input type="text" id="firstName" placeholder="Alex" />
+          </div>
+          <div class="field">
+            <label>Last name</label>
+            <input type="text" id="lastName" placeholder="Chen" />
+          </div>
+        </div>
+        <div class="field">
+          <label>Username</label>
+          <input type="text" id="username" placeholder="alexchen" />
+          <div class="error-msg" id="usernameError">Username already taken</div>
+        </div>
+        <div class="field">
+          <label>Email address</label>
+          <input type="email" id="email" placeholder="alex@example.com" />
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <div class="password-wrapper">
+            <input type="password" id="password" placeholder="Min 8 characters" />
+            <button class="password-toggle" id="togglePwd" onclick="togglePassword()">👁</button>
+          </div>
+          <div class="strength-bar">
+            <div class="strength-seg" id="s1"></div>
+            <div class="strength-seg" id="s2"></div>
+            <div class="strength-seg" id="s3"></div>
+            <div class="strength-seg" id="s4"></div>
+          </div>
+        </div>
+
+        <div class="divider">or continue with</div>
+        <button class="oauth-btn" onclick="signInWithGoogle()">
+          <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z"/></svg>
+          Continue with Google
+        </button>
+
+        <button class="btn-primary" onclick="nextStep(1)" id="btn1">
+          <span>Continue →</span>
+        </button>
+      </div>
+
+      <!-- STEP 2: Skills -->
+      <div id="step2" class="step-content" style="display:none;">
+        <div class="step-label">Step 2 of 3 — <span>Your skills</span></div>
+
+        <div class="field">
+          <label>Skills you can teach others</label>
+          <div class="skills-input-wrap" id="offerWrap">
+            <input type="text" id="offerInput" placeholder="e.g. Python, Guitar... press Enter" />
+          </div>
+        </div>
+        <div class="field">
+          <label>Skills you want to learn</label>
+          <div class="skills-input-wrap" id="wantWrap">
+            <input type="text" id="wantInput" placeholder="e.g. Spanish, UI Design... press Enter" />
+          </div>
+        </div>
+        <div class="field">
+          <label>Short bio <span style="color:var(--text-muted); font-size:0.8rem;">(optional)</span></label>
+          <textarea id="bio" placeholder="Tell others a bit about yourself..."></textarea>
+        </div>
+
+        <button class="btn-primary" onclick="nextStep(2)" id="btn2"><span>Continue →</span></button>
+        <button class="btn-back" onclick="prevStep(2)">← Back</button>
+      </div>
+
+      <!-- STEP 3: Plan -->
+      <div id="step3" class="step-content" style="display:none;">
+        <div class="step-label">Step 3 of 3 — <span>Choose your plan</span></div>
+
+        <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:24px;">
+
+          <label style="cursor:none;">
+            <input type="radio" name="plan" value="free" id="planFree" checked style="display:none;">
+            <div class="plan-card" id="cardFree" onclick="selectPlan('free')" style="background:rgba(124,58,237,0.1); border:2px solid var(--purple-bright); border-radius:14px; padding:18px 20px; transition:all 0.2s;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <div style="font-family:'Syne',sans-serif; font-weight:700; font-size:1rem;">Free</div>
+                <div style="font-family:'Syne',sans-serif; font-weight:800; color:var(--accent);">$0/mo</div>
+              </div>
+              <div style="color:var(--text-muted); font-size:0.82rem; line-height:1.6;">2 swaps/month · 1.5hrs video · Text messaging · First swap free</div>
+            </div>
+          </label>
+
+          <label style="cursor:none;">
+            <input type="radio" name="plan" value="pro" id="planPro" style="display:none;">
+            <div class="plan-card" id="cardPro" onclick="selectPlan('pro')" style="background:rgba(124,58,237,0.05); border:2px solid var(--border); border-radius:14px; padding:18px 20px; transition:all 0.2s;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <div style="font-family:'Syne',sans-serif; font-weight:700; font-size:1rem;">Pro ⚡</div>
+                <div style="font-family:'Syne',sans-serif; font-weight:800; color:var(--purple-soft);">$9/mo</div>
+              </div>
+              <div style="color:var(--text-muted); font-size:0.82rem; line-height:1.6;">Unlimited swaps · Unlimited video · Verification badge · Priority matching</div>
+            </div>
+          </label>
+
+          <label style="cursor:none;">
+            <input type="radio" name="plan" value="creator" id="planCreator" style="display:none;">
+            <div class="plan-card" id="cardCreator" onclick="selectPlan('creator')" style="background:rgba(124,58,237,0.05); border:2px solid var(--border); border-radius:14px; padding:18px 20px; transition:all 0.2s;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <div style="font-family:'Syne',sans-serif; font-weight:700; font-size:1rem;">Creator 🎬</div>
+                <div style="font-family:'Syne',sans-serif; font-weight:800; color:var(--purple-soft);">$19/mo</div>
+              </div>
+              <div style="color:var(--text-muted); font-size:0.82rem; line-height:1.6;">Everything in Pro · Host webinars · Featured listing · Analytics</div>
+            </div>
+          </label>
+        </div>
+
+        <button class="btn-primary" onclick="submitSignup()" id="btn3"><span>Create my account →</span></button>
+        <button class="btn-back" onclick="prevStep(3)">← Back</button>
+      </div>
+    </div>
+
+    <!-- SUCCESS -->
+    <div id="successScreen" style="display:none;" class="success-screen">
+      <div class="success-icon">✓</div>
+      <h2>You're in! 🎉</h2>
+      <p>Check your email to verify your account, then start swapping skills with people around the world.</p>
+      <a href="login.html" class="btn-primary" style="display:block; text-align:center; text-decoration:none; padding:15px;">Go to login →</a>
+    </div>
+
+  </div>
+</div>
+
+<!-- Supabase -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const { createClient } = supabase;
+const sb = createClient(
+  'https://vgndpvkywvcnezvjuueq.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZnbmRwdmt5d3ZjbmV6dmp1dWVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MDk5OTEsImV4cCI6MjA5MDA4NTk5MX0.GGwx_-W7pu485h3d6dgkhqSwiqxT3Hx02Ck9HW8nyE0'
+);
+
+// Cursor
+const cursor = document.getElementById('cursor');
+const ring = document.getElementById('cursorRing');
+let mouseX = 0, mouseY = 0, ringX = 0, ringY = 0;
+document.addEventListener('mousemove', e => {
+  mouseX = e.clientX; mouseY = e.clientY;
+  cursor.style.left = mouseX + 'px';
+  cursor.style.top = mouseY + 'px';
+});
+function animateRing() {
+  ringX += (mouseX - ringX) * 0.12;
+  ringY += (mouseY - ringY) * 0.12;
+  ring.style.left = ringX + 'px';
+  ring.style.top = ringY + 'px';
+  requestAnimationFrame(animateRing);
+}
+animateRing();
+
+// Password toggle
+function togglePassword() {
+  const pwd = document.getElementById('password');
+  pwd.type = pwd.type === 'password' ? 'text' : 'password';
+}
+
+// Password strength
+document.getElementById('password').addEventListener('input', function() {
+  const v = this.value;
+  let score = 0;
+  if (v.length >= 8) score++;
+  if (/[A-Z]/.test(v)) score++;
+  if (/[0-9]/.test(v)) score++;
+  if (/[^A-Za-z0-9]/.test(v)) score++;
+  const colors = ['', '#ef4444', '#f97316', '#eab308', '#22c55e'];
+  for (let i = 1; i <= 4; i++) {
+    const seg = document.getElementById('s' + i);
+    seg.style.background = i <= score ? colors[score] : 'rgba(124,58,237,0.15)';
+  }
+});
+
+// Skills tags
+let offerTags = [], wantTags = [];
+
+function setupTagInput(inputId, wrapId, tagsArr) {
+  const input = document.getElementById(inputId);
+  input.addEventListener('keydown', function(e) {
+    if ((e.key === 'Enter' || e.key === ',') && this.value.trim()) {
+      e.preventDefault();
+      const val = this.value.trim().replace(',', '');
+      if (!tagsArr.includes(val)) {
+        tagsArr.push(val);
+        renderTags(wrapId, inputId, tagsArr);
+      }
+      this.value = '';
+    }
+    if (e.key === 'Backspace' && !this.value && tagsArr.length) {
+      tagsArr.pop();
+      renderTags(wrapId, inputId, tagsArr);
+    }
+  });
+}
+
+function renderTags(wrapId, inputId, tagsArr) {
+  const wrap = document.getElementById(wrapId);
+  const input = document.getElementById(inputId);
+  wrap.innerHTML = '';
+  tagsArr.forEach((tag, i) => {
+    const div = document.createElement('div');
+    div.className = 'skill-tag';
+    div.innerHTML = `${tag} <button onclick="removeTag('${wrapId}','${inputId}',${i})">×</button>`;
+    wrap.appendChild(div);
+  });
+  wrap.appendChild(input);
+  input.focus();
+}
+
+function removeTag(wrapId, inputId, index) {
+  const arr = wrapId === 'offerWrap' ? offerTags : wantTags;
+  arr.splice(index, 1);
+  renderTags(wrapId, inputId, arr);
+}
+
+setupTagInput('offerInput', 'offerWrap', offerTags);
+setupTagInput('wantInput', 'wantWrap', wantTags);
+
+// Plan selection
+function selectPlan(plan) {
+  ['free','pro','creator'].forEach(p => {
+    const card = document.getElementById('card' + p.charAt(0).toUpperCase() + p.slice(1));
+    card.style.border = '2px solid var(--border)';
+    card.style.background = 'rgba(124,58,237,0.05)';
+  });
+  document.getElementById('plan' + plan.charAt(0).toUpperCase() + plan.slice(1)).checked = true;
+  const sel = document.getElementById('card' + plan.charAt(0).toUpperCase() + plan.slice(1));
+  sel.style.border = '2px solid var(--purple-bright)';
+  sel.style.background = 'rgba(124,58,237,0.1)';
+}
+
+// Alert
+function showAlert(type, msg) {
+  const box = document.getElementById('alertBox');
+  box.className = 'alert ' + type;
+  box.textContent = msg;
+}
+function hideAlert() {
+  document.getElementById('alertBox').className = 'alert';
+}
+
+// Steps
+let currentStep = 1;
+
+function setLoading(btnId, loading) {
+  const btn = document.getElementById(btnId);
+  btn.disabled = loading;
+  btn.classList.toggle('loading', loading);
+}
+
+async function nextStep(from) {
+  hideAlert();
+  if (from === 1) {
+    const fn = document.getElementById('firstName').value.trim();
+    const ln = document.getElementById('lastName').value.trim();
+    const un = document.getElementById('username').value.trim();
+    const em = document.getElementById('email').value.trim();
+    const pw = document.getElementById('password').value;
+
+    if (!fn || !ln || !un || !em || !pw) return showAlert('error', 'Please fill in all fields.');
+    if (pw.length < 8) return showAlert('error', 'Password must be at least 8 characters.');
+    if (!/^[a-zA-Z0-9_]+$/.test(un)) return showAlert('error', 'Username can only contain letters, numbers, and underscores.');
+
+    setLoading('btn1', true);
+    const { data: existing } = await sb.from('profiles').select('id').eq('username', un).single();
+    setLoading('btn1', false);
+    if (existing) return showAlert('error', 'Username already taken. Try another one.');
+  }
+
+  if (from === 2) {
+    if (offerTags.length === 0) return showAlert('error', 'Add at least one skill you can teach.');
+    if (wantTags.length === 0) return showAlert('error', 'Add at least one skill you want to learn.');
+  }
+
+  document.getElementById('step' + from).style.display = 'none';
+  document.getElementById('bar' + from).classList.add('done');
+  currentStep = from + 1;
+  document.getElementById('step' + currentStep).style.display = 'block';
+  document.getElementById('bar' + currentStep).classList.add('active');
+}
+
+function prevStep(from) {
+  document.getElementById('step' + from).style.display = 'none';
+  document.getElementById('bar' + from).classList.remove('active');
+  currentStep = from - 1;
+  document.getElementById('step' + currentStep).style.display = 'block';
+}
+
+// Submit
+async function submitSignup() {
+  hideAlert();
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const firstName = document.getElementById('firstName').value.trim();
+  const lastName = document.getElementById('lastName').value.trim();
+  const username = document.getElementById('username').value.trim();
+  const bio = document.getElementById('bio').value.trim();
+  const plan = document.querySelector('input[name="plan"]:checked').value;
+
+  setLoading('btn3', true);
+
+  const { data, error } = await sb.auth.signUp({
+    email,
+    password,
+    options: {
+      data: { full_name: firstName + ' ' + lastName }
+    }
+  });
+
+  if (error) {
+    setLoading('btn3', false);
+    return showAlert('error', error.message);
+  }
+
+  // Update profile
+  if (data.user) {
+    await sb.from('profiles').update({
+      username,
+      full_name: firstName + ' ' + lastName,
+      bio,
+      skills_offering: offerTags,
+      skills_wanting: wantTags,
+      plan
+    }).eq('id', data.user.id);
+  }
+
+  setLoading('btn3', false);
+  document.getElementById('mainForm').style.display = 'none';
+  document.getElementById('successScreen').style.display = 'block';
+}
+
+// Google OAuth
+async function signInWithGoogle() {
+  const { error } = await sb.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.origin + '/dashboard.html' }
+  });
+  if (error) showAlert('error', error.message);
+}
+</script>
+</body>
+</html>
