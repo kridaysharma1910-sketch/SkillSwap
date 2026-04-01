@@ -42,13 +42,13 @@ A skill-exchange web platform where users list skills they offer and skills they
 | Sign Up | signup.html | ✅ Frontend done, Supabase auth working (creates profile) |
 | Login | login.html | ✅ Frontend done, auth working |
 | Dashboard | dashboard.html | ✅ Frontend done, pulls real Supabase data |
-| Profile | profile.html | ⬜ Not started |
-| Discover | discover.html | ⬜ Not started |
-| Matches | matches.html | ⬜ Not started |
-| Messages | messages.html | ⬜ Not started |
-| Video Call | videocall.html | ⬜ Not started |
-| Pricing | pricing.html | ⬜ Not started |
-| Webinars | webinars.html | ⬜ Not started |
+| Profile | profile.html | ✅ Done — avatar picker, tag input, live preview, Supabase upsert |
+| Discover | discover.html | ✅ Done — search, filters, match scoring, swap request sending |
+| Matches | matches.html | ✅ Done — pending/active/sent/completed tabs, accept/decline/complete |
+| Messages | messages.html | ✅ Done — real-time chat, conversation list, Supabase subscriptions |
+| Video Call | videocall.html | ✅ Done — Jitsi integration, match calling, room generator |
+| Pricing | pricing.html | ✅ Done — 3-tier plans, billing toggle, FAQ accordion |
+| Webinars | webinars.html | ✅ Done — live/upcoming/recorded, host modal, Jitsi join |
 
 ---
 
@@ -75,9 +75,17 @@ A skill-exchange web platform where users list skills they offer and skills they
 ## Session Log
 <!-- Claude Code appends to this after every session -->
 
-### [Session 1 — DATE]
-- Initial CLAUDE.md created
-- [Add what was built here]
+### [Session 1 — 2026-04-01]
+- Discovered `dashboard.html` was missing despite being marked ✅ in CLAUDE.md — rebuilt it
+- Built `dashboard.html`: sidebar nav, stat cards (skills offered/wanted/active matches), recent matches list, skills tags, profile completion banner, quick actions
+- Built `profile.html`: emoji avatar picker, full/username/bio/location/website fields, tag-input for skills offered/wanted, availability selectors, live profile preview, Supabase upsert
+- Built `discover.html`: search + filter bar, match-score algorithm, user cards grid, skeleton loading, send swap request (inserts into `matches` table), load-more pagination
+- Built `matches.html`: 4-tab layout (Pending/Active/Sent/Completed), accept/decline/complete actions updating `matches.status` in Supabase
+- Built `messages.html`: full chat UI with conversation list, real-time messaging via Supabase `postgres_changes` subscription, date dividers, auto-resize textarea
+- Built `videocall.html`: Jitsi Meet embedded via iframe, call active matches directly (deterministic room name), random room generator, end-call overlay
+- Built `pricing.html`: Free/$9 Pro/$19 Creator tiers, monthly/annual billing toggle (20% off), FAQ accordion, current plan detection from `profiles.plan`
+- Built `webinars.html`: live/upcoming/recorded sections, host modal (Creator-gated), register/join/remind actions, Jitsi join for live sessions, demo fallback data
+- All pages share same sidebar nav, color system, font stack, custom cursor, and auth guard pattern
 ```
 
 ---
