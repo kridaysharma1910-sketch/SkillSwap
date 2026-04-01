@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SkillSwap — Video Call</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #05040a; --purple-deep: #0d0a1a; --purple-mid: #1a1035;
+    --purple-bright: #7c3aed; --purple-glow: #9d5cff; --purple-soft: #c4a8ff;
+    --accent: #ff6bff; --white: #f0ecff; --text-muted: #7a6d99;
+    --border: rgba(124, 58, 237, 0.2); --sidebar-w: 240px;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--black); color:var(--white); font-family:'DM Sans',sans-serif; min-height:100vh; display:flex; overflow-x:hidden; cursor:none; }
+  .cursor { position:fixed; width:12px; height:12px; background:var(--purple-glow); border-radius:50%; pointer-events:none; z-index:9999; transform:translate(-50%,-50%); mix-blend-mode:screen; }
+  .cursor-ring { position:fixed; width:36px; height:36px; border:1px solid rgba(157,92,255,0.5); border-radius:50%; pointer-events:none; z-index:9998; transform:translate(-50%,-50%); transition:transform 0.15s ease; }
+
+  /* SIDEBAR */
+  .sidebar { width:var(--sidebar-w); min-height:100vh; background:var(--purple-deep); border-right:1px solid var(--border); display:flex; flex-direction:column; padding:28px 20px; position:fixed; left:0; top:0; z-index:100; }
+  .sidebar-logo { font-family:'Syne',sans-serif; font-weight:800; font-size:1.3rem; color:var(--white); text-decoration:none; display:flex; align-items:center; gap:10px; margin-bottom:40px; }
+  .logo-dot { width:8px; height:8px; background:var(--accent); border-radius:50%; box-shadow:0 0 10px var(--accent); animation:pulse 2s infinite; flex-shrink:0; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.5;transform:scale(0.8);} }
+  .nav-section { font-size:0.7rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-muted); margin-bottom:10px; margin-top:24px; padding-left:12px; }
+  .nav-link { display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:10px; color:var(--text-muted); text-decoration:none; font-size:0.9rem; transition:all 0.2s; margin-bottom:2px; }
+  .nav-link:hover { color:var(--white); background:rgba(124,58,237,0.1); }
+  .nav-link.active { color:var(--white); background:rgba(124,58,237,0.15); border:1px solid var(--border); }
+  .nav-icon { font-size:1rem; width:20px; text-align:center; }
+  .sidebar-bottom { margin-top:auto; border-top:1px solid var(--border); padding-top:20px; }
+  .user-pill { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:10px; cursor:none; transition:background 0.2s; }
+  .user-pill:hover { background:rgba(124,58,237,0.1); }
+  .user-avatar-sm { width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,var(--purple-bright),var(--accent)); display:flex; align-items:center; justify-content:center; font-size:0.9rem; flex-shrink:0; }
+  .user-name-sm { font-size:0.85rem; font-weight:500; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .logout-btn { background:none; border:none; color:var(--text-muted); cursor:none; font-size:1rem; padding:4px; transition:color 0.2s; flex-shrink:0; }
+  .logout-btn:hover { color:#ef4444; }
+
+  /* MAIN */
+  .main { margin-left:var(--sidebar-w); flex:1; padding:40px 48px; min-height:100vh; }
+  .page-header { margin-bottom:32px; }
+  .page-title { font-family:'Syne',sans-serif; font-weight:800; font-size:2rem; letter-spacing:-0.03em; }
+  .page-title span { background:linear-gradient(135deg,var(--purple-glow),var(--accent)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+  .page-sub { color:var(--text-muted); font-size:0.92rem; margin-top:6px; }
+
+  /* LOBBY */
+  .lobby { max-width: 680px; }
+
+  .card { background:var(--purple-deep); border:1px solid var(--border); border-radius:16px; padding:28px; margin-bottom:24px; }
+  .card-title { font-family:'Syne',sans-serif; font-weight:700; font-size:1rem; margin-bottom:20px; padding-bottom:14px; border-bottom:1px solid var(--border); }
+
+  /* QUICK START */
+  .room-row { display:flex; gap:12px; align-items:center; }
+  .room-input {
+    flex:1; background:rgba(124,58,237,0.06); border:1px solid var(--border); border-radius:12px;
+    padding:13px 16px; color:var(--white); font-family:'DM Sans',sans-serif; font-size:0.92rem;
+    outline:none; transition:border-color 0.2s;
+  }
+  .room-input::placeholder { color:var(--text-muted); }
+  .room-input:focus { border-color:var(--purple-bright); background:rgba(124,58,237,0.1); }
+  .btn-primary {
+    background:linear-gradient(135deg,var(--purple-bright),#a855f7); color:white; padding:13px 24px;
+    border-radius:12px; font-family:'DM Sans',sans-serif; font-size:0.92rem; font-weight:500;
+    border:none; cursor:none; transition:all 0.2s; box-shadow:0 5px 20px rgba(124,58,237,0.3); white-space:nowrap;
+  }
+  .btn-primary:hover { transform:translateY(-1px); box-shadow:0 8px 28px rgba(124,58,237,0.45); }
+
+  .or-divider { text-align:center; color:var(--text-muted); font-size:0.82rem; margin:16px 0; display:flex; align-items:center; gap:10px; }
+  .or-divider::before, .or-divider::after { content:''; flex:1; height:1px; background:var(--border); }
+
+  .btn-gen { background:rgba(124,58,237,0.1); border:1px solid var(--border); color:var(--purple-soft); padding:12px 20px; border-radius:12px; font-family:'DM Sans',sans-serif; font-size:0.88rem; cursor:none; transition:all 0.2s; width:100%; }
+  .btn-gen:hover { background:rgba(124,58,237,0.2); color:var(--white); }
+
+  /* MATCHES LIST */
+  .match-call-item {
+    display:flex; align-items:center; gap:14px; padding:12px; border-radius:12px;
+    border:1px solid var(--border); margin-bottom:10px; transition:all 0.2s; cursor:none;
+  }
+  .match-call-item:hover { border-color:rgba(124,58,237,0.4); background:rgba(124,58,237,0.06); }
+  .mc-avatar { width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.2rem; flex-shrink:0; border:2px solid var(--border); }
+  .mc-info { flex:1; }
+  .mc-name { font-weight:500; font-size:0.9rem; margin-bottom:2px; }
+  .mc-swap { font-size:0.78rem; color:var(--text-muted); }
+  .btn-call { background:linear-gradient(135deg,#16a34a,#22c55e); color:white; padding:8px 18px; border-radius:9px; font-family:'DM Sans',sans-serif; font-size:0.82rem; font-weight:500; border:none; cursor:none; transition:all 0.2s; box-shadow:0 3px 12px rgba(34,197,94,0.2); }
+  .btn-call:hover { transform:translateY(-1px); box-shadow:0 5px 16px rgba(34,197,94,0.35); }
+
+  /* TIPS */
+  .tips-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .tip { background:rgba(124,58,237,0.06); border:1px solid var(--border); border-radius:12px; padding:16px; display:flex; gap:12px; align-items:flex-start; }
+  .tip-icon { font-size:1.3rem; flex-shrink:0; }
+  .tip-text h4 { font-size:0.85rem; font-weight:500; margin-bottom:3px; }
+  .tip-text p { font-size:0.78rem; color:var(--text-muted); line-height:1.5; }
+
+  /* JITSI CONTAINER */
+  .call-container { display:none; position:fixed; top:0; left:var(--sidebar-w); right:0; bottom:0; z-index:200; background:var(--black); flex-direction:column; }
+  .call-container.active { display:flex; }
+  .call-top-bar { display:flex; align-items:center; gap:14px; padding:14px 24px; border-bottom:1px solid var(--border); flex-shrink:0; background:var(--purple-deep); }
+  .call-room-name { font-family:'Syne',sans-serif; font-weight:700; font-size:0.95rem; }
+  .call-status { font-size:0.78rem; color:#86efac; display:flex; align-items:center; gap:6px; }
+  .live-dot { width:7px; height:7px; background:#22c55e; border-radius:50%; animation:blink 1s infinite; }
+  @keyframes blink { 0%,100%{opacity:1;}50%{opacity:0.3;} }
+  .call-end-btn { margin-left:auto; background:#dc2626; color:white; padding:9px 20px; border-radius:10px; font-family:'DM Sans',sans-serif; font-size:0.85rem; font-weight:500; border:none; cursor:none; transition:all 0.2s; }
+  .call-end-btn:hover { background:#ef4444; }
+  #jitsiFrame { flex:1; width:100%; border:none; }
+
+  .empty-state { text-align:center; padding:36px 20px; color:var(--text-muted); }
+  .empty-icon { font-size:2rem; margin-bottom:10px; }
+  .empty-state p { font-size:0.85rem; }
+
+  .skel { background:linear-gradient(90deg,rgba(124,58,237,0.1) 25%,rgba(124,58,237,0.2) 50%,rgba(124,58,237,0.1) 75%); background-size:200% 100%; animation:shimmer 1.5s infinite; border-radius:8px; }
+  @keyframes shimmer { to{background-position:-200% 0;} }
+
+  .hamburger { display:none; }
+  @media (max-width:900px) {
+    .sidebar { transform:translateX(-100%); transition:transform 0.3s; }
+    .sidebar.open { transform:translateX(0); }
+    .main { margin-left:0; padding:24px 20px; padding-top:70px; }
+    .call-container { left:0; }
+    .hamburger { display:flex; position:fixed; top:16px; left:16px; z-index:200; background:var(--purple-deep); border:1px solid var(--border); border-radius:10px; padding:8px; cursor:none; color:var(--white); font-size:1.2rem; }
+    .tips-grid { grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+<button class="hamburger" onclick="toggleSidebar()">☰</button>
+
+<!-- JITSI CALL OVERLAY -->
+<div class="call-container" id="callContainer">
+  <div class="call-top-bar">
+    <div class="live-dot"></div>
+    <div class="call-room-name" id="callRoomLabel">Room</div>
+    <div class="call-status">Live</div>
+    <button class="call-end-btn" onclick="endCall()">✕ End Call</button>
+  </div>
+  <iframe id="jitsiFrame" src="" allow="camera; microphone; display-capture; autoplay; fullscreen"></iframe>
+</div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <a href="index.html" class="sidebar-logo"><div class="logo-dot"></div>SkillSwap</a>
+  <span class="nav-section">Main</span>
+  <a href="dashboard.html" class="nav-link"><span class="nav-icon">⚡</span> Dashboard</a>
+  <a href="profile.html" class="nav-link"><span class="nav-icon">👤</span> My Profile</a>
+  <a href="discover.html" class="nav-link"><span class="nav-icon">🔍</span> Discover</a>
+  <span class="nav-section">Social</span>
+  <a href="matches.html" class="nav-link"><span class="nav-icon">🤝</span> Matches</a>
+  <a href="messages.html" class="nav-link"><span class="nav-icon">💬</span> Messages</a>
+  <a href="videocall.html" class="nav-link active"><span class="nav-icon">🎥</span> Video Call</a>
+  <span class="nav-section">More</span>
+  <a href="webinars.html" class="nav-link"><span class="nav-icon">🎓</span> Webinars</a>
+  <a href="pricing.html" class="nav-link"><span class="nav-icon">✨</span> Upgrade</a>
+  <div class="sidebar-bottom">
+    <div class="user-pill">
+      <div class="user-avatar-sm" id="sidebarAvatar">?</div>
+      <span class="user-name-sm" id="sidebarName">Loading...</span>
+      <button class="logout-btn" onclick="handleLogout()">↪</button>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="page-header">
+    <h1 class="page-title">Video <span>Call</span></h1>
+    <p class="page-sub">Start a live session with your swap partner using Jitsi — no account needed.</p>
+  </div>
+
+  <div class="lobby">
+
+    <!-- QUICK START -->
+    <div class="card">
+      <div class="card-title">Start or Join a Room</div>
+      <div class="room-row">
+        <input class="room-input" id="roomInput" type="text" placeholder="Enter room name (e.g. skillswap-alexj)" />
+        <button class="btn-primary" onclick="joinRoom()">Join →</button>
+      </div>
+      <div class="or-divider">or</div>
+      <button class="btn-gen" onclick="generateRoom()">🎲 Generate a random room</button>
+    </div>
+
+    <!-- ACTIVE MATCHES -->
+    <div class="card">
+      <div class="card-title">Call a Match</div>
+      <div id="matchesList">
+        <div style="display:flex; gap:12px; padding:10px 0;">
+          <div class="skel" style="width:44px;height:44px;border-radius:50%;flex-shrink:0;"></div>
+          <div style="flex:1;"><div class="skel" style="height:14px;width:50%;margin-bottom:6px;"></div><div class="skel" style="height:11px;width:65%;"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TIPS -->
+    <div class="card">
+      <div class="card-title">Tips for a great session</div>
+      <div class="tips-grid">
+        <div class="tip">
+          <div class="tip-icon">📋</div>
+          <div class="tip-text">
+            <h4>Plan your session</h4>
+            <p>Agree on what to cover before the call. Send a quick message first.</p>
+          </div>
+        </div>
+        <div class="tip">
+          <div class="tip-icon">⏱️</div>
+          <div class="tip-text">
+            <h4>Keep it focused</h4>
+            <p>30–60 minute sessions tend to work best. Split time evenly.</p>
+          </div>
+        </div>
+        <div class="tip">
+          <div class="tip-icon">📝</div>
+          <div class="tip-text">
+            <h4>Take notes</h4>
+            <p>Jot down key takeaways during the session. Review them after.</p>
+          </div>
+        </div>
+        <div class="tip">
+          <div class="tip-icon">🔗</div>
+          <div class="tip-text">
+            <h4>Share the link</h4>
+            <p>Send the room link via Messages so your partner can join easily.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const { createClient } = supabase;
+const sb = createClient(
+  'https://vgndpvkywvcnezvjuueq.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZnbmRwdmt5d3ZjbmV6dmp1dWVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MDk5OTEsImV4cCI6MjA5MDA4NTk5MX0.GGwx_-W7pu485h3d6dgkhqSwiqxT3Hx02Ck9HW8nyE0'
+);
+
+// Cursor
+const cursor = document.getElementById('cursor');
+const ring = document.getElementById('cursorRing');
+let mouseX = 0, mouseY = 0, ringX = 0, ringY = 0;
+document.addEventListener('mousemove', e => {
+  mouseX = e.clientX; mouseY = e.clientY;
+  cursor.style.left = mouseX + 'px'; cursor.style.top = mouseY + 'px';
+});
+function animateRing() {
+  ringX += (mouseX - ringX) * 0.12; ringY += (mouseY - ringY) * 0.12;
+  ring.style.left = ringX + 'px'; ring.style.top = ringY + 'px';
+  requestAnimationFrame(animateRing);
+}
+animateRing();
+function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+
+let currentUserId = null;
+let myDisplayName = 'SkillSwapper';
+
+function sanitizeRoom(name) {
+  return name.trim().replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-_]/g, '').toLowerCase();
+}
+
+function generateRoom() {
+  const adjectives = ['bright','swift','cool','smart','happy','sharp','bold','calm'];
+  const nouns = ['panda','tiger','comet','pixel','storm','wave','spark','leaf'];
+  const rand = () => Math.floor(Math.random() * 1000);
+  const room = `skillswap-${adjectives[Math.floor(Math.random()*adjectives.length)]}-${nouns[Math.floor(Math.random()*nouns.length)]}-${rand()}`;
+  document.getElementById('roomInput').value = room;
+}
+
+function joinRoom() {
+  const raw = document.getElementById('roomInput').value;
+  const room = sanitizeRoom(raw);
+  if (!room) { alert('Please enter a room name.'); return; }
+  startCall(room);
+}
+
+function startCallWithPeer(peerName) {
+  const peerId = peerName.replace(/\s+/g, '-').toLowerCase();
+  const myId = myDisplayName.replace(/\s+/g, '-').toLowerCase();
+  // Deterministic room name from sorted IDs so both users land in the same room
+  const sorted = [peerId, myId].sort().join('--');
+  const room = `skillswap-${sorted}`;
+  document.getElementById('roomInput').value = room;
+  startCall(room);
+}
+
+function startCall(room) {
+  document.getElementById('callRoomLabel').textContent = room;
+  // Use meet.jit.si as the Jitsi server
+  const url = `https://meet.jit.si/${encodeURIComponent(room)}#userInfo.displayName="${encodeURIComponent(myDisplayName)}"&config.prejoinPageEnabled=false`;
+  document.getElementById('jitsiFrame').src = url;
+  document.getElementById('callContainer').classList.add('active');
+}
+
+function endCall() {
+  document.getElementById('jitsiFrame').src = '';
+  document.getElementById('callContainer').classList.remove('active');
+}
+
+async function handleLogout() {
+  await sb.auth.signOut();
+  window.location.href = 'login.html';
+}
+
+async function init() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = 'login.html'; return; }
+  currentUserId = session.user.id;
+
+  const { data: profile } = await sb.from('profiles').select('full_name, username, avatar_emoji').eq('id', currentUserId).single();
+  if (profile) {
+    myDisplayName = profile.full_name || profile.username || session.user.email.split('@')[0];
+    document.getElementById('sidebarName').textContent = myDisplayName;
+    document.getElementById('sidebarAvatar').textContent = profile.avatar_emoji || '👤';
+  }
+
+  // Load active matches
+  const { data: matchesA } = await sb.from('matches')
+    .select('*, profiles!matches_user_b_fkey(full_name, username, avatar_emoji, skills_offered, skills_wanted)')
+    .eq('user_a', currentUserId).eq('status', 'accepted');
+  const { data: matchesB } = await sb.from('matches')
+    .select('*, profiles!matches_user_a_fkey(full_name, username, avatar_emoji, skills_offered, skills_wanted)')
+    .eq('user_b', currentUserId).eq('status', 'accepted');
+
+  const matches = [...(matchesA || []), ...(matchesB || [])];
+  const list = document.getElementById('matchesList');
+
+  if (matches.length === 0) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">🤝</div><p>No active matches yet. Accept a swap request to enable calling.</p></div>`;
+    return;
+  }
+
+  list.innerHTML = matches.map(m => {
+    const peer = m.profiles;
+    const peerName = peer.full_name || peer.username || 'SkillSwapper';
+    const avatar = peer.avatar_emoji || '👤';
+    const offered = (peer.skills_offered || [])[0] || '?';
+    const wanted = (peer.skills_wanted || [])[0] || '?';
+    return `
+      <div class="match-call-item">
+        <div class="mc-avatar">${avatar}</div>
+        <div class="mc-info">
+          <div class="mc-name">${peerName}</div>
+          <div class="mc-swap">${offered} ↔ ${wanted}</div>
+        </div>
+        <button class="btn-call" onclick="startCallWithPeer('${peerName.replace(/'/g,"\\'")}')">🎥 Call</button>
+      </div>
+    `;
+  }).join('');
+}
+
+init();
+</script>
+</body>
+</html>
