@@ -40,7 +40,7 @@ A skill-exchange web platform where users list skills they offer and skills they
 |------|------|--------|
 | Landing | index.html | ✅ Frontend done, needs polish |
 | Sign Up | signup.html | ✅ Frontend done, Supabase auth working (creates profile) |
-| Login | login.html | ✅ Frontend done, auth working |
+| Login | login.html | ✅ Fixed — alert display bug patched, session guard added before redirect |
 | Dashboard | dashboard.html | ✅ Frontend done, pulls real Supabase data |
 | Profile | profile.html | ✅ Done — avatar picker, tag input, live preview, Supabase upsert |
 | Discover | discover.html | ✅ Done — search, filters, match scoring, swap request sending |
@@ -86,6 +86,20 @@ A skill-exchange web platform where users list skills they offer and skills they
 - Built `pricing.html`: Free/$9 Pro/$19 Creator tiers, monthly/annual billing toggle (20% off), FAQ accordion, current plan detection from `profiles.plan`
 - Built `webinars.html`: live/upcoming/recorded sections, host modal (Creator-gated), register/join/remind actions, Jitsi join for live sessions, demo fallback data
 - All pages share same sidebar nav, color system, font stack, custom cursor, and auth guard pattern
+
+### [Session 2 — 2026-04-01]
+- Fixed `login.html` signin bug: `showAlert` was relying on CSS class specificity to unhide the alert box — now sets `style.display = 'flex'` inline so errors always show
+- Fixed `hideAlert` to explicitly set `style.display = 'none'` to reset cleanly
+- Added `data.session` guard before `window.location.href = 'dashboard.html'` — Supabase v2 can return `{ session: null, error: null }` when email is unconfirmed; previously this caused a silent redirect loop back to login
+- All fixes committed and pushed to main (Vercel auto-deployed)
+
+## Known Issues / Next Steps
+- Payment integration (Lemon Squeezy / Paddle) not yet wired into `pricing.html` — `selectPlan()` shows a placeholder alert
+- `profiles` table may need `plan`, `location`, `website`, `hours_per_week`, `session_format`, `avatar_emoji`, `skills_offered`, `skills_wanted` columns confirmed in Supabase — verify schema matches what the pages expect
+- `webinars` table needs: `host_id`, `title`, `description`, `category`, `cover_emoji`, `scheduled_at`, `duration_minutes`, `max_attendees`, `jitsi_room`, `is_live`, `attendee_count`, `created_at`
+- `messages` table needs: `match_id`, `sender_id`, `content`, `created_at`
+- `matches` table needs: `user_a`, `user_b`, `status` (pending/accepted/declined/completed), `created_at`
+- Realtime must be enabled in Supabase dashboard for `messages` table (for live chat to work)
 ```
 
 ---
