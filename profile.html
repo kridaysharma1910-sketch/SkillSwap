@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SkillSwap — My Profile</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #05040a;
+    --purple-deep: #0d0a1a;
+    --purple-mid: #1a1035;
+    --purple-bright: #7c3aed;
+    --purple-glow: #9d5cff;
+    --purple-soft: #c4a8ff;
+    --accent: #ff6bff;
+    --white: #f0ecff;
+    --text-muted: #7a6d99;
+    --border: rgba(124, 58, 237, 0.2);
+    --error: #ef4444;
+    --success: #22c55e;
+    --sidebar-w: 240px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  .cursor {
+    position: fixed; width: 12px; height: 12px;
+    background: var(--purple-glow); border-radius: 50%;
+    pointer-events: none; z-index: 9999;
+    transform: translate(-50%, -50%);
+    transition: width 0.2s, height 0.2s; mix-blend-mode: screen;
+  }
+  .cursor-ring {
+    position: fixed; width: 36px; height: 36px;
+    border: 1px solid rgba(157, 92, 255, 0.5); border-radius: 50%;
+    pointer-events: none; z-index: 9998;
+    transform: translate(-50%, -50%); transition: transform 0.15s ease;
+  }
+
+  /* SIDEBAR — identical to dashboard */
+  .sidebar {
+    width: var(--sidebar-w); min-height: 100vh;
+    background: var(--purple-deep); border-right: 1px solid var(--border);
+    display: flex; flex-direction: column; padding: 28px 20px;
+    position: fixed; left: 0; top: 0; z-index: 100;
+  }
+  .sidebar-logo {
+    font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.3rem;
+    color: var(--white); text-decoration: none; display: flex;
+    align-items: center; gap: 10px; margin-bottom: 40px;
+  }
+  .logo-dot {
+    width: 8px; height: 8px; background: var(--accent); border-radius: 50%;
+    box-shadow: 0 0 10px var(--accent); animation: pulse 2s infinite; flex-shrink: 0;
+  }
+  @keyframes pulse { 0%, 100% { opacity:1; transform:scale(1); } 50% { opacity:0.5; transform:scale(0.8); } }
+
+  .nav-section {
+    font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--text-muted); margin-bottom: 10px; margin-top: 24px; padding-left: 12px;
+  }
+  .nav-link {
+    display: flex; align-items: center; gap: 12px; padding: 10px 12px;
+    border-radius: 10px; color: var(--text-muted); text-decoration: none;
+    font-size: 0.9rem; font-weight: 400; transition: all 0.2s; margin-bottom: 2px;
+  }
+  .nav-link:hover { color: var(--white); background: rgba(124,58,237,0.1); }
+  .nav-link.active { color: var(--white); background: rgba(124,58,237,0.15); border: 1px solid var(--border); }
+  .nav-icon { font-size: 1rem; width: 20px; text-align: center; }
+
+  .sidebar-bottom { margin-top: auto; border-top: 1px solid var(--border); padding-top: 20px; }
+  .user-pill { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; cursor: none; transition: background 0.2s; }
+  .user-pill:hover { background: rgba(124,58,237,0.1); }
+  .user-avatar-sm {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--purple-bright), var(--accent));
+    display: flex; align-items: center; justify-content: center; font-size: 0.9rem; flex-shrink: 0;
+  }
+  .user-name-sm { font-size: 0.85rem; font-weight: 500; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .logout-btn { background: none; border: none; color: var(--text-muted); cursor: none; font-size: 1rem; padding: 4px; transition: color 0.2s; flex-shrink: 0; }
+  .logout-btn:hover { color: #ef4444; }
+
+  /* MAIN */
+  .main { margin-left: var(--sidebar-w); flex: 1; padding: 40px 48px; min-height: 100vh; }
+
+  .page-header { margin-bottom: 36px; }
+  .page-title {
+    font-family: 'Syne', sans-serif; font-weight: 800; font-size: 2rem; letter-spacing: -0.03em;
+  }
+  .page-title span {
+    background: linear-gradient(135deg, var(--purple-glow), var(--accent));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .page-sub { color: var(--text-muted); font-size: 0.92rem; margin-top: 6px; }
+
+  /* CARD */
+  .card {
+    background: var(--purple-deep); border: 1px solid var(--border); border-radius: 16px; padding: 28px;
+    margin-bottom: 24px;
+  }
+  .card-title {
+    font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1rem; margin-bottom: 24px;
+    padding-bottom: 16px; border-bottom: 1px solid var(--border);
+  }
+
+  /* AVATAR PICKER */
+  .avatar-section { display: flex; align-items: center; gap: 24px; margin-bottom: 28px; }
+  .big-avatar {
+    width: 80px; height: 80px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--purple-bright), var(--accent));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2.2rem; flex-shrink: 0; position: relative; cursor: none;
+    border: 2px solid var(--border); transition: border-color 0.2s;
+  }
+  .big-avatar:hover { border-color: var(--purple-bright); }
+  .avatar-info h3 { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.95rem; margin-bottom: 4px; }
+  .avatar-info p { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 12px; }
+  .emoji-picker {
+    display: flex; gap: 8px; flex-wrap: wrap;
+  }
+  .emoji-opt {
+    width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--border);
+    background: rgba(124,58,237,0.06); cursor: none; font-size: 1.1rem;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+  }
+  .emoji-opt:hover { background: rgba(124,58,237,0.2); border-color: var(--purple-bright); }
+  .emoji-opt.selected { background: rgba(124,58,237,0.25); border-color: var(--purple-bright); box-shadow: 0 0 0 2px rgba(124,58,237,0.3); }
+
+  /* FORM FIELDS */
+  .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .field { margin-bottom: 20px; }
+  .field label { display: block; font-size: 0.82rem; color: var(--text-muted); margin-bottom: 8px; letter-spacing: 0.02em; }
+  .field input, .field textarea, .field select {
+    width: 100%; background: rgba(124,58,237,0.06); border: 1px solid var(--border);
+    border-radius: 12px; padding: 13px 16px; color: var(--white);
+    font-family: 'DM Sans', sans-serif; font-size: 0.92rem; outline: none;
+    transition: border-color 0.2s, background 0.2s; resize: none;
+  }
+  .field input::placeholder, .field textarea::placeholder { color: var(--text-muted); }
+  .field input:focus, .field textarea:focus, .field select:focus {
+    border-color: var(--purple-bright); background: rgba(124,58,237,0.1);
+  }
+  .field select option { background: var(--purple-mid); }
+  .field-hint { font-size: 0.78rem; color: var(--text-muted); margin-top: 6px; }
+  .char-count { font-size: 0.75rem; color: var(--text-muted); text-align: right; margin-top: 4px; }
+
+  /* TAG INPUT */
+  .tag-input-wrap {
+    min-height: 48px; background: rgba(124,58,237,0.06); border: 1px solid var(--border);
+    border-radius: 12px; padding: 8px 12px; display: flex; flex-wrap: wrap; gap: 6px;
+    align-items: center; cursor: text; transition: border-color 0.2s;
+  }
+  .tag-input-wrap:focus-within { border-color: var(--purple-bright); background: rgba(124,58,237,0.1); }
+  .tag-chip {
+    display: flex; align-items: center; gap: 6px;
+    background: rgba(124,58,237,0.2); border: 1px solid rgba(124,58,237,0.35);
+    color: var(--purple-soft); padding: 4px 10px 4px 12px; border-radius: 100px; font-size: 0.8rem;
+  }
+  .tag-chip.want {
+    background: rgba(255,107,255,0.12); border-color: rgba(255,107,255,0.3); color: #f0b8ff;
+  }
+  .tag-chip button {
+    background: none; border: none; color: inherit; cursor: none; font-size: 0.9rem;
+    line-height: 1; padding: 0; opacity: 0.6; transition: opacity 0.2s;
+  }
+  .tag-chip button:hover { opacity: 1; }
+  .tag-real-input {
+    background: none; border: none; outline: none; color: var(--white);
+    font-family: 'DM Sans', sans-serif; font-size: 0.88rem; min-width: 120px; flex: 1; cursor: none;
+  }
+  .tag-real-input::placeholder { color: var(--text-muted); font-size: 0.82rem; }
+  .tag-hint { font-size: 0.78rem; color: var(--text-muted); margin-top: 6px; }
+
+  /* ALERT */
+  .alert {
+    padding: 13px 18px; border-radius: 12px; font-size: 0.88rem; margin-bottom: 20px;
+    animation: fadeUp 0.3s ease; display: none;
+  }
+  .alert.error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #fca5a5; display: flex; gap: 8px; }
+  .alert.success { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); color: #86efac; display: flex; gap: 8px; }
+
+  /* BUTTONS */
+  .btn-primary {
+    background: linear-gradient(135deg, var(--purple-bright), #a855f7);
+    color: white; padding: 13px 28px; border-radius: 12px;
+    font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 500;
+    border: none; cursor: none; transition: all 0.3s;
+    box-shadow: 0 6px 24px rgba(124,58,237,0.3); position: relative; overflow: hidden;
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 32px rgba(124,58,237,0.45); }
+  .btn-primary:disabled { opacity: 0.5; transform: none; }
+  .btn-primary.loading::after {
+    content: ''; position: absolute; top: 50%; left: 50%;
+    width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: white; border-radius: 50%; transform: translate(-50%, -50%);
+    animation: spin 0.8s linear infinite;
+  }
+  .btn-primary.loading span { opacity: 0; }
+  @keyframes spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
+
+  /* PUBLIC PROFILE PREVIEW */
+  .profile-preview {
+    background: linear-gradient(135deg, rgba(124,58,237,0.1), rgba(255,107,255,0.05));
+    border: 1px solid var(--border); border-radius: 16px; padding: 28px;
+    margin-bottom: 24px;
+  }
+  .preview-header {
+    display: flex; align-items: center; gap: 18px; margin-bottom: 20px;
+  }
+  .preview-avatar {
+    width: 64px; height: 64px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--purple-bright), var(--accent));
+    display: flex; align-items: center; justify-content: center; font-size: 1.8rem;
+    border: 2px solid rgba(124,58,237,0.4);
+  }
+  .preview-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.1rem; margin-bottom: 4px; }
+  .preview-location { font-size: 0.82rem; color: var(--text-muted); }
+  .preview-bio { font-size: 0.9rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 16px; }
+  .preview-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 8px; }
+  .skill-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+  .skill-tag {
+    background: rgba(124,58,237,0.1); border: 1px solid var(--border); color: var(--purple-soft);
+    padding: 5px 13px; border-radius: 100px; font-size: 0.8rem;
+  }
+  .skill-tag.want { background: rgba(255,107,255,0.08); border-color: rgba(255,107,255,0.25); color: #f0b8ff; }
+  .preview-tag { font-size: 0.7rem; color: var(--text-muted); text-align: center; margin-top: 4px; }
+
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* MOBILE */
+  .hamburger { display: none; }
+  @media (max-width: 900px) {
+    .sidebar { transform: translateX(-100%); transition: transform 0.3s; }
+    .sidebar.open { transform: translateX(0); }
+    .main { margin-left: 0; padding: 24px 20px; padding-top: 70px; }
+    .hamburger {
+      display: flex; position: fixed; top: 16px; left: 16px; z-index: 200;
+      background: var(--purple-deep); border: 1px solid var(--border); border-radius: 10px;
+      padding: 8px; cursor: none; color: var(--white); font-size: 1.2rem;
+    }
+    .field-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<button class="hamburger" id="hamburger" onclick="toggleSidebar()">☰</button>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <a href="index.html" class="sidebar-logo">
+    <div class="logo-dot"></div>
+    SkillSwap
+  </a>
+
+  <span class="nav-section">Main</span>
+  <a href="dashboard.html" class="nav-link">
+    <span class="nav-icon">⚡</span> Dashboard
+  </a>
+  <a href="profile.html" class="nav-link active">
+    <span class="nav-icon">👤</span> My Profile
+  </a>
+  <a href="discover.html" class="nav-link">
+    <span class="nav-icon">🔍</span> Discover
+  </a>
+
+  <span class="nav-section">Social</span>
+  <a href="matches.html" class="nav-link">
+    <span class="nav-icon">🤝</span> Matches
+  </a>
+  <a href="messages.html" class="nav-link">
+    <span class="nav-icon">💬</span> Messages
+  </a>
+  <a href="videocall.html" class="nav-link">
+    <span class="nav-icon">🎥</span> Video Call
+  </a>
+
+  <span class="nav-section">More</span>
+  <a href="webinars.html" class="nav-link">
+    <span class="nav-icon">🎓</span> Webinars
+  </a>
+  <a href="pricing.html" class="nav-link">
+    <span class="nav-icon">✨</span> Upgrade
+  </a>
+
+  <div class="sidebar-bottom">
+    <div class="user-pill">
+      <div class="user-avatar-sm" id="sidebarAvatar">?</div>
+      <span class="user-name-sm" id="sidebarName">Loading...</span>
+      <button class="logout-btn" onclick="handleLogout()" title="Sign out">↪</button>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+
+  <div class="page-header">
+    <h1 class="page-title">My <span>Profile</span></h1>
+    <p class="page-sub">Your public profile — this is what other users see when they find you.</p>
+  </div>
+
+  <div class="alert" id="alertBox"></div>
+
+  <!-- LIVE PREVIEW -->
+  <div class="profile-preview">
+    <div style="font-size:0.78rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-muted); margin-bottom:14px;">Preview — How others see you</div>
+    <div class="preview-header">
+      <div class="preview-avatar" id="previewAvatar">?</div>
+      <div>
+        <div class="preview-name" id="previewName">Your Name</div>
+        <div class="preview-location" id="previewLocation">Location</div>
+      </div>
+    </div>
+    <p class="preview-bio" id="previewBio">Your bio will appear here.</p>
+    <div class="preview-label">Offers</div>
+    <div class="skill-tags" id="previewOffered"><span style="color:var(--text-muted);font-size:0.82rem;">No skills yet</span></div>
+    <div class="preview-label">Wants to learn</div>
+    <div class="skill-tags" id="previewWanted"><span style="color:var(--text-muted);font-size:0.82rem;">No skills yet</span></div>
+  </div>
+
+  <!-- AVATAR -->
+  <div class="card">
+    <div class="card-title">Avatar</div>
+    <div class="avatar-section">
+      <div class="big-avatar" id="bigAvatar">?</div>
+      <div class="avatar-info">
+        <h3>Choose your emoji avatar</h3>
+        <p>Pick an emoji that represents you or your top skill.</p>
+        <div class="emoji-picker" id="emojiPicker">
+          <!-- filled by JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BASIC INFO -->
+  <div class="card">
+    <div class="card-title">Basic Info</div>
+    <div class="field-grid">
+      <div class="field">
+        <label>Full Name</label>
+        <input type="text" id="fullName" placeholder="Alex Johnson" maxlength="60" oninput="onNameInput()" />
+      </div>
+      <div class="field">
+        <label>Username</label>
+        <input type="text" id="username" placeholder="alexj" maxlength="30" oninput="onUsernameInput()" />
+        <div class="field-hint">Letters, numbers and underscores only.</div>
+      </div>
+      <div class="field">
+        <label>Location <span style="color:var(--text-muted);font-size:0.78rem;">(optional)</span></label>
+        <input type="text" id="location" placeholder="New York, US" maxlength="60" oninput="onLocationInput()" />
+      </div>
+      <div class="field">
+        <label>Website <span style="color:var(--text-muted);font-size:0.78rem;">(optional)</span></label>
+        <input type="url" id="website" placeholder="https://yoursite.com" />
+      </div>
+    </div>
+    <div class="field">
+      <label>Bio</label>
+      <textarea id="bio" rows="3" placeholder="Tell the community a bit about yourself and your background..." maxlength="280" oninput="onBioInput()"></textarea>
+      <div class="char-count"><span id="bioCount">0</span>/280</div>
+    </div>
+  </div>
+
+  <!-- SKILLS -->
+  <div class="card">
+    <div class="card-title">Skills I Can Teach</div>
+    <div class="field">
+      <label>What can you offer to others?</label>
+      <div class="tag-input-wrap" id="offeredWrap" onclick="document.getElementById('offeredInput').focus()">
+        <input class="tag-real-input" id="offeredInput" placeholder="Type a skill and press Enter…" />
+      </div>
+      <div class="tag-hint">e.g. Python, Guitar, Spanish, Photoshop, Excel — Press Enter or comma to add</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Skills I Want to Learn</div>
+    <div class="field">
+      <label>What are you looking to learn?</label>
+      <div class="tag-input-wrap" id="wantedWrap" onclick="document.getElementById('wantedInput').focus()">
+        <input class="tag-real-input" id="wantedInput" placeholder="Type a skill and press Enter…" />
+      </div>
+      <div class="tag-hint">e.g. React, Piano, French, Photography — Press Enter or comma to add</div>
+    </div>
+  </div>
+
+  <!-- AVAILABILITY -->
+  <div class="card">
+    <div class="card-title">Availability</div>
+    <div class="field-grid">
+      <div class="field">
+        <label>Hours per week</label>
+        <select id="hoursPerWeek">
+          <option value="">Select…</option>
+          <option value="1-2">1–2 hours</option>
+          <option value="3-5">3–5 hours</option>
+          <option value="5-10">5–10 hours</option>
+          <option value="10+">10+ hours</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Preferred session format</label>
+        <select id="sessionFormat">
+          <option value="">Select…</option>
+          <option value="video">Video call</option>
+          <option value="text">Text / async</option>
+          <option value="both">Both</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- SAVE -->
+  <div style="display:flex; align-items:center; gap:16px; margin-bottom:40px;">
+    <button class="btn-primary" id="saveBtn" onclick="saveProfile()">
+      <span>Save Profile</span>
+    </button>
+    <a href="dashboard.html" style="color:var(--text-muted); font-size:0.9rem; text-decoration:none; transition:color 0.2s;" onmouseover="this.style.color='var(--white)'" onmouseout="this.style.color='var(--text-muted)'">← Back to Dashboard</a>
+  </div>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const { createClient } = supabase;
+const sb = createClient(
+  'https://vgndpvkywvcnezvjuueq.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZnbmRwdmt5d3ZjbmV6dmp1dWVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MDk5OTEsImV4cCI6MjA5MDA4NTk5MX0.GGwx_-W7pu485h3d6dgkhqSwiqxT3Hx02Ck9HW8nyE0'
+);
+
+// Cursor
+const cursor = document.getElementById('cursor');
+const ring = document.getElementById('cursorRing');
+let mouseX = 0, mouseY = 0, ringX = 0, ringY = 0;
+document.addEventListener('mousemove', e => {
+  mouseX = e.clientX; mouseY = e.clientY;
+  cursor.style.left = mouseX + 'px'; cursor.style.top = mouseY + 'px';
+});
+function animateRing() {
+  ringX += (mouseX - ringX) * 0.12; ringY += (mouseY - ringY) * 0.12;
+  ring.style.left = ringX + 'px'; ring.style.top = ringY + 'px';
+  requestAnimationFrame(animateRing);
+}
+animateRing();
+
+function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+
+// State
+let selectedEmoji = '👤';
+let offeredSkills = [];
+let wantedSkills = [];
+let currentUserId = null;
+
+const EMOJIS = ['👤','🎨','🎸','💻','🌍','📸','✍️','🎤','🎯','🎓','💡','🔬','🍳','📚','🎭','🏋️','🎮','🌱','🎵','✨'];
+
+// Build emoji picker
+function buildEmojiPicker() {
+  const picker = document.getElementById('emojiPicker');
+  picker.innerHTML = EMOJIS.map(e =>
+    `<button class="emoji-opt${e === selectedEmoji ? ' selected' : ''}" onclick="selectEmoji('${e}')">${e}</button>`
+  ).join('');
+}
+
+function selectEmoji(e) {
+  selectedEmoji = e;
+  document.getElementById('bigAvatar').textContent = e;
+  document.getElementById('previewAvatar').textContent = e;
+  document.querySelectorAll('.emoji-opt').forEach(btn => btn.classList.toggle('selected', btn.textContent === e));
+}
+
+// Live preview
+function onNameInput() {
+  const v = document.getElementById('fullName').value || 'Your Name';
+  document.getElementById('previewName').textContent = v;
+}
+function onLocationInput() {
+  const v = document.getElementById('location').value || 'Location';
+  document.getElementById('previewLocation').textContent = v;
+}
+function onBioInput() {
+  const v = document.getElementById('bio').value;
+  document.getElementById('bioCount').textContent = v.length;
+  document.getElementById('previewBio').textContent = v || 'Your bio will appear here.';
+}
+function onUsernameInput() {
+  const el = document.getElementById('username');
+  el.value = el.value.replace(/[^a-zA-Z0-9_]/g, '').toLowerCase();
+}
+
+function renderPreviewSkills() {
+  const offEl = document.getElementById('previewOffered');
+  const wntEl = document.getElementById('previewWanted');
+  offEl.innerHTML = offeredSkills.length
+    ? offeredSkills.map(s => `<span class="skill-tag">${s}</span>`).join('')
+    : '<span style="color:var(--text-muted);font-size:0.82rem;">No skills yet</span>';
+  wntEl.innerHTML = wantedSkills.length
+    ? wantedSkills.map(s => `<span class="skill-tag want">${s}</span>`).join('')
+    : '<span style="color:var(--text-muted);font-size:0.82rem;">No skills yet</span>';
+}
+
+// Tag input logic
+function renderTags(type) {
+  const wrap = document.getElementById(type === 'offered' ? 'offeredWrap' : 'wantedWrap');
+  const inputId = type === 'offered' ? 'offeredInput' : 'wantedInput';
+  const skills = type === 'offered' ? offeredSkills : wantedSkills;
+  const cls = type === 'offered' ? '' : ' want';
+
+  // Remove existing chips
+  wrap.querySelectorAll('.tag-chip').forEach(c => c.remove());
+
+  const input = document.getElementById(inputId);
+  const chips = skills.map((s, i) => {
+    const chip = document.createElement('span');
+    chip.className = 'tag-chip' + cls;
+    chip.innerHTML = `${s}<button onclick="removeSkill('${type}',${i})">×</button>`;
+    return chip;
+  });
+
+  chips.forEach(c => wrap.insertBefore(c, input));
+  renderPreviewSkills();
+}
+
+function addSkill(type, value) {
+  const v = value.trim().replace(/,+$/, '');
+  if (!v || v.length < 2) return;
+  const arr = type === 'offered' ? offeredSkills : wantedSkills;
+  if (arr.includes(v) || arr.length >= 15) return;
+  if (type === 'offered') offeredSkills.push(v);
+  else wantedSkills.push(v);
+  renderTags(type);
+}
+
+function removeSkill(type, index) {
+  if (type === 'offered') offeredSkills.splice(index, 1);
+  else wantedSkills.splice(index, 1);
+  renderTags(type);
+}
+
+function setupTagInput(inputId, type) {
+  const input = document.getElementById(inputId);
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      addSkill(type, input.value);
+      input.value = '';
+    } else if (e.key === 'Backspace' && !input.value) {
+      const arr = type === 'offered' ? offeredSkills : wantedSkills;
+      if (arr.length > 0) {
+        arr.pop();
+        renderTags(type);
+      }
+    }
+  });
+  input.addEventListener('blur', () => {
+    if (input.value.trim()) { addSkill(type, input.value); input.value = ''; }
+  });
+}
+
+// Alert
+function showAlert(type, msg) {
+  const el = document.getElementById('alertBox');
+  el.className = 'alert ' + type;
+  el.textContent = msg;
+  el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  if (type === 'success') setTimeout(() => { el.className = 'alert'; }, 4000);
+}
+
+// Save
+async function saveProfile() {
+  const btn = document.getElementById('saveBtn');
+  btn.disabled = true;
+  btn.classList.add('loading');
+
+  const fullName = document.getElementById('fullName').value.trim();
+  const username = document.getElementById('username').value.trim();
+  const bio = document.getElementById('bio').value.trim();
+  const location = document.getElementById('location').value.trim();
+  const website = document.getElementById('website').value.trim();
+  const hoursPerWeek = document.getElementById('hoursPerWeek').value;
+  const sessionFormat = document.getElementById('sessionFormat').value;
+
+  if (!fullName) {
+    btn.disabled = false; btn.classList.remove('loading');
+    return showAlert('error', 'Please enter your full name.');
+  }
+
+  const { error } = await sb.from('profiles').upsert({
+    id: currentUserId,
+    full_name: fullName,
+    username: username || null,
+    bio: bio || null,
+    location: location || null,
+    website: website || null,
+    avatar_emoji: selectedEmoji,
+    skills_offered: offeredSkills,
+    skills_wanted: wantedSkills,
+    hours_per_week: hoursPerWeek || null,
+    session_format: sessionFormat || null,
+    updated_at: new Date().toISOString()
+  });
+
+  btn.disabled = false;
+  btn.classList.remove('loading');
+
+  if (error) return showAlert('error', error.message);
+  showAlert('success', '✓ Profile saved successfully!');
+
+  // Update sidebar
+  document.getElementById('sidebarName').textContent = fullName;
+  document.getElementById('sidebarAvatar').textContent = selectedEmoji;
+}
+
+// Load existing profile & init
+async function init() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = 'login.html'; return; }
+
+  currentUserId = session.user.id;
+  buildEmojiPicker();
+  setupTagInput('offeredInput', 'offered');
+  setupTagInput('wantedInput', 'wanted');
+
+  const { data: profile } = await sb.from('profiles').select('*').eq('id', currentUserId).single();
+
+  if (profile) {
+    // Populate fields
+    document.getElementById('fullName').value = profile.full_name || '';
+    document.getElementById('username').value = profile.username || '';
+    document.getElementById('bio').value = profile.bio || '';
+    document.getElementById('location').value = profile.location || '';
+    document.getElementById('website').value = profile.website || '';
+    if (profile.hours_per_week) document.getElementById('hoursPerWeek').value = profile.hours_per_week;
+    if (profile.session_format) document.getElementById('sessionFormat').value = profile.session_format;
+
+    // Avatar
+    if (profile.avatar_emoji) { selectedEmoji = profile.avatar_emoji; buildEmojiPicker(); }
+    document.getElementById('bigAvatar').textContent = selectedEmoji;
+    document.getElementById('previewAvatar').textContent = selectedEmoji;
+
+    // Skills
+    offeredSkills = Array.isArray(profile.skills_offered) ? [...profile.skills_offered] : [];
+    wantedSkills = Array.isArray(profile.skills_wanted) ? [...profile.skills_wanted] : [];
+    renderTags('offered');
+    renderTags('wanted');
+
+    // Preview
+    onNameInput(); onLocationInput(); onBioInput();
+
+    // Sidebar
+    const name = profile.full_name || profile.username || session.user.email.split('@')[0];
+    document.getElementById('sidebarName').textContent = name;
+    document.getElementById('sidebarAvatar').textContent = selectedEmoji;
+  } else {
+    document.getElementById('bigAvatar').textContent = selectedEmoji;
+    document.getElementById('previewAvatar').textContent = selectedEmoji;
+    const name = session.user.email.split('@')[0];
+    document.getElementById('sidebarName').textContent = name;
+    document.getElementById('sidebarAvatar').textContent = selectedEmoji;
+  }
+}
+
+async function handleLogout() {
+  await sb.auth.signOut();
+  window.location.href = 'login.html';
+}
+
+init();
+</script>
+</body>
+</html>
