@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SkillSwap — Messages</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #05040a; --purple-deep: #0d0a1a; --purple-mid: #1a1035;
+    --purple-bright: #7c3aed; --purple-glow: #9d5cff; --purple-soft: #c4a8ff;
+    --accent: #ff6bff; --white: #f0ecff; --text-muted: #7a6d99;
+    --border: rgba(124, 58, 237, 0.2); --sidebar-w: 240px;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { height:100%; }
+  body { background:var(--black); color:var(--white); font-family:'DM Sans',sans-serif; display:flex; overflow:hidden; cursor:none; }
+  .cursor { position:fixed; width:12px; height:12px; background:var(--purple-glow); border-radius:50%; pointer-events:none; z-index:9999; transform:translate(-50%,-50%); mix-blend-mode:screen; }
+  .cursor-ring { position:fixed; width:36px; height:36px; border:1px solid rgba(157,92,255,0.5); border-radius:50%; pointer-events:none; z-index:9998; transform:translate(-50%,-50%); transition:transform 0.15s ease; }
+
+  /* SIDEBAR */
+  .sidebar { width:var(--sidebar-w); height:100vh; background:var(--purple-deep); border-right:1px solid var(--border); display:flex; flex-direction:column; padding:28px 20px; position:fixed; left:0; top:0; z-index:100; }
+  .sidebar-logo { font-family:'Syne',sans-serif; font-weight:800; font-size:1.3rem; color:var(--white); text-decoration:none; display:flex; align-items:center; gap:10px; margin-bottom:40px; }
+  .logo-dot { width:8px; height:8px; background:var(--accent); border-radius:50%; box-shadow:0 0 10px var(--accent); animation:pulse 2s infinite; flex-shrink:0; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.5;transform:scale(0.8);} }
+  .nav-section { font-size:0.7rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-muted); margin-bottom:10px; margin-top:24px; padding-left:12px; }
+  .nav-link { display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:10px; color:var(--text-muted); text-decoration:none; font-size:0.9rem; transition:all 0.2s; margin-bottom:2px; }
+  .nav-link:hover { color:var(--white); background:rgba(124,58,237,0.1); }
+  .nav-link.active { color:var(--white); background:rgba(124,58,237,0.15); border:1px solid var(--border); }
+  .nav-icon { font-size:1rem; width:20px; text-align:center; }
+  .sidebar-bottom { margin-top:auto; border-top:1px solid var(--border); padding-top:20px; }
+  .user-pill { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:10px; cursor:none; transition:background 0.2s; }
+  .user-pill:hover { background:rgba(124,58,237,0.1); }
+  .user-avatar-sm { width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,var(--purple-bright),var(--accent)); display:flex; align-items:center; justify-content:center; font-size:0.9rem; flex-shrink:0; }
+  .user-name-sm { font-size:0.85rem; font-weight:500; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .logout-btn { background:none; border:none; color:var(--text-muted); cursor:none; font-size:1rem; padding:4px; transition:color 0.2s; flex-shrink:0; }
+  .logout-btn:hover { color:#ef4444; }
+
+  /* CHAT LAYOUT */
+  .chat-layout { margin-left:var(--sidebar-w); flex:1; display:flex; height:100vh; overflow:hidden; }
+
+  /* CONVERSATIONS LIST */
+  .convos-panel {
+    width:300px; min-width:300px; border-right:1px solid var(--border);
+    display:flex; flex-direction:column; height:100vh; overflow:hidden;
+  }
+  .convos-header {
+    padding:24px 20px 16px; border-bottom:1px solid var(--border); flex-shrink:0;
+  }
+  .convos-title { font-family:'Syne',sans-serif; font-weight:700; font-size:1.1rem; margin-bottom:12px; }
+  .search-convos {
+    width:100%; background:rgba(124,58,237,0.06); border:1px solid var(--border);
+    border-radius:10px; padding:9px 14px; color:var(--white); font-family:'DM Sans',sans-serif;
+    font-size:0.85rem; outline:none; transition:border-color 0.2s;
+  }
+  .search-convos::placeholder { color:var(--text-muted); }
+  .search-convos:focus { border-color:var(--purple-bright); }
+
+  .convos-list { flex:1; overflow-y:auto; padding:8px; }
+  .convos-list::-webkit-scrollbar { width:4px; }
+  .convos-list::-webkit-scrollbar-track { background:transparent; }
+  .convos-list::-webkit-scrollbar-thumb { background:rgba(124,58,237,0.3); border-radius:2px; }
+
+  .convo-item {
+    display:flex; align-items:center; gap:12px; padding:12px; border-radius:12px;
+    cursor:none; transition:background 0.2s; position:relative;
+  }
+  .convo-item:hover { background:rgba(124,58,237,0.08); }
+  .convo-item.active { background:rgba(124,58,237,0.15); border:1px solid var(--border); }
+  .convo-avatar { width:42px; height:42px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.2rem; flex-shrink:0; border:2px solid var(--border); }
+  .convo-info { flex:1; min-width:0; }
+  .convo-name { font-weight:500; font-size:0.88rem; margin-bottom:2px; }
+  .convo-preview { font-size:0.78rem; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .convo-time { font-size:0.72rem; color:var(--text-muted); flex-shrink:0; }
+  .unread-dot { position:absolute; top:12px; right:12px; width:8px; height:8px; background:var(--accent); border-radius:50%; box-shadow:0 0 6px var(--accent); }
+
+  /* CHAT WINDOW */
+  .chat-panel { flex:1; display:flex; flex-direction:column; height:100vh; overflow:hidden; }
+
+  /* CHAT HEADER */
+  .chat-header {
+    padding:16px 24px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:14px; flex-shrink:0;
+    background:var(--black);
+  }
+  .chat-peer-avatar { width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.1rem; border:2px solid var(--border); flex-shrink:0; }
+  .chat-peer-info { flex:1; }
+  .chat-peer-name { font-family:'Syne',sans-serif; font-weight:700; font-size:0.95rem; }
+  .chat-peer-sub { font-size:0.78rem; color:var(--text-muted); }
+  .chat-header-actions { display:flex; gap:8px; }
+  .icon-btn { background:rgba(124,58,237,0.1); border:1px solid var(--border); color:var(--purple-soft); width:36px; height:36px; border-radius:9px; cursor:none; transition:all 0.2s; display:flex; align-items:center; justify-content:center; font-size:1rem; text-decoration:none; }
+  .icon-btn:hover { background:rgba(124,58,237,0.2); color:var(--white); }
+
+  /* MESSAGES AREA */
+  .messages-area { flex:1; overflow-y:auto; padding:24px; display:flex; flex-direction:column; gap:12px; }
+  .messages-area::-webkit-scrollbar { width:4px; }
+  .messages-area::-webkit-scrollbar-thumb { background:rgba(124,58,237,0.3); border-radius:2px; }
+
+  .msg-row { display:flex; gap:10px; max-width:72%; }
+  .msg-row.mine { align-self:flex-end; flex-direction:row-reverse; }
+  .msg-avatar-sm { width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.85rem; flex-shrink:0; align-self:flex-end; border:1px solid var(--border); }
+  .msg-bubble {
+    padding:10px 16px; border-radius:16px; font-size:0.88rem; line-height:1.5; max-width:100%;
+    word-break:break-word;
+  }
+  .msg-row:not(.mine) .msg-bubble {
+    background:rgba(124,58,237,0.1); border:1px solid var(--border); border-bottom-left-radius:4px; color:var(--white);
+  }
+  .msg-row.mine .msg-bubble {
+    background:linear-gradient(135deg,var(--purple-bright),#a855f7); border-bottom-right-radius:4px; color:white;
+    box-shadow:0 3px 12px rgba(124,58,237,0.3);
+  }
+  .msg-time { font-size:0.7rem; color:var(--text-muted); margin-top:4px; display:block; }
+  .msg-row.mine .msg-time { text-align:right; }
+
+  .date-divider { text-align:center; font-size:0.75rem; color:var(--text-muted); padding:8px 0; position:relative; }
+  .date-divider::before { content:''; position:absolute; top:50%; left:0; right:0; height:1px; background:var(--border); z-index:0; }
+  .date-divider span { background:var(--black); padding:0 12px; position:relative; z-index:1; }
+
+  /* INPUT */
+  .chat-input-area { padding:16px 24px; border-top:1px solid var(--border); display:flex; gap:10px; align-items:flex-end; flex-shrink:0; background:var(--black); }
+  .msg-input {
+    flex:1; background:rgba(124,58,237,0.06); border:1px solid var(--border); border-radius:14px;
+    padding:12px 16px; color:var(--white); font-family:'DM Sans',sans-serif; font-size:0.9rem;
+    outline:none; resize:none; max-height:120px; transition:border-color 0.2s;
+    line-height:1.5;
+  }
+  .msg-input::placeholder { color:var(--text-muted); }
+  .msg-input:focus { border-color:var(--purple-bright); background:rgba(124,58,237,0.1); }
+  .send-btn {
+    background:linear-gradient(135deg,var(--purple-bright),#a855f7); color:white;
+    width:44px; height:44px; border-radius:12px; border:none; cursor:none;
+    display:flex; align-items:center; justify-content:center; font-size:1.1rem;
+    transition:all 0.2s; box-shadow:0 4px 14px rgba(124,58,237,0.35); flex-shrink:0;
+  }
+  .send-btn:hover { transform:scale(1.05); box-shadow:0 6px 20px rgba(124,58,237,0.5); }
+  .send-btn:disabled { opacity:0.4; transform:none; }
+
+  /* EMPTY CHAT STATE */
+  .no-chat { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; color:var(--text-muted); text-align:center; padding:40px; }
+  .no-chat-icon { font-size:3rem; margin-bottom:16px; }
+  .no-chat h3 { font-family:'Syne',sans-serif; font-weight:700; font-size:1.1rem; color:var(--white); margin-bottom:8px; }
+  .no-chat p { font-size:0.88rem; max-width:280px; }
+
+  /* EMPTY CONVOS */
+  .empty-convos { padding:40px 16px; text-align:center; color:var(--text-muted); }
+  .empty-convos .icon { font-size:2rem; margin-bottom:10px; }
+  .empty-convos p { font-size:0.82rem; margin-bottom:14px; }
+  .btn-sm { display:inline-block; background:linear-gradient(135deg,var(--purple-bright),#a855f7); color:white; padding:9px 20px; border-radius:10px; font-family:'DM Sans',sans-serif; font-size:0.84rem; font-weight:500; text-decoration:none; border:none; cursor:none; transition:all 0.2s; }
+  .btn-sm:hover { transform:translateY(-1px); }
+
+  /* SKELETON */
+  .skel { background:linear-gradient(90deg,rgba(124,58,237,0.1) 25%,rgba(124,58,237,0.2) 50%,rgba(124,58,237,0.1) 75%); background-size:200% 100%; animation:shimmer 1.5s infinite; border-radius:8px; }
+  @keyframes shimmer { to{background-position:-200% 0;} }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);} }
+
+  .hamburger { display:none; }
+  @media (max-width:900px) {
+    .sidebar { transform:translateX(-100%); transition:transform 0.3s; }
+    .sidebar.open { transform:translateX(0); }
+    .chat-layout { margin-left:0; }
+    .convos-panel { width:100%; min-width:0; }
+    .chat-panel { display:none; }
+    .chat-panel.visible { display:flex; position:fixed; left:0; top:0; width:100%; z-index:50; background:var(--black); }
+    .hamburger { display:flex; position:fixed; top:16px; left:16px; z-index:200; background:var(--purple-deep); border:1px solid var(--border); border-radius:10px; padding:8px; cursor:none; color:var(--white); font-size:1.2rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+<button class="hamburger" onclick="toggleSidebar()">☰</button>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <a href="index.html" class="sidebar-logo"><div class="logo-dot"></div>SkillSwap</a>
+  <span class="nav-section">Main</span>
+  <a href="dashboard.html" class="nav-link"><span class="nav-icon">⚡</span> Dashboard</a>
+  <a href="profile.html" class="nav-link"><span class="nav-icon">👤</span> My Profile</a>
+  <a href="discover.html" class="nav-link"><span class="nav-icon">🔍</span> Discover</a>
+  <span class="nav-section">Social</span>
+  <a href="matches.html" class="nav-link"><span class="nav-icon">🤝</span> Matches</a>
+  <a href="messages.html" class="nav-link active"><span class="nav-icon">💬</span> Messages</a>
+  <a href="videocall.html" class="nav-link"><span class="nav-icon">🎥</span> Video Call</a>
+  <span class="nav-section">More</span>
+  <a href="webinars.html" class="nav-link"><span class="nav-icon">🎓</span> Webinars</a>
+  <a href="pricing.html" class="nav-link"><span class="nav-icon">✨</span> Upgrade</a>
+  <div class="sidebar-bottom">
+    <div class="user-pill">
+      <div class="user-avatar-sm" id="sidebarAvatar">?</div>
+      <span class="user-name-sm" id="sidebarName">Loading...</span>
+      <button class="logout-btn" onclick="handleLogout()">↪</button>
+    </div>
+  </div>
+</aside>
+
+<!-- CHAT LAYOUT -->
+<div class="chat-layout">
+
+  <!-- CONVERSATIONS PANEL -->
+  <div class="convos-panel">
+    <div class="convos-header">
+      <div class="convos-title">Messages</div>
+      <input class="search-convos" id="searchConvos" type="text" placeholder="Search conversations…" oninput="filterConvos()" />
+    </div>
+    <div class="convos-list" id="convosList">
+      <!-- skeleton -->
+      <div style="padding:12px; display:flex; gap:12px; align-items:center;">
+        <div class="skel" style="width:42px;height:42px;border-radius:50%;flex-shrink:0;"></div>
+        <div style="flex:1;"><div class="skel" style="height:13px;width:60%;margin-bottom:6px;"></div><div class="skel" style="height:10px;width:80%;"></div></div>
+      </div>
+      <div style="padding:12px; display:flex; gap:12px; align-items:center;">
+        <div class="skel" style="width:42px;height:42px;border-radius:50%;flex-shrink:0;"></div>
+        <div style="flex:1;"><div class="skel" style="height:13px;width:55%;margin-bottom:6px;"></div><div class="skel" style="height:10px;width:70%;"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHAT PANEL -->
+  <div class="chat-panel" id="chatPanel">
+    <div class="no-chat" id="noChatState">
+      <div class="no-chat-icon">💬</div>
+      <h3>Select a conversation</h3>
+      <p>Choose a match from the left to start chatting.</p>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const { createClient } = supabase;
+const sb = createClient(
+  'https://vgndpvkywvcnezvjuueq.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZnbmRwdmt5d3ZjbmV6dmp1dWVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MDk5OTEsImV4cCI6MjA5MDA4NTk5MX0.GGwx_-W7pu485h3d6dgkhqSwiqxT3Hx02Ck9HW8nyE0'
+);
+
+// Cursor
+const cursor = document.getElementById('cursor');
+const ring = document.getElementById('cursorRing');
+let mouseX = 0, mouseY = 0, ringX = 0, ringY = 0;
+document.addEventListener('mousemove', e => {
+  mouseX = e.clientX; mouseY = e.clientY;
+  cursor.style.left = mouseX + 'px'; cursor.style.top = mouseY + 'px';
+});
+function animateRing() {
+  ringX += (mouseX - ringX) * 0.12; ringY += (mouseY - ringY) * 0.12;
+  ring.style.left = ringX + 'px'; ring.style.top = ringY + 'px';
+  requestAnimationFrame(animateRing);
+}
+animateRing();
+function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+
+let currentUserId = null;
+let myAvatar = '👤';
+let myName = '';
+let allConvos = [];
+let activeMatchId = null;
+let activeMatchData = null;
+let realtimeSub = null;
+
+function relativeTime(iso) {
+  const d = new Date(iso);
+  const diff = Date.now() - d.getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return 'Just now';
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+function formatMsgTime(iso) {
+  return new Date(iso).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+}
+
+function formatDateDivider(iso) {
+  const d = new Date(iso);
+  const today = new Date();
+  const yesterday = new Date(today); yesterday.setDate(yesterday.getDate() - 1);
+  if (d.toDateString() === today.toDateString()) return 'Today';
+  if (d.toDateString() === yesterday.toDateString()) return 'Yesterday';
+  return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+}
+
+// Render conversations list
+function renderConvosList(convos) {
+  const list = document.getElementById('convosList');
+  if (convos.length === 0) {
+    list.innerHTML = `
+      <div class="empty-convos">
+        <div class="icon">🤝</div>
+        <p>No active matches yet. Accept a swap request to start chatting.</p>
+        <a href="matches.html" class="btn-sm">View Matches</a>
+      </div>`;
+    return;
+  }
+  list.innerHTML = convos.map(c => {
+    const peer = c.peer;
+    const peerName = peer.full_name || peer.username || 'SkillSwapper';
+    const avatar = peer.avatar_emoji || '👤';
+    const lastMsg = c.lastMessage;
+    const preview = lastMsg
+      ? (lastMsg.sender_id === currentUserId ? `You: ${lastMsg.content}` : lastMsg.content)
+      : 'No messages yet. Say hi!';
+    const time = lastMsg ? relativeTime(lastMsg.created_at) : '';
+    const isActive = activeMatchId === c.match.id;
+
+    return `
+      <div class="convo-item${isActive ? ' active' : ''}" id="convo-${c.match.id}" onclick="openConvo('${c.match.id}')">
+        <div class="convo-avatar">${avatar}</div>
+        <div class="convo-info">
+          <div class="convo-name">${peerName}</div>
+          <div class="convo-preview">${preview.substring(0, 50)}${preview.length > 50 ? '…' : ''}</div>
+        </div>
+        <span class="convo-time">${time}</span>
+      </div>
+    `;
+  }).join('');
+}
+
+function filterConvos() {
+  const q = document.getElementById('searchConvos').value.toLowerCase();
+  const filtered = allConvos.filter(c => {
+    const name = ((c.peer.full_name || c.peer.username) || '').toLowerCase();
+    return name.includes(q);
+  });
+  renderConvosList(filtered);
+}
+
+// Open a conversation
+async function openConvo(matchId) {
+  activeMatchId = matchId;
+  const convo = allConvos.find(c => c.match.id === matchId);
+  if (!convo) return;
+  activeMatchData = convo;
+
+  // Update active state in list
+  document.querySelectorAll('.convo-item').forEach(el => el.classList.remove('active'));
+  const el = document.getElementById('convo-' + matchId);
+  if (el) el.classList.add('active');
+
+  // Unsubscribe previous
+  if (realtimeSub) { sb.removeChannel(realtimeSub); realtimeSub = null; }
+
+  // Build chat panel
+  const peer = convo.peer;
+  const peerName = peer.full_name || peer.username || 'SkillSwapper';
+  const peerAvatar = peer.avatar_emoji || '👤';
+  const swapLine = [(peer.skills_offered || [])[0], (peer.skills_wanted || [])[0]].filter(Boolean).join(' ↔ ') || 'Skill swap';
+
+  const panel = document.getElementById('chatPanel');
+  panel.innerHTML = `
+    <div class="chat-header">
+      <div class="chat-peer-avatar">${peerAvatar}</div>
+      <div class="chat-peer-info">
+        <div class="chat-peer-name">${peerName}</div>
+        <div class="chat-peer-sub">${swapLine}</div>
+      </div>
+      <div class="chat-header-actions">
+        <a class="icon-btn" href="videocall.html" title="Start video call">🎥</a>
+        <a class="icon-btn" href="matches.html" title="View match">🤝</a>
+      </div>
+    </div>
+    <div class="messages-area" id="messagesArea"></div>
+    <div class="chat-input-area">
+      <textarea class="msg-input" id="msgInput" rows="1" placeholder="Type a message…" oninput="autoResize(this)"></textarea>
+      <button class="send-btn" id="sendBtn" onclick="sendMessage()">➤</button>
+    </div>
+  `;
+
+  // Enter to send (shift+enter = newline)
+  document.getElementById('msgInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  });
+
+  await loadMessages(matchId);
+  subscribeToMessages(matchId);
+
+  // Mobile: show chat panel
+  panel.classList.add('visible');
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+async function loadMessages(matchId) {
+  const area = document.getElementById('messagesArea');
+  if (!area) return;
+
+  const { data: msgs, error } = await sb.from('messages')
+    .select('*')
+    .eq('match_id', matchId)
+    .order('created_at', { ascending: true });
+
+  if (error || !msgs) return;
+
+  renderMessages(msgs);
+  scrollToBottom();
+}
+
+function renderMessages(msgs) {
+  const area = document.getElementById('messagesArea');
+  if (!area) return;
+
+  if (msgs.length === 0) {
+    area.innerHTML = `
+      <div style="margin:auto; text-align:center; color:var(--text-muted); padding:40px 20px;">
+        <div style="font-size:2rem; margin-bottom:12px;">👋</div>
+        <div style="font-size:0.88rem;">No messages yet. Break the ice!</div>
+      </div>`;
+    return;
+  }
+
+  let html = '';
+  let lastDate = '';
+
+  msgs.forEach(m => {
+    const dateStr = formatDateDivider(m.created_at);
+    if (dateStr !== lastDate) {
+      html += `<div class="date-divider"><span>${dateStr}</span></div>`;
+      lastDate = dateStr;
+    }
+
+    const isMine = m.sender_id === currentUserId;
+    const peerAvatar = activeMatchData?.peer?.avatar_emoji || '👤';
+    const avatarToShow = isMine ? myAvatar : peerAvatar;
+
+    html += `
+      <div class="msg-row${isMine ? ' mine' : ''}">
+        <div class="msg-avatar-sm">${avatarToShow}</div>
+        <div>
+          <div class="msg-bubble">${escHtml(m.content)}</div>
+          <span class="msg-time">${formatMsgTime(m.created_at)}</span>
+        </div>
+      </div>`;
+  });
+
+  area.innerHTML = html;
+}
+
+function escHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function scrollToBottom() {
+  const area = document.getElementById('messagesArea');
+  if (area) area.scrollTop = area.scrollHeight;
+}
+
+function subscribeToMessages(matchId) {
+  realtimeSub = sb.channel('messages-' + matchId)
+    .on('postgres_changes', {
+      event: 'INSERT', schema: 'public', table: 'messages',
+      filter: `match_id=eq.${matchId}`
+    }, async () => {
+      await loadMessages(matchId);
+      scrollToBottom();
+      // Update last message preview
+      await refreshConvos();
+    })
+    .subscribe();
+}
+
+async function sendMessage() {
+  const input = document.getElementById('msgInput');
+  const btn = document.getElementById('sendBtn');
+  if (!input || !activeMatchId) return;
+
+  const content = input.value.trim();
+  if (!content) return;
+
+  btn.disabled = true;
+  input.value = '';
+  input.style.height = 'auto';
+
+  const { error } = await sb.from('messages').insert({
+    match_id: activeMatchId,
+    sender_id: currentUserId,
+    content: content,
+    created_at: new Date().toISOString()
+  });
+
+  btn.disabled = false;
+  if (error) { input.value = content; console.error(error); }
+}
+
+async function refreshConvos() {
+  // Re-fetch last messages for all convos
+  for (const c of allConvos) {
+    const { data } = await sb.from('messages')
+      .select('*').eq('match_id', c.match.id)
+      .order('created_at', { ascending: false }).limit(1).maybeSingle();
+    c.lastMessage = data || null;
+  }
+  // Sort by last message time
+  allConvos.sort((a, b) => {
+    const ta = a.lastMessage ? new Date(a.lastMessage.created_at) : new Date(a.match.created_at);
+    const tb = b.lastMessage ? new Date(b.lastMessage.created_at) : new Date(b.match.created_at);
+    return tb - ta;
+  });
+  renderConvosList(allConvos);
+}
+
+async function handleLogout() {
+  await sb.auth.signOut();
+  window.location.href = 'login.html';
+}
+
+async function init() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = 'login.html'; return; }
+  currentUserId = session.user.id;
+
+  const { data: profile } = await sb.from('profiles').select('full_name, username, avatar_emoji').eq('id', currentUserId).single();
+  if (profile) {
+    myName = profile.full_name || profile.username || session.user.email.split('@')[0];
+    myAvatar = profile.avatar_emoji || '👤';
+    document.getElementById('sidebarName').textContent = myName;
+    document.getElementById('sidebarAvatar').textContent = myAvatar;
+  }
+
+  // Load accepted matches
+  const { data: matchesA } = await sb.from('matches')
+    .select('*, profiles!matches_user_b_fkey(full_name, username, avatar_emoji, skills_offered, skills_wanted)')
+    .eq('user_a', currentUserId).eq('status', 'accepted');
+  const { data: matchesB } = await sb.from('matches')
+    .select('*, profiles!matches_user_a_fkey(full_name, username, avatar_emoji, skills_offered, skills_wanted)')
+    .eq('user_b', currentUserId).eq('status', 'accepted');
+
+  const convos = [];
+
+  for (const m of (matchesA || [])) {
+    const { data: lastMsg } = await sb.from('messages').select('*').eq('match_id', m.id).order('created_at', { ascending: false }).limit(1).maybeSingle();
+    convos.push({ match: m, peer: m.profiles, lastMessage: lastMsg || null });
+  }
+  for (const m of (matchesB || [])) {
+    const { data: lastMsg } = await sb.from('messages').select('*').eq('match_id', m.id).order('created_at', { ascending: false }).limit(1).maybeSingle();
+    convos.push({ match: m, peer: m.profiles, lastMessage: lastMsg || null });
+  }
+
+  convos.sort((a, b) => {
+    const ta = a.lastMessage ? new Date(a.lastMessage.created_at) : new Date(a.match.created_at);
+    const tb = b.lastMessage ? new Date(b.lastMessage.created_at) : new Date(b.match.created_at);
+    return tb - ta;
+  });
+
+  allConvos = convos;
+  renderConvosList(allConvos);
+
+  // Auto-open first convo if exists
+  if (allConvos.length > 0) openConvo(allConvos[0].match.id);
+}
+
+init();
+</script>
+</body>
+</html>
