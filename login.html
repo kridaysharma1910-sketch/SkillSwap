@@ -511,9 +511,12 @@ function showAlert(id, type, msg) {
   const el = document.getElementById(id);
   el.className = 'alert ' + type;
   el.textContent = msg;
+  el.style.display = 'flex';
 }
 function hideAlert(id) {
-  document.getElementById(id).className = 'alert';
+  const el = document.getElementById(id);
+  el.className = 'alert';
+  el.style.display = 'none';
 }
 
 // Views
@@ -545,6 +548,10 @@ async function handleLogin() {
   btn.classList.remove('loading');
 
   if (error) return showAlert('alertBox', 'error', error.message);
+
+  if (!data.session) {
+    return showAlert('alertBox', 'error', 'Login failed — please confirm your email and try again.');
+  }
 
   window.location.href = 'dashboard.html';
 }
