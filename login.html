@@ -809,8 +809,8 @@ async function handleLogin() {
   btn.classList.remove('loading');
 
   if (error) {
-    console.log('Login error:', error);
-    return showAlert('alertBox', 'error', error.message);
+    console.error('Login error:', error);
+    return showAlert('alertBox', 'error', 'Invalid email or password.');
   }
 
   if (data.user) {
