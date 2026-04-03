@@ -4,704 +4,909 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SkillSwap — Create Account</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --black: #05040a;
-    --purple-deep: #0d0a1a;
-    --purple-mid: #1a1035;
-    --purple-bright: #7c3aed;
-    --purple-glow: #9d5cff;
-    --purple-soft: #c4a8ff;
-    --accent: #ff6bff;
-    --white: #f0ecff;
-    --text-muted: #7a6d99;
-    --border: rgba(124, 58, 237, 0.2);
-    --success: #22c55e;
-    --error: #ef4444;
-  }
+/* ===== DESIGN SYSTEM ===== */
+:root {
+  --bg: #080808;
+  --bg-card: rgba(255,255,255,0.03);
+  --border: rgba(255,255,255,0.08);
+  --border-hover: rgba(139,92,246,0.3);
+  --text-muted: rgba(255,255,255,0.32);
+  --accent-v: rgba(139,92,246,1);
+  --accent-v-soft: rgba(167,139,250,0.65);
+  --accent-c-soft: rgba(103,232,249,0.6);
+  /* legacy vars kept so existing JS inline styles resolve */
+  --purple-bright: #7c3aed;
+  --purple-soft: rgba(167,139,250,0.8);
+  --white: #ffffff;
+  --success: #22c55e;
+  --error: #ef4444;
+}
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
 
-  body {
-    background: var(--black);
-    color: var(--white);
-    font-family: 'DM Sans', sans-serif;
-    min-height: 100vh;
-    display: flex;
-    overflow-x: hidden;
-    cursor: none;
-  }
+body {
+  background: #080808;
+  color: #fff;
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+  cursor: none;
+}
 
-  /* Cursor */
-  .cursor {
-    position: fixed;
-    width: 12px; height: 12px;
-    background: var(--purple-glow);
-    border-radius: 50%;
-    pointer-events: none;
-    z-index: 9999;
-    transform: translate(-50%, -50%);
-    transition: width 0.2s, height 0.2s, background 0.2s;
-    mix-blend-mode: screen;
-  }
-  .cursor-ring {
-    position: fixed;
-    width: 36px; height: 36px;
-    border: 1px solid rgba(157, 92, 255, 0.5);
-    border-radius: 50%;
-    pointer-events: none;
-    z-index: 9998;
-    transform: translate(-50%, -50%);
-    transition: transform 0.15s ease;
-  }
+/* ===== HIDE LEGACY CURSOR ===== */
+.cursor, .cursor-ring { display: none !important; }
 
-  /* LEFT PANEL */
-  .left-panel {
-    width: 45%;
-    background: var(--purple-mid);
-    position: relative;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    padding: 60px;
-  }
-  .left-panel::before {
-    content: '';
-    position: absolute;
-    top: -200px; left: -200px;
-    width: 600px; height: 600px;
-    background: radial-gradient(circle, rgba(124,58,237,0.3) 0%, transparent 70%);
-    pointer-events: none;
-  }
-  .left-panel::after {
-    content: '';
-    position: absolute;
-    bottom: -100px; right: -100px;
-    width: 400px; height: 400px;
-    background: radial-gradient(circle, rgba(255,107,255,0.15) 0%, transparent 70%);
-    pointer-events: none;
-  }
+/* ===== NEW CURSOR ===== */
+#ss-cursor {
+  position: fixed;
+  width: 10px; height: 10px;
+  background: #fff;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%,-50%);
+  mix-blend-mode: difference;
+  transition: width .15s, height .15s;
+}
+#ss-ring {
+  position: fixed;
+  width: 34px; height: 34px;
+  border: 1px solid rgba(255,255,255,0.35);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9998;
+  transform: translate(-50%,-50%);
+  transition: width .1s, height .1s, border-color .2s;
+}
 
-  .panel-logo {
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: 1.4rem;
-    color: var(--white);
-    text-decoration: none;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 80px;
-    position: relative;
-    z-index: 1;
-  }
-  .logo-dot {
-    width: 8px; height: 8px;
-    background: var(--accent);
-    border-radius: 50%;
-    box-shadow: 0 0 10px var(--accent);
-    animation: pulse 2s infinite;
-  }
-  @keyframes pulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.5; transform: scale(0.8); }
-  }
+/* ===== NOISE ===== */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+  opacity: 0.018;
+  pointer-events: none;
+  z-index: 9990;
+}
 
-  .panel-heading {
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: 2.8rem;
-    line-height: 1.1;
-    letter-spacing: -0.03em;
-    margin-bottom: 20px;
-    position: relative;
-    z-index: 1;
-  }
-  .panel-heading span {
-    background: linear-gradient(135deg, var(--purple-glow), var(--accent));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
+/* ===== ANIMATIONS ===== */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes popIn {
+  from { transform: scale(0); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+@keyframes tagIn {
+  from { transform: scale(0.8); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+@keyframes spin {
+  to { transform: translate(-50%,-50%) rotate(360deg); }
+}
+@keyframes ssPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.5; transform: scale(0.75); }
+}
+@keyframes ssFloat {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-5px); }
+}
 
-  .panel-sub {
-    color: var(--text-muted);
-    font-size: 1rem;
-    line-height: 1.7;
-    max-width: 340px;
-    margin-bottom: 60px;
-    position: relative;
-    z-index: 1;
-  }
+/* ===== NAVBAR ===== */
+#ss-nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  height: 57px;
+  padding: 0 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(8,8,8,0.94);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  flex-shrink: 0;
+}
+.ss-nav-logo {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 1.2rem;
+  letter-spacing: -0.02em;
+  color: #fff;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.ss-nav-logo::before {
+  content: '';
+  display: inline-block;
+  width: 9px; height: 9px;
+  background: #fff;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.ss-nav-right {
+  font-size: 13px;
+  color: rgba(255,255,255,0.28);
+  font-family: 'DM Sans', sans-serif;
+}
+.ss-nav-right a {
+  color: rgba(255,255,255,0.7);
+  text-decoration: none;
+  transition: color 0.2s;
+  font-weight: 500;
+}
+.ss-nav-right a:hover { color: #fff; }
 
-  .perks {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    position: relative;
-    z-index: 1;
-  }
-  .perk {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    color: var(--purple-soft);
-    font-size: 0.95rem;
-  }
-  .perk-icon {
-    width: 36px; height: 36px;
-    background: rgba(124,58,237,0.2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1rem;
-    flex-shrink: 0;
-  }
+/* ===== LAYOUT GRID ===== */
+.ss-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: calc(100vh - 57px);
+  flex: 1;
+}
 
-  /* RIGHT PANEL */
-  .right-panel {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 60px 80px;
-    position: relative;
-  }
-  .right-panel::before {
-    content: '';
-    position: absolute;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    width: 500px; height: 500px;
-    background: radial-gradient(circle, rgba(124,58,237,0.05) 0%, transparent 70%);
-    pointer-events: none;
-  }
+/* ===== LEFT PANEL ===== */
+.left-panel {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 60px 56px;
+  border-right: 1px solid rgba(255,255,255,0.06);
+  background: #080808;
+}
+.left-panel::before,
+.left-panel::after { display: none !important; }
 
-  .form-container {
-    width: 100%;
-    max-width: 420px;
-    position: relative;
-    z-index: 1;
-  }
+.ss-orb-violet {
+  position: absolute;
+  top: -120px; left: -120px;
+  width: 480px; height: 480px;
+  background: radial-gradient(circle, rgba(139,92,246,0.09) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+.ss-orb-cyan {
+  position: absolute;
+  bottom: -80px; right: -80px;
+  width: 360px; height: 360px;
+  background: radial-gradient(circle, rgba(34,211,238,0.06) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+#ss-globe-signup {
+  position: absolute;
+  bottom: -60px; right: -60px;
+  opacity: 0.7;
+  pointer-events: none;
+  z-index: 0;
+}
+.ss-left-inner {
+  position: relative;
+  z-index: 1;
+}
 
-  .form-title {
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 1.8rem;
-    margin-bottom: 8px;
-    letter-spacing: -0.02em;
-  }
-  .form-subtitle {
-    color: var(--text-muted);
-    font-size: 0.95rem;
-    margin-bottom: 40px;
-  }
-  .form-subtitle a {
-    color: var(--purple-soft);
-    text-decoration: none;
-    transition: color 0.2s;
-  }
-  .form-subtitle a:hover { color: var(--accent); }
+/* Badge */
+.ss-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 100px;
+  padding: 6px 16px;
+  backdrop-filter: blur(10px);
+  font-size: 12px;
+  color: rgba(255,255,255,0.45);
+  letter-spacing: 0.04em;
+  margin-bottom: 28px;
+  width: fit-content;
+}
+.ss-badge-dot {
+  width: 6px; height: 6px;
+  background: rgba(139,92,246,0.9);
+  border-radius: 50%;
+  flex-shrink: 0;
+  animation: ssPulse 2s ease-in-out infinite;
+}
 
-  /* Steps */
-  .steps {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 36px;
-  }
-  .step-bar {
-    height: 3px;
-    flex: 1;
-    background: rgba(124,58,237,0.15);
-    border-radius: 10px;
-    transition: background 0.4s;
-  }
-  .step-bar.active { background: var(--purple-bright); }
-  .step-bar.done { background: var(--accent); }
+/* Left heading */
+.ss-left-heading {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: clamp(2rem, 3.2vw, 2.8rem);
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+  margin-bottom: 16px;
+  color: #fff;
+}
+.ss-outline {
+  display: block;
+  -webkit-text-stroke: 1.5px rgba(255,255,255,0.25);
+  -webkit-text-fill-color: transparent;
+}
+.ss-left-sub {
+  font-size: 14px;
+  color: rgba(255,255,255,0.32);
+  line-height: 1.65;
+  max-width: 340px;
+  margin-bottom: 36px;
+}
 
-  .step-label {
-    font-size: 0.78rem;
-    color: var(--text-muted);
-    margin-bottom: 24px;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-  }
-  .step-label span { color: var(--purple-soft); }
+/* ===== SOCIAL PROOF CARDS ===== */
+.ss-proof-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.ss-proof-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+  backdrop-filter: blur(12px);
+  padding: 16px 18px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.3s;
+  animation: ssFloat 4s ease-in-out infinite;
+}
+.ss-proof-card:nth-child(2) { animation-delay: -2s; }
+.ss-proof-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(139,92,246,0.6), transparent);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.ss-proof-card:hover { border-color: rgba(139,92,246,0.3); }
+.ss-proof-card:hover::before { opacity: 1; }
+.ss-proof-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.ss-proof-avatar {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: 'Syne', sans-serif;
+  flex-shrink: 0;
+}
+.ss-proof-avatar.violet {
+  background: rgba(139,92,246,0.18);
+  border: 1px solid rgba(139,92,246,0.3);
+  color: rgba(167,139,250,0.9);
+}
+.ss-proof-avatar.cyan {
+  background: rgba(34,211,238,0.1);
+  border: 1px solid rgba(34,211,238,0.22);
+  color: rgba(103,232,249,0.9);
+}
+.ss-proof-info { flex: 1; min-width: 0; }
+.ss-proof-name { font-size: 13px; font-weight: 500; color: #fff; }
+.ss-proof-swap { font-size: 11px; color: rgba(255,255,255,0.28); margin-top: 1px; }
+.ss-proof-tag {
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border-radius: 100px;
+  border: 1px solid;
+  font-family: 'DM Sans', sans-serif;
+  flex-shrink: 0;
+}
+.ss-proof-tag.violet { color: rgba(167,139,250,0.8); border-color: rgba(139,92,246,0.35); }
+.ss-proof-tag.cyan   { color: rgba(103,232,249,0.8); border-color: rgba(34,211,238,0.3); }
+.ss-proof-quote {
+  font-size: 12px;
+  color: rgba(255,255,255,0.28);
+  line-height: 1.5;
+  font-style: italic;
+}
 
-  /* Form fields */
-  .field {
-    margin-bottom: 20px;
-  }
-  .field label {
-    display: block;
-    font-size: 0.85rem;
-    color: var(--text-muted);
-    margin-bottom: 8px;
-    letter-spacing: 0.02em;
-  }
-  .field input, .field select, .field textarea {
-    width: 100%;
-    background: rgba(124,58,237,0.06);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 14px 18px;
-    color: var(--white);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.95rem;
-    outline: none;
-    transition: border-color 0.2s, background 0.2s;
-    -webkit-appearance: none;
-  }
-  .field input::placeholder, .field textarea::placeholder {
-    color: var(--text-muted);
-  }
-  .field input:focus, .field select:focus, .field textarea:focus {
-    border-color: var(--purple-bright);
-    background: rgba(124,58,237,0.1);
-  }
-  .field input.error { border-color: var(--error); }
-  .field select option { background: var(--purple-deep); color: var(--white); }
-  .field textarea { resize: none; height: 80px; }
+/* ===== RIGHT PANEL ===== */
+.right-panel {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 60px 56px;
+  background: #080808;
+  overflow-y: auto;
+}
+.right-panel::before { display: none !important; }
 
-  .field-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 14px;
-  }
+.form-container {
+  width: 100%;
+  max-width: 400px;
+  position: relative;
+  z-index: 1;
+}
 
-  /* Password strength */
-  .password-wrapper { position: relative; }
-  .password-toggle {
-    position: absolute;
-    right: 16px; top: 50%;
-    transform: translateY(-50%);
-    background: none;
-    border: none;
-    color: var(--text-muted);
-    cursor: none;
-    font-size: 1.1rem;
-    padding: 0;
-    transition: color 0.2s;
-  }
-  .password-toggle:hover { color: var(--white); }
+/* ===== FORM HEADER ===== */
+.form-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 1.75rem;
+  margin-bottom: 6px;
+  letter-spacing: -0.03em;
+  color: #fff;
+}
+.form-subtitle {
+  color: rgba(255,255,255,0.28);
+  font-size: 13px;
+  margin-bottom: 28px;
+  font-family: 'DM Sans', sans-serif;
+}
+.form-subtitle a {
+  color: rgba(255,255,255,0.65);
+  text-decoration: none;
+  transition: color 0.2s;
+  font-weight: 500;
+}
+.form-subtitle a:hover { color: #fff; }
 
-  .strength-bar {
-    display: flex;
-    gap: 4px;
-    margin-top: 8px;
-  }
-  .strength-seg {
-    height: 3px;
-    flex: 1;
-    background: rgba(124,58,237,0.15);
-    border-radius: 10px;
-    transition: background 0.3s;
-  }
+/* ===== STEP BARS ===== */
+.steps {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+.step-bar {
+  height: 2px;
+  flex: 1;
+  background: rgba(255,255,255,0.07);
+  border-radius: 10px;
+  transition: background 0.4s;
+}
+.step-bar.active { background: rgba(139,92,246,0.8); }
+.step-bar.done   { background: rgba(255,255,255,0.4); }
 
-  /* Skills tags */
-  .skills-input-wrap {
-    background: rgba(124,58,237,0.06);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 10px 14px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    cursor: text;
-    min-height: 52px;
-    transition: border-color 0.2s;
-  }
-  .skills-input-wrap:focus-within { border-color: var(--purple-bright); }
-  .skill-tag {
-    background: rgba(124,58,237,0.2);
-    border: 1px solid rgba(124,58,237,0.3);
-    color: var(--purple-soft);
-    padding: 4px 10px;
-    border-radius: 100px;
-    font-size: 0.8rem;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    animation: tagIn 0.2s ease;
-  }
-  @keyframes tagIn {
-    from { transform: scale(0.8); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
-  }
-  .skill-tag button {
-    background: none;
-    border: none;
-    color: var(--text-muted);
-    cursor: none;
-    font-size: 0.9rem;
-    padding: 0;
-    line-height: 1;
-    transition: color 0.2s;
-  }
-  .skill-tag button:hover { color: var(--accent); }
-  .skills-input-wrap input {
-    background: none;
-    border: none;
-    outline: none;
-    color: var(--white);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.9rem;
-    min-width: 120px;
-    flex: 1;
-    padding: 4px 4px;
-  }
-  .skills-input-wrap input::placeholder { color: var(--text-muted); }
+/* ===== STEP LABEL ===== */
+.step-label {
+  font-size: 11px;
+  color: rgba(255,255,255,0.22);
+  margin-bottom: 18px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  font-family: 'DM Sans', sans-serif;
+}
+.step-label span { color: rgba(167,139,250,0.7); }
 
-  /* Error message */
-  .error-msg {
-    color: var(--error);
-    font-size: 0.8rem;
-    margin-top: 6px;
-    display: none;
-  }
-  .error-msg.show { display: block; }
+.step-content { animation: fadeUp 0.35s ease; }
 
-  /* Alert */
-  .alert {
-    padding: 14px 18px;
-    border-radius: 12px;
-    font-size: 0.9rem;
-    margin-bottom: 20px;
-    display: none;
-    animation: fadeUp 0.3s ease;
-  }
-  .alert.error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #fca5a5; display: flex; }
-  .alert.success { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); color: #86efac; display: flex; }
+/* ===== ALERT ===== */
+.alert {
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  margin-bottom: 16px;
+  display: none;
+  animation: fadeUp 0.3s ease;
+  font-family: 'DM Sans', sans-serif;
+}
+.alert.error   { background: rgba(239,68,68,0.08);  border: 1px solid rgba(239,68,68,0.25);  color: #fca5a5; display: flex; }
+.alert.success { background: rgba(34,197,94,0.08);   border: 1px solid rgba(34,197,94,0.25);  color: #86efac; display: flex; }
 
-  /* Buttons */
-  .btn-primary {
-    width: 100%;
-    background: linear-gradient(135deg, var(--purple-bright), #a855f7);
-    color: white;
-    padding: 15px;
-    border-radius: 12px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 1rem;
-    font-weight: 500;
-    border: none;
-    cursor: none;
-    transition: all 0.3s;
-    box-shadow: 0 8px 32px rgba(124,58,237,0.3);
-    position: relative;
-    overflow: hidden;
-    margin-top: 8px;
-  }
-  .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 40px rgba(124,58,237,0.5);
-  }
-  .btn-primary:disabled {
-    opacity: 0.5;
-    transform: none;
-    cursor: not-allowed;
-  }
-  .btn-primary.loading::after {
-    content: '';
-    position: absolute;
-    top: 50%; left: 50%;
-    width: 20px; height: 20px;
-    border: 2px solid rgba(255,255,255,0.3);
-    border-top-color: white;
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-    animation: spin 0.8s linear infinite;
-  }
-  .btn-primary.loading span { opacity: 0; }
-  @keyframes spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
+/* ===== FORM FIELDS ===== */
+.field { margin-bottom: 15px; }
+.field label {
+  display: block;
+  font-size: 12px;
+  color: rgba(255,255,255,0.35);
+  margin-bottom: 6px;
+  letter-spacing: 0.03em;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 500;
+}
+.field input,
+.field select,
+.field textarea {
+  width: 100%;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 12px;
+  padding: 12px 16px;
+  color: #fff;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+  -webkit-appearance: none;
+}
+.field input::placeholder,
+.field textarea::placeholder { color: rgba(255,255,255,0.2); }
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  border-color: rgba(139,92,246,0.45);
+  background: rgba(139,92,246,0.04);
+  box-shadow: 0 0 0 3px rgba(139,92,246,0.08);
+}
+.field input.error { border-color: rgba(239,68,68,0.5); }
+.field select option { background: #111; color: #fff; }
+.field textarea { resize: none; height: 80px; }
 
-  .btn-back {
-    background: none;
-    border: 1px solid var(--border);
-    color: var(--text-muted);
-    padding: 15px;
-    border-radius: 12px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 1rem;
-    cursor: none;
-    transition: all 0.2s;
-    width: 100%;
-    margin-top: 8px;
-  }
-  .btn-back:hover { border-color: var(--purple-bright); color: var(--white); }
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
 
-  .divider {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin: 24px 0;
-    color: var(--text-muted);
-    font-size: 0.85rem;
-  }
-  .divider::before, .divider::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: var(--border);
-  }
+/* ===== PASSWORD ===== */
+.password-wrapper { position: relative; }
+.password-toggle {
+  position: absolute;
+  right: 14px; top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.25);
+  cursor: none;
+  font-size: 1rem;
+  padding: 0;
+  transition: color 0.2s;
+}
+.password-toggle:hover { color: rgba(255,255,255,0.7); }
 
-  .oauth-btn {
-    width: 100%;
-    background: rgba(255,255,255,0.04);
-    border: 1px solid var(--border);
-    color: var(--white);
-    padding: 13px;
-    border-radius: 12px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.95rem;
-    cursor: none;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-  }
-  .oauth-btn:hover {
-    background: rgba(255,255,255,0.08);
-    border-color: rgba(124,58,237,0.4);
-  }
+.strength-bar {
+  display: flex;
+  gap: 4px;
+  margin-top: 7px;
+}
+.strength-seg {
+  height: 2px;
+  flex: 1;
+  background: rgba(255,255,255,0.07);
+  border-radius: 10px;
+  transition: background 0.3s;
+}
 
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(12px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
+/* ===== ERROR MSG ===== */
+.error-msg {
+  color: rgba(239,68,68,0.85);
+  font-size: 11px;
+  margin-top: 5px;
+  display: none;
+  font-family: 'DM Sans', sans-serif;
+}
+.error-msg.show { display: block; }
 
-  .step-content {
-    animation: fadeUp 0.35s ease;
-  }
+/* ===== SKILLS TAGS ===== */
+.skills-input-wrap {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 12px;
+  padding: 10px 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  cursor: text;
+  min-height: 50px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.skills-input-wrap:focus-within {
+  border-color: rgba(139,92,246,0.45);
+  box-shadow: 0 0 0 3px rgba(139,92,246,0.08);
+}
+.skill-tag {
+  background: rgba(139,92,246,0.1);
+  border: 1px solid rgba(139,92,246,0.28);
+  color: rgba(167,139,250,0.85);
+  padding: 3px 10px;
+  border-radius: 100px;
+  font-size: 0.78rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  animation: tagIn 0.2s ease;
+  font-family: 'DM Sans', sans-serif;
+}
+.skill-tag button {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.3);
+  cursor: none;
+  font-size: 0.88rem;
+  padding: 0;
+  line-height: 1;
+  transition: color 0.2s;
+}
+.skill-tag button:hover { color: rgba(239,68,68,0.8); }
+.skills-input-wrap input {
+  background: none;
+  border: none;
+  outline: none;
+  color: #fff;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.88rem;
+  min-width: 100px;
+  flex: 1;
+  padding: 3px 4px;
+}
+.skills-input-wrap input::placeholder { color: rgba(255,255,255,0.18); }
 
-  /* Success screen */
-  .success-screen {
-    text-align: center;
-    padding: 20px 0;
-  }
-  .success-icon {
-    width: 80px; height: 80px;
-    background: rgba(34,197,94,0.1);
-    border: 1px solid rgba(34,197,94,0.3);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 2rem;
-    margin: 0 auto 24px;
-    animation: popIn 0.5s ease;
-  }
-  @keyframes popIn {
-    from { transform: scale(0); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
-  }
-  .success-screen h2 {
-    font-family: 'Syne', sans-serif;
-    font-size: 1.6rem;
-    margin-bottom: 12px;
-  }
-  .success-screen p {
-    color: var(--text-muted);
-    font-size: 0.95rem;
-    line-height: 1.6;
-    margin-bottom: 32px;
-  }
+/* ===== DIVIDER ===== */
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 18px 0;
+  color: rgba(255,255,255,0.2);
+  font-size: 12px;
+  font-family: 'DM Sans', sans-serif;
+}
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(255,255,255,0.07);
+}
 
-  @media (max-width: 768px) {
-    .left-panel { display: none; }
-    .right-panel { padding: 40px 24px; }
-  }
+/* ===== OAUTH BUTTON ===== */
+.oauth-btn {
+  width: 100%;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.09);
+  color: rgba(255,255,255,0.65);
+  padding: 12px;
+  border-radius: 12px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  cursor: none;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.oauth-btn:hover {
+  background: rgba(255,255,255,0.07);
+  border-color: rgba(255,255,255,0.16);
+  color: #fff;
+}
+
+/* ===== PRIMARY BUTTON ===== */
+.btn-primary {
+  width: 100%;
+  background: #fff;
+  color: #080808 !important;
+  padding: 14px;
+  border-radius: 14px;
+  font-family: 'Syne', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  border: none;
+  cursor: none;
+  transition: opacity 0.2s, transform 0.2s;
+  position: relative;
+  overflow: hidden;
+  margin-top: 8px;
+  display: block;
+  text-align: center;
+  text-decoration: none;
+  box-shadow: none !important;
+}
+.btn-primary:hover { opacity: 0.87; transform: translateY(-1px); }
+.btn-primary:disabled { opacity: 0.4; transform: none; cursor: not-allowed; }
+.btn-primary.loading::after {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 18px; height: 18px;
+  border: 2px solid rgba(8,8,8,0.2);
+  border-top-color: #080808;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  animation: spin 0.8s linear infinite;
+}
+.btn-primary.loading span { opacity: 0; }
+
+/* ===== BACK BUTTON ===== */
+.btn-back {
+  background: none;
+  border: 1px solid rgba(255,255,255,0.09);
+  color: rgba(255,255,255,0.32);
+  padding: 13px;
+  border-radius: 12px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  cursor: none;
+  transition: border-color 0.2s, color 0.2s;
+  width: 100%;
+  margin-top: 8px;
+}
+.btn-back:hover { border-color: rgba(255,255,255,0.2); color: rgba(255,255,255,0.7); }
+
+/* ===== TERMS ===== */
+.ss-terms {
+  font-size: 11px;
+  color: rgba(255,255,255,0.18);
+  text-align: center;
+  margin-top: 12px;
+  line-height: 1.5;
+  font-family: 'DM Sans', sans-serif;
+}
+.ss-terms a { color: rgba(255,255,255,0.32); text-decoration: none; }
+.ss-terms a:hover { color: rgba(255,255,255,0.6); }
+
+/* ===== PLAN CARDS ===== */
+.plan-card {
+  border-radius: 14px !important;
+  transition: all 0.2s !important;
+  cursor: none;
+}
+.plan-card:hover { transform: translateY(-1px); }
+
+/* ===== SUCCESS SCREEN ===== */
+.success-screen {
+  text-align: center;
+  padding: 20px 0;
+}
+.success-icon {
+  width: 72px; height: 72px;
+  background: rgba(34,197,94,0.08);
+  border: 1px solid rgba(34,197,94,0.25);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  margin: 0 auto 20px;
+  animation: popIn 0.5s ease;
+  color: rgba(134,239,172,0.9);
+}
+.success-screen h2 {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin-bottom: 10px;
+  letter-spacing: -0.02em;
+}
+.success-screen p {
+  color: rgba(255,255,255,0.3);
+  font-size: 0.9rem;
+  line-height: 1.65;
+  margin-bottom: 28px;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .ss-layout { grid-template-columns: 1fr; }
+  .left-panel { display: none; }
+  .right-panel { padding: 40px 24px; align-items: center; }
+  #ss-nav { padding: 0 24px; }
+}
 </style>
 </head>
 <body>
 
+<!-- New cursor -->
+<div id="ss-cursor"></div>
+<div id="ss-ring"></div>
+
+<!-- Legacy cursor (hidden) -->
 <div class="cursor" id="cursor"></div>
 <div class="cursor-ring" id="cursorRing"></div>
 
-<!-- LEFT PANEL -->
-<div class="left-panel">
-  <a href="index.html" class="panel-logo">
-    <div class="logo-dot"></div>
-    SkillSwap
-  </a>
-  <div class="panel-heading">
-    Trade skills.<br>
-    <span>Grow together.</span>
-  </div>
-  <p class="panel-sub">Join thousands of people exchanging knowledge. No money — just skills, sessions, and real connections.</p>
-  <div class="perks">
-    <div class="perk">
-      <div class="perk-icon">🆓</div>
-      First swap is always free
-    </div>
-    <div class="perk">
-      <div class="perk-icon">🎥</div>
-      1.5 hrs free video calling/month
-    </div>
-    <div class="perk">
-      <div class="perk-icon">🌍</div>
-      Connect with 60+ countries
-    </div>
-    <div class="perk">
-      <div class="perk-icon">⚡</div>
-      Smart skill matching algorithm
-    </div>
-    <div class="perk">
-      <div class="perk-icon">🔒</div>
-      Verified profiles & reviews
-    </div>
-  </div>
-</div>
+<!-- NAVBAR -->
+<nav id="ss-nav">
+  <a href="index.html" class="ss-nav-logo">SkillSwap</a>
+  <div class="ss-nav-right">Already have an account? <a href="login.html">Sign in →</a></div>
+</nav>
 
-<!-- RIGHT PANEL -->
-<div class="right-panel">
-  <div class="form-container">
+<!-- GRID LAYOUT -->
+<div class="ss-layout">
 
-    <div id="mainForm">
-      <div class="form-title">Create account</div>
-      <div class="form-subtitle">Already have one? <a href="login.html">Sign in →</a></div>
+  <!-- LEFT: Branding -->
+  <div class="left-panel">
+    <div class="ss-orb-violet"></div>
+    <div class="ss-orb-cyan"></div>
+    <canvas id="ss-globe-signup" width="320" height="320"></canvas>
 
-      <!-- Step bars -->
-      <div class="steps">
-        <div class="step-bar active" id="bar1"></div>
-        <div class="step-bar" id="bar2"></div>
-        <div class="step-bar" id="bar3"></div>
+    <div class="ss-left-inner">
+      <div class="ss-badge">
+        <span class="ss-badge-dot"></span>
+        Join 2,400+ skill traders
       </div>
 
-      <div class="alert" id="alertBox"></div>
+      <h2 class="ss-left-heading">
+        Trade Skills.<br>
+        <span class="ss-outline">Grow Together.</span>
+      </h2>
 
-      <!-- STEP 1: Basic info -->
-      <div id="step1" class="step-content">
-        <div class="step-label">Step 1 of 3 — <span>Basic info</span></div>
+      <p class="ss-left-sub">Join thousands of people exchanging knowledge. No money — just skills, sessions, and real connections.</p>
 
-        <div class="field-row">
+      <div class="ss-proof-cards">
+        <div class="ss-proof-card">
+          <div class="ss-proof-top">
+            <div class="ss-proof-avatar violet">SR</div>
+            <div class="ss-proof-info">
+              <div class="ss-proof-name">Sofia R.</div>
+              <div class="ss-proof-swap">UI Design → Python</div>
+            </div>
+            <span class="ss-proof-tag violet">Teaching</span>
+          </div>
+          <div class="ss-proof-quote">"Found my match in 2 days — incredible community"</div>
+        </div>
+        <div class="ss-proof-card">
+          <div class="ss-proof-top">
+            <div class="ss-proof-avatar cyan">MT</div>
+            <div class="ss-proof-info">
+              <div class="ss-proof-name">Marcus T.</div>
+              <div class="ss-proof-swap">Guitar → Spanish</div>
+            </div>
+            <span class="ss-proof-tag cyan">Swapping</span>
+          </div>
+          <div class="ss-proof-quote">"Best decision I made this year, honestly"</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Form -->
+  <div class="right-panel">
+    <div class="form-container">
+
+      <div id="mainForm">
+        <div class="form-title">Create your account</div>
+        <div class="form-subtitle">Already have one? <a href="login.html">Sign in →</a></div>
+
+        <!-- Step bars -->
+        <div class="steps">
+          <div class="step-bar active" id="bar1"></div>
+          <div class="step-bar" id="bar2"></div>
+          <div class="step-bar" id="bar3"></div>
+        </div>
+
+        <div class="alert" id="alertBox"></div>
+
+        <!-- STEP 1: Basic info -->
+        <div id="step1" class="step-content">
+          <div class="step-label">Step 1 of 3 — <span>Basic info</span></div>
+
+          <div class="field-row">
+            <div class="field">
+              <label>First name</label>
+              <input type="text" id="firstName" placeholder="Alex" />
+            </div>
+            <div class="field">
+              <label>Last name</label>
+              <input type="text" id="lastName" placeholder="Chen" />
+            </div>
+          </div>
           <div class="field">
-            <label>First name</label>
-            <input type="text" id="firstName" placeholder="Alex" />
+            <label>Username</label>
+            <input type="text" id="username" placeholder="alexchen" />
+            <div class="error-msg" id="usernameError">Username already taken</div>
           </div>
           <div class="field">
-            <label>Last name</label>
-            <input type="text" id="lastName" placeholder="Chen" />
+            <label>Email address</label>
+            <input type="email" id="email" placeholder="alex@example.com" />
           </div>
-        </div>
-        <div class="field">
-          <label>Username</label>
-          <input type="text" id="username" placeholder="alexchen" />
-          <div class="error-msg" id="usernameError">Username already taken</div>
-        </div>
-        <div class="field">
-          <label>Email address</label>
-          <input type="email" id="email" placeholder="alex@example.com" />
-        </div>
-        <div class="field">
-          <label>Password</label>
-          <div class="password-wrapper">
-            <input type="password" id="password" placeholder="Min 8 characters" />
-            <button class="password-toggle" id="togglePwd" onclick="togglePassword()">👁</button>
+          <div class="field">
+            <label>Password</label>
+            <div class="password-wrapper">
+              <input type="password" id="password" placeholder="Min 8 characters" />
+              <button class="password-toggle" id="togglePwd" onclick="togglePassword()">👁</button>
+            </div>
+            <div class="strength-bar">
+              <div class="strength-seg" id="s1"></div>
+              <div class="strength-seg" id="s2"></div>
+              <div class="strength-seg" id="s3"></div>
+              <div class="strength-seg" id="s4"></div>
+            </div>
           </div>
-          <div class="strength-bar">
-            <div class="strength-seg" id="s1"></div>
-            <div class="strength-seg" id="s2"></div>
-            <div class="strength-seg" id="s3"></div>
-            <div class="strength-seg" id="s4"></div>
-          </div>
+
+          <div class="divider">or continue with</div>
+          <button class="oauth-btn" onclick="signInWithGoogle()">
+            <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z"/></svg>
+            Continue with Google
+          </button>
+
+          <button class="btn-primary" onclick="nextStep(1)" id="btn1">
+            <span>Continue →</span>
+          </button>
+          <p class="ss-terms">By continuing you agree to our <a href="#">Terms</a> &amp; <a href="#">Privacy Policy</a></p>
         </div>
 
-        <div class="divider">or continue with</div>
-        <button class="oauth-btn" onclick="signInWithGoogle()">
-          <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z"/></svg>
-          Continue with Google
-        </button>
+        <!-- STEP 2: Skills -->
+        <div id="step2" class="step-content" style="display:none;">
+          <div class="step-label">Step 2 of 3 — <span>Your skills</span></div>
 
-        <button class="btn-primary" onclick="nextStep(1)" id="btn1">
-          <span>Continue →</span>
-        </button>
+          <div class="field">
+            <label>Skills you can teach others</label>
+            <div class="skills-input-wrap" id="offerWrap">
+              <input type="text" id="offerInput" placeholder="e.g. Python, Guitar… press Enter" />
+            </div>
+          </div>
+          <div class="field">
+            <label>Skills you want to learn</label>
+            <div class="skills-input-wrap" id="wantWrap">
+              <input type="text" id="wantInput" placeholder="e.g. Spanish, UI Design… press Enter" />
+            </div>
+          </div>
+          <div class="field">
+            <label>Short bio <span style="color:rgba(255,255,255,0.2);font-size:0.78rem;">(optional)</span></label>
+            <textarea id="bio" placeholder="Tell others a bit about yourself..."></textarea>
+          </div>
+
+          <button class="btn-primary" onclick="nextStep(2)" id="btn2"><span>Continue →</span></button>
+          <button class="btn-back" onclick="prevStep(2)">← Back</button>
+        </div>
+
+        <!-- STEP 3: Plan -->
+        <div id="step3" class="step-content" style="display:none;">
+          <div class="step-label">Step 3 of 3 — <span>Choose your plan</span></div>
+
+          <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;">
+            <label style="cursor:none;">
+              <input type="radio" name="plan" value="free" id="planFree" checked style="display:none;">
+              <div class="plan-card" id="cardFree" onclick="selectPlan('free')" style="background:rgba(255,255,255,0.05); border:2px solid rgba(255,255,255,0.5); border-radius:14px; padding:18px 20px; transition:all 0.2s;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                  <div style="font-family:'Syne',sans-serif; font-weight:700; font-size:0.95rem; color:#fff;">Free</div>
+                  <div style="font-family:'Syne',sans-serif; font-weight:800; color:rgba(167,139,250,0.8);">$0/mo</div>
+                </div>
+                <div style="color:rgba(255,255,255,0.3); font-size:0.8rem; line-height:1.55;">2 swaps/month · 1.5hrs video · Text messaging · First swap free</div>
+              </div>
+            </label>
+
+            <label style="cursor:none;">
+              <input type="radio" name="plan" value="pro" id="planPro" style="display:none;">
+              <div class="plan-card" id="cardPro" onclick="selectPlan('pro')" style="background:rgba(255,255,255,0.03); border:2px solid var(--border); border-radius:14px; padding:18px 20px; transition:all 0.2s;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                  <div style="font-family:'Syne',sans-serif; font-weight:700; font-size:0.95rem; color:#fff;">Pro</div>
+                  <div style="font-family:'Syne',sans-serif; font-weight:800; color:rgba(167,139,250,0.8);">$9/mo</div>
+                </div>
+                <div style="color:rgba(255,255,255,0.3); font-size:0.8rem; line-height:1.55;">Unlimited swaps · Unlimited video · Verification badge · Priority matching</div>
+              </div>
+            </label>
+
+            <label style="cursor:none;">
+              <input type="radio" name="plan" value="creator" id="planCreator" style="display:none;">
+              <div class="plan-card" id="cardCreator" onclick="selectPlan('creator')" style="background:rgba(255,255,255,0.03); border:2px solid var(--border); border-radius:14px; padding:18px 20px; transition:all 0.2s;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                  <div style="font-family:'Syne',sans-serif; font-weight:700; font-size:0.95rem; color:#fff;">Creator</div>
+                  <div style="font-family:'Syne',sans-serif; font-weight:800; color:rgba(167,139,250,0.8);">$19/mo</div>
+                </div>
+                <div style="color:rgba(255,255,255,0.3); font-size:0.8rem; line-height:1.55;">Everything in Pro · Host webinars · Featured listing · Analytics</div>
+              </div>
+            </label>
+          </div>
+
+          <button class="btn-primary" onclick="submitSignup()" id="btn3"><span>Create my account →</span></button>
+          <button class="btn-back" onclick="prevStep(3)">← Back</button>
+        </div>
       </div>
 
-      <!-- STEP 2: Skills -->
-      <div id="step2" class="step-content" style="display:none;">
-        <div class="step-label">Step 2 of 3 — <span>Your skills</span></div>
-
-        <div class="field">
-          <label>Skills you can teach others</label>
-          <div class="skills-input-wrap" id="offerWrap">
-            <input type="text" id="offerInput" placeholder="e.g. Python, Guitar... press Enter" />
-          </div>
-        </div>
-        <div class="field">
-          <label>Skills you want to learn</label>
-          <div class="skills-input-wrap" id="wantWrap">
-            <input type="text" id="wantInput" placeholder="e.g. Spanish, UI Design... press Enter" />
-          </div>
-        </div>
-        <div class="field">
-          <label>Short bio <span style="color:var(--text-muted); font-size:0.8rem;">(optional)</span></label>
-          <textarea id="bio" placeholder="Tell others a bit about yourself..."></textarea>
-        </div>
-
-        <button class="btn-primary" onclick="nextStep(2)" id="btn2"><span>Continue →</span></button>
-        <button class="btn-back" onclick="prevStep(2)">← Back</button>
+      <!-- SUCCESS -->
+      <div id="successScreen" style="display:none;" class="success-screen">
+        <div class="success-icon">✓</div>
+        <h2>You're in.</h2>
+        <p>Check your email to verify your account, then start swapping skills with people around the world.</p>
+        <a href="login.html" class="btn-primary" style="display:block; text-align:center; text-decoration:none; padding:14px;">Go to login →</a>
       </div>
 
-      <!-- STEP 3: Plan -->
-      <div id="step3" class="step-content" style="display:none;">
-        <div class="step-label">Step 3 of 3 — <span>Choose your plan</span></div>
-
-        <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:24px;">
-
-          <label style="cursor:none;">
-            <input type="radio" name="plan" value="free" id="planFree" checked style="display:none;">
-            <div class="plan-card" id="cardFree" onclick="selectPlan('free')" style="background:rgba(124,58,237,0.1); border:2px solid var(--purple-bright); border-radius:14px; padding:18px 20px; transition:all 0.2s;">
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                <div style="font-family:'Syne',sans-serif; font-weight:700; font-size:1rem;">Free</div>
-                <div style="font-family:'Syne',sans-serif; font-weight:800; color:var(--accent);">$0/mo</div>
-              </div>
-              <div style="color:var(--text-muted); font-size:0.82rem; line-height:1.6;">2 swaps/month · 1.5hrs video · Text messaging · First swap free</div>
-            </div>
-          </label>
-
-          <label style="cursor:none;">
-            <input type="radio" name="plan" value="pro" id="planPro" style="display:none;">
-            <div class="plan-card" id="cardPro" onclick="selectPlan('pro')" style="background:rgba(124,58,237,0.05); border:2px solid var(--border); border-radius:14px; padding:18px 20px; transition:all 0.2s;">
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                <div style="font-family:'Syne',sans-serif; font-weight:700; font-size:1rem;">Pro ⚡</div>
-                <div style="font-family:'Syne',sans-serif; font-weight:800; color:var(--purple-soft);">$9/mo</div>
-              </div>
-              <div style="color:var(--text-muted); font-size:0.82rem; line-height:1.6;">Unlimited swaps · Unlimited video · Verification badge · Priority matching</div>
-            </div>
-          </label>
-
-          <label style="cursor:none;">
-            <input type="radio" name="plan" value="creator" id="planCreator" style="display:none;">
-            <div class="plan-card" id="cardCreator" onclick="selectPlan('creator')" style="background:rgba(124,58,237,0.05); border:2px solid var(--border); border-radius:14px; padding:18px 20px; transition:all 0.2s;">
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                <div style="font-family:'Syne',sans-serif; font-weight:700; font-size:1rem;">Creator 🎬</div>
-                <div style="font-family:'Syne',sans-serif; font-weight:800; color:var(--purple-soft);">$19/mo</div>
-              </div>
-              <div style="color:var(--text-muted); font-size:0.82rem; line-height:1.6;">Everything in Pro · Host webinars · Featured listing · Analytics</div>
-            </div>
-          </label>
-        </div>
-
-        <button class="btn-primary" onclick="submitSignup()" id="btn3"><span>Create my account →</span></button>
-        <button class="btn-back" onclick="prevStep(3)">← Back</button>
-      </div>
     </div>
-
-    <!-- SUCCESS -->
-    <div id="successScreen" style="display:none;" class="success-screen">
-      <div class="success-icon">✓</div>
-      <h2>You're in! 🎉</h2>
-      <p>Check your email to verify your account, then start swapping skills with people around the world.</p>
-      <a href="login.html" class="btn-primary" style="display:block; text-align:center; text-decoration:none; padding:15px;">Go to login →</a>
-    </div>
-
   </div>
+
 </div>
 
 <!-- Supabase -->
@@ -713,7 +918,7 @@ const sb = createClient(
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZnbmRwdmt5d3ZjbmV6dmp1dWVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MDk5OTEsImV4cCI6MjA5MDA4NTk5MX0.GGwx_-W7pu485h3d6dgkhqSwiqxT3Hx02Ck9HW8nyE0'
 );
 
-// Cursor
+// Cursor (legacy — targets hidden elements)
 const cursor = document.getElementById('cursor');
 const ring = document.getElementById('cursorRing');
 let mouseX = 0, mouseY = 0, ringX = 0, ringY = 0;
@@ -748,7 +953,7 @@ document.getElementById('password').addEventListener('input', function() {
   const colors = ['', '#ef4444', '#f97316', '#eab308', '#22c55e'];
   for (let i = 1; i <= 4; i++) {
     const seg = document.getElementById('s' + i);
-    seg.style.background = i <= score ? colors[score] : 'rgba(124,58,237,0.15)';
+    seg.style.background = i <= score ? colors[score] : 'rgba(255,255,255,0.07)';
   }
 });
 
@@ -801,13 +1006,13 @@ setupTagInput('wantInput', 'wantWrap', wantTags);
 function selectPlan(plan) {
   ['free','pro','creator'].forEach(p => {
     const card = document.getElementById('card' + p.charAt(0).toUpperCase() + p.slice(1));
-    card.style.border = '2px solid var(--border)';
-    card.style.background = 'rgba(124,58,237,0.05)';
+    card.style.border = '2px solid rgba(255,255,255,0.08)';
+    card.style.background = 'rgba(255,255,255,0.03)';
   });
   document.getElementById('plan' + plan.charAt(0).toUpperCase() + plan.slice(1)).checked = true;
   const sel = document.getElementById('card' + plan.charAt(0).toUpperCase() + plan.slice(1));
-  sel.style.border = '2px solid var(--purple-bright)';
-  sel.style.background = 'rgba(124,58,237,0.1)';
+  sel.style.border = '2px solid rgba(255,255,255,0.5)';
+  sel.style.background = 'rgba(255,255,255,0.05)';
 }
 
 // Alert
@@ -893,7 +1098,6 @@ async function submitSignup() {
     return showAlert('error', error.message);
   }
 
-  // Update profile
   if (data.user) {
     await sb.from('profiles').update({
       username,
@@ -918,6 +1122,30 @@ async function signInWithGoogle() {
   });
   if (error) showAlert('error', error.message);
 }
+</script>
+
+<!-- NEW JS: cursor + globe -->
+<script>
+// New cursor
+const _c=document.getElementById('ss-cursor'),_r=document.getElementById('ss-ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;_c.style.left=mx+'px';_c.style.top=my+'px';});
+(function a(){rx+=(mx-rx)*.1;ry+=(my-ry)*.1;_r.style.left=rx+'px';_r.style.top=ry+'px';requestAnimationFrame(a);})();
+document.querySelectorAll('input,button,.ss-proof-card,.plan-card').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{_c.style.width='5px';_c.style.height='5px';_r.style.width='50px';_r.style.height='50px';_r.style.borderColor='rgba(139,92,246,0.55)';});
+  el.addEventListener('mouseleave',()=>{_c.style.width='10px';_c.style.height='10px';_r.style.width='34px';_r.style.height='34px';_r.style.borderColor='rgba(255,255,255,0.35)';});
+});
+
+// Globe
+(function(){
+  const cv=document.getElementById('ss-globe-signup');
+  if(!cv)return;
+  const ctx=cv.getContext('2d'),W=320,H=320,R=145;let rot=0;
+  const continents=[[[60,-140],[72,-141],[72,-120],[68,-110],[70,-95],[65,-80],[60,-65],[47,-53],[44,-66],[35,-75],[25,-80],[15,-83],[8,-77],[10,-85],[20,-104],[30,-115],[38,-122],[48,-124],[55,-130],[60,-140]],[[12,-71],[8,-60],[5,-52],[0,-50],[-5,-35],[-15,-39],[-25,-48],[-34,-58],[-45,-65],[-55,-68],[-45,-60],[-25,-43],[-10,-35],[0,-48],[5,-52],[10,-62],[12,-71]],[[35,28],[42,28],[48,38],[52,20],[58,5],[65,14],[70,25],[60,28],[50,18],[43,16],[37,15],[36,-5],[38,-9],[36,-6],[35,28]],[[37,10],[30,32],[20,38],[0,42],[-10,38],[-20,35],[-34,26],[-35,18],[-20,14],[0,10],[5,-8],[15,-17],[25,-15],[35,-5],[37,10]],[[70,30],[65,75],[65,90],[68,110],[60,140],[50,140],[40,128],[30,120],[22,113],[15,108],[5,103],[0,108],[10,123],[20,110],[25,85],[22,72],[15,75],[8,77],[5,80],[10,76],[20,68],[25,50],[30,40],[35,36],[45,35],[50,40],[55,35],[60,30],[70,30]],[[-15,130],[-12,142],[-25,152],[-37,149],[-38,143],[-32,134],[-30,115],[-22,113],[-18,122],[-15,130]]];
+  const nodes=[];for(let i=0;i<40;i++)nodes.push({lat:(Math.random()-.5)*160,lon:Math.random()*360-180,s:Math.random()*2+1,col:Math.random()<.15?'rgba(167,139,250,X)':Math.random()<.15?'rgba(103,232,249,X)':'rgba(255,255,255,X)'});
+  const conns=[];for(let i=0;i<nodes.length;i++)for(let j=i+1;j<nodes.length;j++)if(Math.hypot(nodes[i].lat-nodes[j].lat,nodes[i].lon-nodes[j].lon)<45&&Math.random()<.3)conns.push([i,j]);
+  function proj(la,lo){const laR=la*Math.PI/180,loR=lo*Math.PI/180+rot;return{x:W/2+R*Math.cos(laR)*Math.sin(loR),y:H/2-R*Math.sin(laR),z:R*Math.cos(laR)*Math.cos(loR)};}
+  function draw(){ctx.clearRect(0,0,W,H);const gr=ctx.createRadialGradient(W/2,H/2*.9,0,W/2,H/2,R);gr.addColorStop(0,'rgba(18,8,38,0.7)');gr.addColorStop(.7,'rgba(10,4,20,0.35)');gr.addColorStop(1,'rgba(8,8,8,0)');ctx.beginPath();ctx.arc(W/2,H/2,R,0,Math.PI*2);ctx.fillStyle=gr;ctx.fill();ctx.beginPath();ctx.arc(W/2,H/2,R,0,Math.PI*2);ctx.strokeStyle='rgba(255,255,255,0.07)';ctx.lineWidth=1;ctx.stroke();for(let la=-60;la<=60;la+=30){const laR=la*Math.PI/180,yr=H/2-R*Math.sin(laR),xr=R*Math.cos(laR);ctx.beginPath();ctx.ellipse(W/2,yr,xr,xr*.18,0,0,Math.PI*2);ctx.strokeStyle='rgba(255,255,255,0.04)';ctx.lineWidth=.7;ctx.stroke();}for(let lo=0;lo<360;lo+=30){const loR=lo*Math.PI/180+rot;ctx.beginPath();for(let t=0;t<=360;t+=5){const laT=t*Math.PI/180,px=W/2+R*Math.cos(laT)*Math.sin(loR),py=H/2-R*Math.sin(laT),pz=R*Math.cos(laT)*Math.cos(loR);if(pz>-10){t===0?ctx.moveTo(px,py):ctx.lineTo(px,py);}else ctx.moveTo(px,py);}ctx.strokeStyle='rgba(255,255,255,0.04)';ctx.lineWidth=.7;ctx.stroke();}continents.forEach(pts=>{const pr=pts.map(([la,lo])=>proj(la,lo));if(pr.filter(p=>p.z>0).length<pts.length*.4)return;ctx.beginPath();let s=false;pr.forEach(p=>{if(p.z>-R*.3){if(!s){ctx.moveTo(p.x,p.y);s=true;}else ctx.lineTo(p.x,p.y);}});ctx.closePath();ctx.fillStyle='rgba(139,92,246,0.12)';ctx.strokeStyle='rgba(167,139,250,0.32)';ctx.lineWidth=1;ctx.fill();ctx.stroke();});conns.forEach(([i,j])=>{const a=proj(nodes[i].lat,nodes[i].lon),b=proj(nodes[j].lat,nodes[j].lon);if(a.z>0&&b.z>0){ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.strokeStyle=`rgba(167,139,250,${Math.min(a.z,b.z)/R*.1})`;ctx.lineWidth=.8;ctx.stroke();}});nodes.forEach(n=>{const p=proj(n.lat,n.lon);if(p.z>0){const al=p.z/R;ctx.beginPath();ctx.arc(p.x,p.y,n.s*(0.5+al*.5),0,Math.PI*2);ctx.fillStyle=n.col.replace('X',al.toFixed(2));ctx.fill();}});rot+=.004;requestAnimationFrame(draw);}draw();})();
 </script>
 </body>
 </html>
