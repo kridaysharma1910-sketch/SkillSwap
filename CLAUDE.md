@@ -93,6 +93,81 @@ A skill-exchange web platform where users list skills they offer and skills they
 - Added `data.session` guard before `window.location.href = 'dashboard.html'` — Supabase v2 can return `{ session: null, error: null }` when email is unconfirmed; previously this caused a silent redirect loop back to login
 - All fixes committed and pushed to main (Vercel auto-deployed)
 
+## UI Design System (Updated)
+
+### Design Theme
+- Full black aesthetic: background #080808 everywhere
+- Font stack: Syne (headings/logo, 800 weight) + DM Sans (body/inputs, 300-500)
+- Custom cursor: 10px white dot (mix-blend-mode: difference) + 34px trailing ring, both fixed positioned, turns purple on hover
+- No purple buttons anywhere — all CTAs are white bg + #080808 text
+- Subtle violet (rgba(139,92,246)) and cyan (rgba(34,211,238)) used ONLY as border accents, tag colors, focus glows, and orbs
+
+### CSS Variables (use in all pages)
+--bg: #080808
+--bg-card: rgba(255,255,255,0.03)
+--border: rgba(255,255,255,0.08)
+--border-hover: rgba(139,92,246,0.3)
+--text-muted: rgba(255,255,255,0.32)
+--accent-v-soft: rgba(167,139,250,0.65)
+--accent-c-soft: rgba(103,232,249,0.6)
+
+### Glass Card System (apply to ALL cards sitewide)
+- background: rgba(255,255,255,0.03)
+- border: 1px solid rgba(255,255,255,0.08)
+- border-radius: 18px
+- backdrop-filter: blur(12px)
+- On hover: border-color → rgba(139,92,246,0.3), transform: translateY(-3px)
+- ::before pseudo on hover: top 1px gradient glow (transparent → rgba(139,92,246,0.6) → transparent)
+
+### Colored Tags (use on all cards)
+- Violet tag: border rgba(139,92,246,0.35), color rgba(167,139,250,0.7)
+- Cyan tag: border rgba(34,211,238,0.28), color rgba(103,232,249,0.65)
+- White/dim tag: border rgba(255,255,255,0.18), color rgba(255,255,255,0.42)
+- All tags: border-radius 100px, padding 3px 10px, font-size 10px
+
+### Globe (rotating world, canvas-based)
+- Drawn with vanilla JS Canvas API
+- Continent outlines as lat/lon polygon arrays, filled rgba(139,92,246,0.12), stroked rgba(167,139,250,0.32)
+- Latitude + longitude grid lines at rgba(255,255,255,0.04)
+- Scattered nodes (violet, cyan, white) with connection lines
+- Rotates continuously at ~0.003-0.004 rad/frame
+- index.html: large globe (R=220) centered behind hero text, smaller globe (R=160) right side in "How it works"
+- signup.html: globe (R=145) bottom-right of left panel, opacity 0.7
+- login.html: globe (R=125) bottom-right of form panel, opacity 0.5
+
+### Pages completed
+- index.html ✅ — full redesign done (hero, globe, marquee, skills tags, step cards, feature cards, CTA, footer)
+- signup.html ✅ — full redesign done (split layout, globe, glass cards, form inputs, skill tags, plan cards)
+- login.html ⏳ — pending
+
+### Pages pending UI update
+- login.html
+- dashboard.html
+- profile.html
+- discover.html
+- matches.html
+- messages.html
+- video-call.html
+- pricing.html
+- webinars.html
+
+### Input Style (all pages)
+- background: rgba(255,255,255,0.04)
+- border: 1px solid rgba(255,255,255,0.09)
+- border-radius: 12px
+- padding: 12px 16px
+- color: #fff
+- On focus: border-color rgba(139,92,246,0.45), background rgba(139,92,246,0.04), box-shadow 0 0 0 3px rgba(139,92,246,0.08)
+
+### Navbar (all pages)
+- background: rgba(8,8,8,0.94), backdrop-filter: blur(20px)
+- border-bottom: 1px solid rgba(255,255,255,0.07)
+- position: sticky, top: 0, z-index: 50
+- Logo: Syne 800 + 9×9px white square (border-radius 2px) before text
+- All nav CTAs: white bg, dark text, pill shape — no purple
+
+---
+
 ## Known Issues / Next Steps
 - Payment integration (Lemon Squeezy / Paddle) not yet wired into `pricing.html` — `selectPlan()` shows a placeholder alert
 - `profiles` table may need `plan`, `location`, `website`, `hours_per_week`, `session_format`, `avatar_emoji`, `skills_offered`, `skills_wanted` columns confirmed in Supabase — verify schema matches what the pages expect
