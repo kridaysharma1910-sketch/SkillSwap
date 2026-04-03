@@ -808,13 +808,14 @@ async function handleLogin() {
   btn.disabled = false;
   btn.classList.remove('loading');
 
-  if (error) return showAlert('alertBox', 'error', error.message);
-
-  if (!data.session) {
-    return showAlert('alertBox', 'error', 'Login failed — please confirm your email and try again.');
+  if (error) {
+    console.log('Login error:', error);
+    return showAlert('alertBox', 'error', error.message);
   }
 
-  window.location.href = 'dashboard.html';
+  if (data.user) {
+    window.location.href = 'dashboard.html';
+  }
 }
 
 // Enter key login

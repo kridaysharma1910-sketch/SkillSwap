@@ -1094,19 +1094,22 @@ async function submitSignup() {
   });
 
   if (error) {
+    console.log('Signup error:', error);
     setLoading('btn3', false);
     return showAlert('error', error.message);
   }
 
   if (data.user) {
-    await sb.from('profiles').update({
+    const { error: profileError } = await sb.from('profiles').upsert({
+      id: data.user.id,
       username,
       full_name: firstName + ' ' + lastName,
       bio,
       skills_offering: offerTags,
       skills_wanting: wantTags,
       plan
-    }).eq('id', data.user.id);
+    });
+    if (profileError) console.log('Profile upsert error:', profileError);
   }
 
   setLoading('btn3', false);
