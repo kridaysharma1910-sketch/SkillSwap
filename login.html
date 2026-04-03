@@ -4,468 +4,747 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SkillSwap — Sign In</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --black: #05040a;
-    --purple-deep: #0d0a1a;
-    --purple-mid: #1a1035;
-    --purple-bright: #7c3aed;
-    --purple-glow: #9d5cff;
-    --purple-soft: #c4a8ff;
-    --accent: #ff6bff;
-    --white: #f0ecff;
-    --text-muted: #7a6d99;
-    --border: rgba(124, 58, 237, 0.2);
-    --error: #ef4444;
-    --success: #22c55e;
-  }
+:root {
+  --bg: #080808;
+  --bg-card: rgba(255,255,255,0.03);
+  --border: rgba(255,255,255,0.08);
+  --border-hover: rgba(139,92,246,0.3);
+  --text-muted: rgba(255,255,255,0.32);
+  --accent-v-soft: rgba(167,139,250,0.65);
+  --accent-c-soft: rgba(103,232,249,0.6);
+  --error: #ef4444;
+  --success: #22c55e;
+}
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
 
-  body {
-    background: var(--black);
-    color: var(--white);
-    font-family: 'DM Sans', sans-serif;
-    min-height: 100vh;
-    display: flex;
-    overflow-x: hidden;
-    cursor: none;
-  }
+body {
+  background: var(--bg);
+  color: #fff;
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+  cursor: none;
+}
 
-  .cursor {
-    position: fixed;
-    width: 12px; height: 12px;
-    background: var(--purple-glow);
-    border-radius: 50%;
-    pointer-events: none;
-    z-index: 9999;
-    transform: translate(-50%, -50%);
-    transition: width 0.2s, height 0.2s, background 0.2s;
-    mix-blend-mode: screen;
-  }
-  .cursor-ring {
-    position: fixed;
-    width: 36px; height: 36px;
-    border: 1px solid rgba(157, 92, 255, 0.5);
-    border-radius: 50%;
-    pointer-events: none;
-    z-index: 9998;
-    transform: translate(-50%, -50%);
-    transition: transform 0.15s ease;
-  }
+/* CURSOR */
+#ss-cursor {
+  position: fixed;
+  width: 10px;
+  height: 10px;
+  background: #fff;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+  mix-blend-mode: difference;
+  transition: width .15s, height .15s;
+}
+#ss-ring {
+  position: fixed;
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(255,255,255,0.35);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9998;
+  transform: translate(-50%, -50%);
+  transition: width .1s, height .1s, border-color .2s;
+}
 
-  /* LEFT PANEL */
-  .left-panel {
-    width: 45%;
-    background: var(--purple-mid);
-    position: relative;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    padding: 60px;
-  }
-  .left-panel::before {
-    content: '';
-    position: absolute;
-    top: -200px; left: -200px;
-    width: 600px; height: 600px;
-    background: radial-gradient(circle, rgba(124,58,237,0.3) 0%, transparent 70%);
-    pointer-events: none;
-  }
-  .left-panel::after {
-    content: '';
-    position: absolute;
-    bottom: -100px; right: -100px;
-    width: 400px; height: 400px;
-    background: radial-gradient(circle, rgba(255,107,255,0.15) 0%, transparent 70%);
-    pointer-events: none;
-  }
+/* NAVBAR */
+.ss-nav {
+  background: rgba(8,8,8,0.94);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  height: 57px;
+  display: flex;
+  align-items: center;
+  padding: 0 40px;
+  justify-content: space-between;
+}
+.ss-nav-logo {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 1.1rem;
+  color: #fff;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.ss-nav-logo::before {
+  content: '';
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  background: #fff;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.ss-nav-right {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.ss-nav-right a {
+  color: rgba(255,255,255,0.7);
+  text-decoration: none;
+  transition: color .2s;
+}
+.ss-nav-right a:hover { color: #fff; }
 
-  .panel-logo {
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: 1.4rem;
-    color: var(--white);
-    text-decoration: none;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 80px;
-    position: relative;
-    z-index: 1;
-  }
-  .logo-dot {
-    width: 8px; height: 8px;
-    background: var(--accent);
-    border-radius: 50%;
-    box-shadow: 0 0 10px var(--accent);
-    animation: pulse 2s infinite;
-  }
-  @keyframes pulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.5; transform: scale(0.8); }
-  }
+/* PAGE LAYOUT */
+.ss-page {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: calc(100vh - 57px);
+}
 
-  .panel-heading {
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: 2.8rem;
-    line-height: 1.1;
-    letter-spacing: -0.03em;
-    margin-bottom: 20px;
-    position: relative;
-    z-index: 1;
-  }
-  .panel-heading span {
-    background: linear-gradient(135deg, var(--purple-glow), var(--accent));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
+/* LEFT SIDE */
+.ss-left {
+  border-right: 1px solid rgba(255,255,255,0.06);
+  padding: 60px 56px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+.ss-orb-1 {
+  position: absolute;
+  top: -60px;
+  left: -60px;
+  width: 380px;
+  height: 380px;
+  background: radial-gradient(circle, rgba(34,211,238,0.07) 0%, transparent 70%);
+  pointer-events: none;
+}
+.ss-orb-2 {
+  position: absolute;
+  bottom: -80px;
+  right: -80px;
+  width: 240px;
+  height: 240px;
+  background: radial-gradient(circle, rgba(139,92,246,0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
 
-  .panel-sub {
-    color: var(--text-muted);
-    font-size: 1rem;
-    line-height: 1.7;
-    max-width: 340px;
-    margin-bottom: 60px;
-    position: relative;
-    z-index: 1;
-  }
+/* Badge */
+.ss-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid rgba(34,211,238,0.2);
+  border-radius: 100px;
+  padding: 5px 14px;
+  font-size: 12px;
+  color: rgba(103,232,249,0.8);
+  margin-bottom: 32px;
+  width: fit-content;
+  position: relative;
+  z-index: 1;
+}
+.ss-badge-dot {
+  width: 6px;
+  height: 6px;
+  background: rgba(103,232,249,0.8);
+  border-radius: 50%;
+  box-shadow: 0 0 8px rgba(103,232,249,0.6);
+  animation: ss-pulse 2s infinite;
+  flex-shrink: 0;
+}
+@keyframes ss-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
 
-  /* Swap preview animation */
-  .swap-preview {
-    position: relative;
-    z-index: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-  .swap-card {
-    background: rgba(255,255,255,0.04);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 16px 20px;
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    animation: floatCard 4s ease-in-out infinite;
-  }
-  .swap-card:nth-child(2) { animation-delay: -2s; margin-left: 24px; }
-  @keyframes floatCard {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-6px); }
-  }
-  .swap-avatar {
-    width: 40px; height: 40px;
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1.2rem;
-    flex-shrink: 0;
-  }
-  .swap-info { flex: 1; }
-  .swap-name { font-weight: 500; font-size: 0.9rem; margin-bottom: 2px; }
-  .swap-detail { font-size: 0.78rem; color: var(--purple-soft); }
-  .swap-status {
-    font-size: 0.7rem;
-    padding: 4px 10px;
-    border-radius: 100px;
-    background: rgba(34,197,94,0.1);
-    color: #86efac;
-    border: 1px solid rgba(34,197,94,0.2);
-  }
+/* Heading */
+.ss-heading {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 44px;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  margin-bottom: 12px;
+  position: relative;
+  z-index: 1;
+}
+.ss-heading-outline {
+  -webkit-text-stroke: 1.5px rgba(255,255,255,0.25);
+  -webkit-text-fill-color: transparent;
+  display: block;
+}
+.ss-subtext {
+  font-size: 14px;
+  color: rgba(255,255,255,0.3);
+  margin-bottom: 40px;
+  position: relative;
+  z-index: 1;
+  max-width: 340px;
+  line-height: 1.6;
+}
 
-  /* RIGHT PANEL */
-  .right-panel {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 60px 80px;
-    position: relative;
-  }
-  .right-panel::before {
-    content: '';
-    position: absolute;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    width: 500px; height: 500px;
-    background: radial-gradient(circle, rgba(124,58,237,0.05) 0%, transparent 70%);
-    pointer-events: none;
-  }
+/* Stats row */
+.ss-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 36px;
+  position: relative;
+  z-index: 1;
+}
+.ss-stat-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+  padding: 16px 14px;
+  backdrop-filter: blur(12px);
+  position: relative;
+  overflow: hidden;
+  transition: border-color .2s, transform .2s;
+}
+.ss-stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(139,92,246,0.6) 50%, transparent);
+  opacity: 0;
+  transition: opacity .2s;
+}
+.ss-stat-card:hover {
+  border-color: rgba(139,92,246,0.3);
+  transform: translateY(-3px);
+}
+.ss-stat-card:hover::before { opacity: 1; }
+.ss-stat-num {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 22px;
+  color: #fff;
+  margin-bottom: 2px;
+}
+.ss-stat-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
 
-  .form-container {
-    width: 100%;
-    max-width: 420px;
-    position: relative;
-    z-index: 1;
-  }
+/* Tags */
+.ss-tag {
+  display: inline-block;
+  border-radius: 100px;
+  padding: 2px 7px;
+  font-size: 9px;
+}
+.ss-tag-cyan {
+  border: 1px solid rgba(34,211,238,0.28);
+  color: rgba(103,232,249,0.65);
+}
+.ss-tag-violet {
+  border: 1px solid rgba(139,92,246,0.35);
+  color: rgba(167,139,250,0.7);
+}
+.ss-tag-dim {
+  border: 1px solid rgba(255,255,255,0.18);
+  color: rgba(255,255,255,0.42);
+}
 
-  .form-title {
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 1.8rem;
-    margin-bottom: 8px;
-    letter-spacing: -0.02em;
-  }
-  .form-subtitle {
-    color: var(--text-muted);
-    font-size: 0.95rem;
-    margin-bottom: 40px;
-  }
-  .form-subtitle a {
-    color: var(--purple-soft);
-    text-decoration: none;
-    transition: color 0.2s;
-  }
-  .form-subtitle a:hover { color: var(--accent); }
+/* Activity */
+.ss-activity-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+  position: relative;
+  z-index: 1;
+}
+.ss-activity-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+  backdrop-filter: blur(12px);
+  overflow: hidden;
+  position: relative;
+  z-index: 1;
+}
+.ss-activity-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.ss-activity-row:last-child { border-bottom: none; }
+.ss-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  flex-shrink: 0;
+  color: rgba(255,255,255,0.6);
+}
+.ss-act-info { flex: 1; min-width: 0; }
+.ss-act-name {
+  font-size: 12px;
+  color: rgba(255,255,255,0.75);
+  font-weight: 500;
+}
+.ss-act-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.ss-act-time {
+  font-size: 10px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  margin-right: 4px;
+}
 
-  .field {
-    margin-bottom: 20px;
-  }
-  .field label {
-    display: block;
-    font-size: 0.85rem;
-    color: var(--text-muted);
-    margin-bottom: 8px;
-    letter-spacing: 0.02em;
-  }
-  .field input {
-    width: 100%;
-    background: rgba(124,58,237,0.06);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 14px 18px;
-    color: var(--white);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.95rem;
-    outline: none;
-    transition: border-color 0.2s, background 0.2s;
-  }
-  .field input::placeholder { color: var(--text-muted); }
-  .field input:focus {
-    border-color: var(--purple-bright);
-    background: rgba(124,58,237,0.1);
-  }
+/* RIGHT SIDE */
+.ss-right {
+  padding: 60px 56px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+.ss-right-orb {
+  position: absolute;
+  bottom: -80px;
+  right: -80px;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(139,92,246,0.05) 0%, transparent 70%);
+  pointer-events: none;
+}
+#ss-globe-login {
+  position: absolute;
+  bottom: -80px;
+  right: -80px;
+  opacity: 0.5;
+  pointer-events: none;
+  z-index: 0;
+}
+.ss-form-wrap {
+  position: relative;
+  z-index: 2;
+  max-width: 420px;
+  width: 100%;
+}
 
-  .password-wrapper { position: relative; }
-  .password-toggle {
-    position: absolute;
-    right: 16px; top: 50%;
-    transform: translateY(-50%);
-    background: none;
-    border: none;
-    color: var(--text-muted);
-    cursor: none;
-    font-size: 1.1rem;
-    padding: 0;
-    transition: color 0.2s;
-  }
-  .password-toggle:hover { color: var(--white); }
+/* Form typography */
+.ss-form-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 30px;
+  letter-spacing: -0.02em;
+  margin-bottom: 8px;
+}
+.ss-form-sub {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 36px;
+  line-height: 1.5;
+}
 
-  .forgot-link {
-    display: block;
-    text-align: right;
-    margin-top: 8px;
-    font-size: 0.82rem;
-    color: var(--text-muted);
-    text-decoration: none;
-    transition: color 0.2s;
-  }
-  .forgot-link:hover { color: var(--purple-soft); }
+/* Fields */
+.ss-field { margin-bottom: 20px; }
+.ss-field label {
+  display: block;
+  font-size: 13px;
+  color: rgba(255,255,255,0.45);
+  margin-bottom: 8px;
+}
+.ss-field input[type="email"],
+.ss-field input[type="password"],
+.ss-field input[type="text"] {
+  width: 100%;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 12px;
+  padding: 13px 16px;
+  color: #fff;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  outline: none;
+  transition: border-color .2s, background .2s, box-shadow .2s;
+}
+.ss-field input::placeholder { color: var(--text-muted); }
+.ss-field input:focus {
+  border-color: rgba(139,92,246,0.45);
+  background: rgba(139,92,246,0.04);
+  box-shadow: 0 0 0 3px rgba(139,92,246,0.08);
+}
 
-  .alert {
-    padding: 14px 18px;
-    border-radius: 12px;
-    font-size: 0.9rem;
-    margin-bottom: 20px;
-    animation: fadeUp 0.3s ease;
-    display: none;
-  }
-  .alert.error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #fca5a5; display: flex; gap: 8px; align-items: center; }
-  .alert.success { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); color: #86efac; display: flex; gap: 8px; align-items: center; }
+/* Password wrapper */
+.ss-pw-wrap { position: relative; }
+.ss-pw-toggle {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: none;
+  font-size: 15px;
+  padding: 0;
+  transition: color .2s;
+}
+.ss-pw-toggle:hover { color: rgba(255,255,255,0.6); }
 
-  .btn-primary {
-    width: 100%;
-    background: linear-gradient(135deg, var(--purple-bright), #a855f7);
-    color: white;
-    padding: 15px;
-    border-radius: 12px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 1rem;
-    font-weight: 500;
-    border: none;
-    cursor: none;
-    transition: all 0.3s;
-    box-shadow: 0 8px 32px rgba(124,58,237,0.3);
-    position: relative;
-    overflow: hidden;
-    margin-top: 8px;
-  }
-  .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 40px rgba(124,58,237,0.5);
-  }
-  .btn-primary:disabled { opacity: 0.5; transform: none; }
-  .btn-primary.loading::after {
-    content: '';
-    position: absolute;
-    top: 50%; left: 50%;
-    width: 20px; height: 20px;
-    border: 2px solid rgba(255,255,255,0.3);
-    border-top-color: white;
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-    animation: spin 0.8s linear infinite;
-  }
-  .btn-primary.loading span { opacity: 0; }
-  @keyframes spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
+/* Forgot link */
+.ss-forgot {
+  display: block;
+  text-align: right;
+  margin-top: 8px;
+  font-size: 11px;
+  color: rgba(255,255,255,0.3);
+  text-decoration: none;
+  transition: color .2s;
+}
+.ss-forgot:hover { color: rgba(255,255,255,0.6); }
 
-  .divider {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin: 24px 0;
-    color: var(--text-muted);
-    font-size: 0.85rem;
-  }
-  .divider::before, .divider::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: var(--border);
-  }
+/* Remember me */
+.ss-remember {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  cursor: none;
+}
+.ss-remember input[type="checkbox"] { display: none; }
+.ss-checkbox {
+  width: 16px;
+  height: 16px;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 10px;
+  color: transparent;
+  transition: background .2s, border-color .2s, color .2s;
+  cursor: none;
+}
+.ss-remember input[type="checkbox"]:checked + .ss-checkbox {
+  background: rgba(139,92,246,0.2);
+  border-color: rgba(139,92,246,0.45);
+  color: rgba(167,139,250,0.9);
+}
+.ss-remember-label {
+  font-size: 13px;
+  color: var(--text-muted);
+  cursor: none;
+  user-select: none;
+}
 
-  .oauth-btn {
-    width: 100%;
-    background: rgba(255,255,255,0.04);
-    border: 1px solid var(--border);
-    color: var(--white);
-    padding: 13px;
-    border-radius: 12px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.95rem;
-    cursor: none;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-  }
-  .oauth-btn:hover {
-    background: rgba(255,255,255,0.08);
-    border-color: rgba(124,58,237,0.4);
-  }
+/* Alert */
+.alert {
+  padding: 14px 18px;
+  border-radius: 12px;
+  font-size: 13px;
+  margin-bottom: 20px;
+  display: none;
+}
+.alert.error {
+  background: rgba(239,68,68,0.08);
+  border: 1px solid rgba(239,68,68,0.25);
+  color: #fca5a5;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.alert.success {
+  background: rgba(34,197,94,0.08);
+  border: 1px solid rgba(34,197,94,0.25);
+  color: #86efac;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
 
-  /* Reset password view */
-  .reset-view { display: none; animation: fadeUp 0.3s ease; }
+/* Primary button — white, no purple */
+.ss-btn-primary {
+  width: 100%;
+  background: #fff;
+  color: #080808;
+  border: none;
+  border-radius: 14px;
+  padding: 14px;
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: none;
+  transition: opacity .2s, transform .2s;
+  position: relative;
+  overflow: hidden;
+  margin-top: 4px;
+}
+.ss-btn-primary:hover { opacity: 0.92; transform: translateY(-1px); }
+.ss-btn-primary:disabled { opacity: 0.5; transform: none; }
+.ss-btn-primary.loading::after {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 18px; height: 18px;
+  border: 2px solid rgba(8,8,8,0.2);
+  border-top-color: #080808;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  animation: ss-spin .8s linear infinite;
+}
+.ss-btn-primary.loading span { opacity: 0; }
+@keyframes ss-spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
 
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(12px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
+/* Secondary button */
+.ss-btn-secondary {
+  width: 100%;
+  background: none;
+  border: 1px solid rgba(255,255,255,0.08);
+  color: var(--text-muted);
+  padding: 14px;
+  border-radius: 14px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  cursor: none;
+  margin-top: 8px;
+  transition: border-color .2s, color .2s;
+}
+.ss-btn-secondary:hover {
+  border-color: rgba(255,255,255,0.15);
+  color: rgba(255,255,255,0.6);
+}
 
-  @media (max-width: 768px) {
-    .left-panel { display: none; }
-    .right-panel { padding: 40px 24px; }
-  }
+/* Divider */
+.ss-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 24px 0;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+.ss-divider::before, .ss-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(255,255,255,0.08);
+}
+
+/* OAuth button */
+.ss-oauth-btn {
+  width: 100%;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.7);
+  padding: 13px;
+  border-radius: 12px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  cursor: none;
+  transition: background .2s, border-color .2s, color .2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+.ss-oauth-btn:hover {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(139,92,246,0.3);
+  color: #fff;
+}
+
+/* Signup link */
+.ss-signup-link {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.ss-signup-link a {
+  color: rgba(255,255,255,0.65);
+  text-decoration: none;
+  transition: color .2s;
+}
+.ss-signup-link a:hover { color: #fff; }
+
+/* Reset view */
+.reset-view { display: none; }
+
+@media (max-width: 768px) {
+  .ss-left { display: none; }
+  .ss-page { grid-template-columns: 1fr; }
+  .ss-right { padding: 40px 24px; }
+  .ss-nav { padding: 0 20px; }
+}
 </style>
 </head>
 <body>
 
-<div class="cursor" id="cursor"></div>
-<div class="cursor-ring" id="cursorRing"></div>
+<div id="ss-cursor"></div>
+<div id="ss-ring"></div>
 
-<!-- LEFT PANEL -->
-<div class="left-panel">
-  <a href="index.html" class="panel-logo">
-    <div class="logo-dot"></div>
-    SkillSwap
-  </a>
-  <div class="panel-heading">
-    Welcome<br>
-    <span>back. 👋</span>
-  </div>
-  <p class="panel-sub">Your skill exchange journey continues. See who matched with you while you were away.</p>
+<!-- NAVBAR -->
+<nav class="ss-nav">
+  <a href="index.html" class="ss-nav-logo">SkillSwap</a>
+  <div class="ss-nav-right">Don't have an account? <a href="signup.html">Sign up →</a></div>
+</nav>
 
-  <div class="swap-preview">
-    <div class="swap-card">
-      <div class="swap-avatar" style="background:rgba(255,107,255,0.15);">🎨</div>
-      <div class="swap-info">
-        <div class="swap-name">Sofia R.</div>
-        <div class="swap-detail">UI Design ↔ Python</div>
-      </div>
-      <div class="swap-status">New match</div>
+<!-- PAGE GRID -->
+<div class="ss-page">
+
+  <!-- LEFT: Social Proof -->
+  <div class="ss-left">
+    <div class="ss-orb-1"></div>
+    <div class="ss-orb-2"></div>
+
+    <div class="ss-badge">
+      <span class="ss-badge-dot"></span>
+      Active right now — 340+ swaps live
     </div>
-    <div class="swap-card">
-      <div class="swap-avatar" style="background:rgba(124,58,237,0.15);">🎸</div>
-      <div class="swap-info">
-        <div class="swap-name">Marcus T.</div>
-        <div class="swap-detail">Guitar ↔ Spanish</div>
-      </div>
-      <div class="swap-status">Active</div>
+
+    <div class="ss-heading">
+      Welcome back.<br>
+      <span class="ss-heading-outline">Keep swapping.</span>
     </div>
-  </div>
-</div>
+    <p class="ss-subtext">Your skill exchange journey continues. See who matched with you while you were away.</p>
 
-<!-- RIGHT PANEL -->
-<div class="right-panel">
-  <div class="form-container">
-
-    <!-- LOGIN VIEW -->
-    <div id="loginView">
-      <div class="form-title">Sign in</div>
-      <div class="form-subtitle">No account yet? <a href="signup.html">Create one free →</a></div>
-
-      <div class="alert" id="alertBox"></div>
-
-      <div class="field">
-        <label>Email address</label>
-        <input type="email" id="email" placeholder="alex@example.com" />
+    <!-- Stats -->
+    <div class="ss-stats">
+      <div class="ss-stat-card">
+        <div class="ss-stat-num">2.4K</div>
+        <div class="ss-stat-label">Active users</div>
+        <span class="ss-tag ss-tag-cyan">Live</span>
       </div>
-      <div class="field">
-        <label>Password</label>
-        <div class="password-wrapper">
-          <input type="password" id="password" placeholder="Your password" />
-          <button class="password-toggle" onclick="togglePassword()">👁</button>
+      <div class="ss-stat-card">
+        <div class="ss-stat-num">12K+</div>
+        <div class="ss-stat-label">Skills listed</div>
+        <span class="ss-tag ss-tag-violet">Growing</span>
+      </div>
+      <div class="ss-stat-card">
+        <div class="ss-stat-num">4.9</div>
+        <div class="ss-stat-label">Avg rating</div>
+        <span class="ss-tag ss-tag-dim">Verified</span>
+      </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="ss-activity-label">Recent Activity</div>
+    <div class="ss-activity-card">
+      <div class="ss-activity-row">
+        <div class="ss-avatar">AK</div>
+        <div class="ss-act-info">
+          <div class="ss-act-name">Aryan K.</div>
+          <div class="ss-act-sub">Figma → Python</div>
         </div>
-        <a href="#" class="forgot-link" onclick="showReset(event)">Forgot password?</a>
+        <span class="ss-act-time">2 min ago</span>
+        <span class="ss-tag ss-tag-violet">Matched</span>
+      </div>
+      <div class="ss-activity-row">
+        <div class="ss-avatar">SR</div>
+        <div class="ss-act-info">
+          <div class="ss-act-name">Sara R.</div>
+          <div class="ss-act-sub">React → Marketing</div>
+        </div>
+        <span class="ss-act-time">5 min ago</span>
+        <span class="ss-tag ss-tag-cyan">Active</span>
+      </div>
+      <div class="ss-activity-row">
+        <div class="ss-avatar">MT</div>
+        <div class="ss-act-info">
+          <div class="ss-act-name">Marcus T.</div>
+          <div class="ss-act-sub">Guitar → Spanish</div>
+        </div>
+        <span class="ss-act-time">8 min ago</span>
+        <span class="ss-tag ss-tag-dim">Swap</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Form -->
+  <div class="ss-right">
+    <div class="ss-right-orb"></div>
+    <canvas id="ss-globe-login" width="280" height="280"></canvas>
+
+    <div class="ss-form-wrap">
+
+      <!-- LOGIN VIEW -->
+      <div id="loginView">
+        <div class="ss-form-title">Sign in</div>
+        <p class="ss-form-sub">Enter your credentials to access your skill profile.</p>
+
+        <div class="alert" id="alertBox"></div>
+
+        <div class="ss-field">
+          <label>Email address</label>
+          <input type="email" id="email" placeholder="alex@example.com" />
+        </div>
+        <div class="ss-field">
+          <label>Password</label>
+          <div class="ss-pw-wrap">
+            <input type="password" id="password" placeholder="Your password" />
+            <button class="ss-pw-toggle" onclick="togglePassword()">👁</button>
+          </div>
+          <a href="#" class="ss-forgot" onclick="showReset(event)">Forgot password?</a>
+        </div>
+
+        <label class="ss-remember">
+          <input type="checkbox" id="rememberMe">
+          <span class="ss-checkbox">✓</span>
+          <span class="ss-remember-label">Remember me</span>
+        </label>
+
+        <button class="ss-btn-primary" onclick="handleLogin()" id="loginBtn">
+          <span>Sign in →</span>
+        </button>
+
+        <div class="ss-divider">or continue with</div>
+        <button class="ss-oauth-btn" onclick="signInWithGoogle()">
+          <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z"/></svg>
+          Continue with Google
+        </button>
+
+        <div class="ss-signup-link">Don't have an account? <a href="signup.html">Create one free</a></div>
       </div>
 
-      <button class="btn-primary" onclick="handleLogin()" id="loginBtn">
-        <span>Sign in →</span>
-      </button>
+      <!-- RESET PASSWORD VIEW -->
+      <div class="reset-view" id="resetView">
+        <div class="ss-form-title">Reset password</div>
+        <p class="ss-form-sub">We'll send a reset link to your email.</p>
 
-      <div class="divider">or continue with</div>
-      <button class="oauth-btn" onclick="signInWithGoogle()">
-        <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z"/></svg>
-        Continue with Google
-      </button>
-    </div>
+        <div class="alert" id="resetAlert"></div>
 
-    <!-- RESET PASSWORD VIEW -->
-    <div class="reset-view" id="resetView">
-      <div class="form-title">Reset password</div>
-      <div class="form-subtitle">We'll send a reset link to your email.</div>
+        <div class="ss-field">
+          <label>Email address</label>
+          <input type="email" id="resetEmail" placeholder="alex@example.com" />
+        </div>
 
-      <div class="alert" id="resetAlert"></div>
-
-      <div class="field">
-        <label>Email address</label>
-        <input type="email" id="resetEmail" placeholder="alex@example.com" />
+        <button class="ss-btn-primary" onclick="handleReset()" id="resetBtn">
+          <span>Send reset link →</span>
+        </button>
+        <button class="ss-btn-secondary" onclick="showLogin()">← Back to sign in</button>
       </div>
 
-      <button class="btn-primary" onclick="handleReset()" id="resetBtn">
-        <span>Send reset link →</span>
-      </button>
-      <button onclick="showLogin()" style="width:100%; background:none; border:1px solid var(--border); color:var(--text-muted); padding:15px; border-radius:12px; font-family:'DM Sans',sans-serif; font-size:1rem; cursor:none; margin-top:8px; transition:all 0.2s;">
-        ← Back to sign in
-      </button>
     </div>
-
   </div>
 </div>
 
@@ -476,24 +755,6 @@ const sb = createClient(
   'https://vgndpvkywvcnezvjuueq.supabase.co',
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZnbmRwdmt5d3ZjbmV6dmp1dWVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MDk5OTEsImV4cCI6MjA5MDA4NTk5MX0.GGwx_-W7pu485h3d6dgkhqSwiqxT3Hx02Ck9HW8nyE0'
 );
-
-// Cursor
-const cursor = document.getElementById('cursor');
-const ring = document.getElementById('cursorRing');
-let mouseX = 0, mouseY = 0, ringX = 0, ringY = 0;
-document.addEventListener('mousemove', e => {
-  mouseX = e.clientX; mouseY = e.clientY;
-  cursor.style.left = mouseX + 'px';
-  cursor.style.top = mouseY + 'px';
-});
-function animateRing() {
-  ringX += (mouseX - ringX) * 0.12;
-  ringY += (mouseY - ringY) * 0.12;
-  ring.style.left = ringX + 'px';
-  ring.style.top = ringY + 'px';
-  requestAnimationFrame(animateRing);
-}
-animateRing();
 
 // Already logged in? redirect
 sb.auth.getSession().then(({ data }) => {
@@ -590,6 +851,31 @@ async function signInWithGoogle() {
   });
   if (error) showAlert('alertBox', 'error', error.message);
 }
+</script>
+
+<!-- Cursor -->
+<script>
+const _c=document.getElementById('ss-cursor'),_r=document.getElementById('ss-ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;_c.style.left=mx+'px';_c.style.top=my+'px';});
+(function a(){rx+=(mx-rx)*.1;ry+=(my-ry)*.1;_r.style.left=rx+'px';_r.style.top=ry+'px';requestAnimationFrame(a);})();
+document.querySelectorAll('input,button,.ss-stat-card,.ss-act-card').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{_c.style.width='5px';_c.style.height='5px';_r.style.width='50px';_r.style.height='50px';_r.style.borderColor='rgba(139,92,246,0.55)';});
+  el.addEventListener('mouseleave',()=>{_c.style.width='10px';_c.style.height='10px';_r.style.width='34px';_r.style.height='34px';_r.style.borderColor='rgba(255,255,255,0.35)';});
+});
+</script>
+
+<!-- Globe -->
+<script>
+(function(){
+  const cv=document.getElementById('ss-globe-login');
+  if(!cv)return;
+  const ctx=cv.getContext('2d'),W=280,H=280,R=125;let rot=0;
+  const continents=[[[60,-140],[72,-141],[72,-120],[68,-110],[70,-95],[65,-80],[60,-65],[47,-53],[44,-66],[35,-75],[25,-80],[15,-83],[8,-77],[10,-85],[20,-104],[30,-115],[38,-122],[48,-124],[55,-130],[60,-140]],[[12,-71],[8,-60],[5,-52],[0,-50],[-5,-35],[-15,-39],[-25,-48],[-34,-58],[-45,-65],[-55,-68],[-45,-60],[-25,-43],[-10,-35],[0,-48],[5,-52],[10,-62],[12,-71]],[[35,28],[42,28],[48,38],[52,20],[58,5],[65,14],[70,25],[60,28],[50,18],[43,16],[37,15],[36,-5],[38,-9],[36,-6],[35,28]],[[37,10],[30,32],[20,38],[0,42],[-10,38],[-20,35],[-34,26],[-35,18],[-20,14],[0,10],[5,-8],[15,-17],[25,-15],[35,-5],[37,10]],[[70,30],[65,75],[65,90],[68,110],[60,140],[50,140],[40,128],[30,120],[22,113],[15,108],[5,103],[0,108],[10,123],[20,110],[25,85],[22,72],[15,75],[8,77],[5,80],[10,76],[20,68],[25,50],[30,40],[35,36],[45,35],[50,40],[55,35],[60,30],[70,30]],[[-15,130],[-12,142],[-25,152],[-37,149],[-38,143],[-32,134],[-30,115],[-22,113],[-18,122],[-15,130]]];
+  const nodes=[];for(let i=0;i<35;i++)nodes.push({lat:(Math.random()-.5)*160,lon:Math.random()*360-180,s:Math.random()*1.8+.8,col:Math.random()<.15?'rgba(167,139,250,X)':Math.random()<.15?'rgba(103,232,249,X)':'rgba(255,255,255,X)'});
+  const conns=[];for(let i=0;i<nodes.length;i++)for(let j=i+1;j<nodes.length;j++)if(Math.hypot(nodes[i].lat-nodes[j].lat,nodes[i].lon-nodes[j].lon)<45&&Math.random()<.3)conns.push([i,j]);
+  function proj(la,lo){const laR=la*Math.PI/180,loR=lo*Math.PI/180+rot;return{x:W/2+R*Math.cos(laR)*Math.sin(loR),y:H/2-R*Math.sin(laR),z:R*Math.cos(laR)*Math.cos(loR)};}
+  function draw(){ctx.clearRect(0,0,W,H);const gr=ctx.createRadialGradient(W/2,H/2*.9,0,W/2,H/2,R);gr.addColorStop(0,'rgba(18,8,38,0.65)');gr.addColorStop(.7,'rgba(10,4,20,0.3)');gr.addColorStop(1,'rgba(8,8,8,0)');ctx.beginPath();ctx.arc(W/2,H/2,R,0,Math.PI*2);ctx.fillStyle=gr;ctx.fill();ctx.beginPath();ctx.arc(W/2,H/2,R,0,Math.PI*2);ctx.strokeStyle='rgba(255,255,255,0.06)';ctx.lineWidth=1;ctx.stroke();for(let la=-60;la<=60;la+=30){const laR=la*Math.PI/180,yr=H/2-R*Math.sin(laR),xr=R*Math.cos(laR);ctx.beginPath();ctx.ellipse(W/2,yr,xr,xr*.18,0,0,Math.PI*2);ctx.strokeStyle='rgba(255,255,255,0.03)';ctx.lineWidth=.6;ctx.stroke();}for(let lo=0;lo<360;lo+=30){const loR=lo*Math.PI/180+rot;ctx.beginPath();for(let t=0;t<=360;t+=5){const laT=t*Math.PI/180,px=W/2+R*Math.cos(laT)*Math.sin(loR),py=H/2-R*Math.sin(laT),pz=R*Math.cos(laT)*Math.cos(loR);if(pz>-10){t===0?ctx.moveTo(px,py):ctx.lineTo(px,py);}else ctx.moveTo(px,py);}ctx.strokeStyle='rgba(255,255,255,0.03)';ctx.lineWidth=.6;ctx.stroke();}continents.forEach(pts=>{const pr=pts.map(([la,lo])=>proj(la,lo));if(pr.filter(p=>p.z>0).length<pts.length*.4)return;ctx.beginPath();let s=false;pr.forEach(p=>{if(p.z>-R*.3){if(!s){ctx.moveTo(p.x,p.y);s=true;}else ctx.lineTo(p.x,p.y);}});ctx.closePath();ctx.fillStyle='rgba(139,92,246,0.1)';ctx.strokeStyle='rgba(167,139,250,0.28)';ctx.lineWidth=.9;ctx.fill();ctx.stroke();});conns.forEach(([i,j])=>{const a=proj(nodes[i].lat,nodes[i].lon),b=proj(nodes[j].lat,nodes[j].lon);if(a.z>0&&b.z>0){ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.strokeStyle=`rgba(167,139,250,${Math.min(a.z,b.z)/R*.09})`;ctx.lineWidth=.7;ctx.stroke();}});nodes.forEach(n=>{const p=proj(n.lat,n.lon);if(p.z>0){const al=p.z/R;ctx.beginPath();ctx.arc(p.x,p.y,n.s*(0.5+al*.5),0,Math.PI*2);ctx.fillStyle=n.col.replace('X',al.toFixed(2));ctx.fill();}});rot+=.004;requestAnimationFrame(draw);}draw();})();
 </script>
 </body>
 </html>
