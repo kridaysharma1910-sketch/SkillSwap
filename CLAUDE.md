@@ -40,7 +40,7 @@ A skill-exchange web platform where users list skills they offer and skills they
 |------|------|--------|
 | Landing | index.html | ✅ Frontend done, needs polish |
 | Sign Up | signup.html | ✅ Frontend done, Supabase auth working (creates profile) |
-| Login | login.html | ✅ Fixed — alert display bug patched, session guard added before redirect |
+| Login | login.html | ✅ UI redesigned + auth fixed — white button, globe, social proof panel, upsert fix |
 | Dashboard | dashboard.html | ✅ Frontend done, pulls real Supabase data |
 | Profile | profile.html | ✅ Done — avatar picker, tag input, live preview, Supabase upsert |
 | Discover | discover.html | ✅ Done — search, filters, match scoring, swap request sending |
@@ -93,6 +93,15 @@ A skill-exchange web platform where users list skills they offer and skills they
 - Added `data.session` guard before `window.location.href = 'dashboard.html'` — Supabase v2 can return `{ session: null, error: null }` when email is unconfirmed; previously this caused a silent redirect loop back to login
 - All fixes committed and pushed to main (Vercel auto-deployed)
 
+### [Session 3 — 2026-04-03]
+- Redesigned `login.html` UI: sticky navbar (Syne logo + white square), 2-column grid layout (social proof left / form right), cyan+violet orbs, animated badge, "Welcome back." solid + "Keep swapping." outline heading, 3 glass stat cards with hover glow, recent activity card (3 rows with avatars + colored tags), rotating globe canvas (R=125, bottom-right, opacity 0.5), white submit button (no purple), violet-glow input focus, custom "Remember me" checkbox, custom cursor (`#ss-cursor` / `#ss-ring`), all Supabase logic preserved unchanged
+- Fixed `dashboard.html` logout button: old button was a tiny `↪` icon in near-invisible muted color — replaced with full-width "↪ Sign out" button (red tint, border, always visible at bottom of sidebar); also fixed sidebar `height: 100vh` + `overflow-y: auto` so bottom of sidebar is never clipped
+- Fixed `dashboard.html` logout redirect: was sending to `login.html`, now sends to `index.html` (front page)
+- Fixed `signup.html` auth bug: profiles were written with `.update().eq('id', ...)` which silently fails if no row exists — changed to `.upsert({ id: data.user.id, ... })`
+- Fixed `login.html` auth bug: removed `if (!data.session)` block that was incorrectly blocking valid logins — replaced with `if (data.user)` redirect per Supabase v2 pattern
+- Added `console.log` on signup error, profile upsert error, and login error for easier debugging
+- Diagnosed persistent "Invalid login credentials" 400 error — root cause is Supabase **email confirmation enabled**: users sign up but cannot log in until they confirm their email. Fix: Supabase Dashboard → Authentication → Providers → Email → toggle "Confirm email" OFF
+
 ## UI Design System (Updated)
 
 ### Design Theme
@@ -138,10 +147,9 @@ A skill-exchange web platform where users list skills they offer and skills they
 ### Pages completed
 - index.html ✅ — full redesign done (hero, globe, marquee, skills tags, step cards, feature cards, CTA, footer)
 - signup.html ✅ — full redesign done (split layout, globe, glass cards, form inputs, skill tags, plan cards)
-- login.html ⏳ — pending
+- login.html ✅ — full redesign done (navbar, 2-col grid, social proof left panel, globe bottom-right, white button, custom cursor)
 
 ### Pages pending UI update
-- login.html
 - dashboard.html
 - profile.html
 - discover.html
@@ -175,6 +183,7 @@ A skill-exchange web platform where users list skills they offer and skills they
 - `messages` table needs: `match_id`, `sender_id`, `content`, `created_at`
 - `matches` table needs: `user_a`, `user_b`, `status` (pending/accepted/declined/completed), `created_at`
 - Realtime must be enabled in Supabase dashboard for `messages` table (for live chat to work)
+- **Email confirmation must be DISABLED** in Supabase (Authentication → Providers → Email → "Confirm email" OFF) for signup→login flow to work without email verification step
 ```
 
 ---
