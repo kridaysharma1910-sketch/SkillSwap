@@ -6,188 +6,159 @@
 <title>SkillSwap — Video Call</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --black: #05040a; --purple-deep: #0d0a1a; --purple-mid: #1a1035;
-    --purple-bright: #7c3aed; --purple-glow: #9d5cff; --purple-soft: #c4a8ff;
-    --accent: #ff6bff; --white: #f0ecff; --text-muted: #7a6d99;
-    --border: rgba(124, 58, 237, 0.2); --sidebar-w: 240px;
-  }
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body { background:var(--black); color:var(--white); font-family:'DM Sans',sans-serif; min-height:100vh; display:flex; overflow-x:hidden; cursor:none; }
-  .cursor { position:fixed; width:12px; height:12px; background:var(--purple-glow); border-radius:50%; pointer-events:none; z-index:9999; transform:translate(-50%,-50%); mix-blend-mode:screen; }
-  .cursor-ring { position:fixed; width:36px; height:36px; border:1px solid rgba(157,92,255,0.5); border-radius:50%; pointer-events:none; z-index:9998; transform:translate(-50%,-50%); transition:transform 0.15s ease; }
+:root{--bg:#080808;--bg-card:rgba(255,255,255,0.03);--border:rgba(255,255,255,0.08);--border-hover:rgba(139,92,246,0.3);--text-muted:rgba(255,255,255,0.32);--sidebar-w:240px;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;overflow-x:hidden;cursor:none;}
+#ss-cursor{position:fixed;width:10px;height:10px;background:#fff;border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);mix-blend-mode:difference;}
+#ss-ring{position:fixed;width:34px;height:34px;border:1px solid rgba(255,255,255,0.5);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:all .2s;}
+.sidebar{width:var(--sidebar-w);height:100vh;background:rgba(255,255,255,0.015);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:24px 14px;position:fixed;left:0;top:0;z-index:100;overflow-y:auto;}
+.sidebar-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.15rem;color:#fff;text-decoration:none;display:flex;align-items:center;gap:8px;margin-bottom:32px;padding-left:8px;}
+.logo-sq{width:9px;height:9px;background:#fff;border-radius:2px;flex-shrink:0;}
+.nav-section{font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,0.2);margin:18px 0 5px;padding-left:10px;}
+.nav-link{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;color:rgba(255,255,255,0.42);text-decoration:none;font-size:.875rem;transition:all .15s;margin-bottom:1px;border:1px solid transparent;}
+.nav-link:hover{color:#fff;background:rgba(255,255,255,0.04);}
+.nav-link.active{color:#fff;background:rgba(255,255,255,0.06);border-color:var(--border);}
+.nav-link svg{width:15px;height:15px;flex-shrink:0;opacity:.7;}
+.nav-link.active svg,.nav-link:hover svg{opacity:1;}
+.sidebar-bottom{margin-top:auto;border-top:1px solid var(--border);padding-top:14px;}
+.user-pill{display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px;margin-bottom:8px;}
+.user-avatar-sm{width:30px;height:30px;border-radius:50%;background:rgba(139,92,246,0.18);border:1px solid rgba(139,92,246,0.3);display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;flex-shrink:0;overflow:hidden;color:rgba(167,139,250,0.9);}
+.user-name-sm{font-size:.82rem;font-weight:500;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:rgba(255,255,255,0.65);}
+.sidebar-logout-full{width:100%;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.14);border-radius:10px;color:rgba(239,68,68,0.7);font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:500;padding:9px 12px;cursor:none;display:flex;align-items:center;gap:8px;transition:all .2s;}
+.sidebar-logout-full:hover{background:rgba(239,68,68,0.12);border-color:rgba(239,68,68,0.28);color:#f87171;}
+.sidebar-logout-full svg{width:14px;height:14px;}
+.hamburger{display:none;position:fixed;top:14px;left:14px;z-index:200;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:10px;padding:8px;cursor:none;color:#fff;}
+.main{margin-left:var(--sidebar-w);flex:1;padding:40px 48px;min-height:100vh;}
+.page-header{margin-bottom:28px;}
+.page-title{font-family:'Syne',sans-serif;font-weight:800;font-size:1.9rem;letter-spacing:-.03em;}
+.page-sub{color:var(--text-muted);font-size:.9rem;margin-top:5px;}
+.lobby{max-width:660px;}
 
-  /* SIDEBAR */
-  .sidebar { width:var(--sidebar-w); min-height:100vh; background:var(--purple-deep); border-right:1px solid var(--border); display:flex; flex-direction:column; padding:28px 20px; position:fixed; left:0; top:0; z-index:100; }
-  .sidebar-logo { font-family:'Syne',sans-serif; font-weight:800; font-size:1.3rem; color:var(--white); text-decoration:none; display:flex; align-items:center; gap:10px; margin-bottom:40px; }
-  .logo-dot { width:8px; height:8px; background:var(--accent); border-radius:50%; box-shadow:0 0 10px var(--accent); animation:pulse 2s infinite; flex-shrink:0; }
-  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.5;transform:scale(0.8);} }
-  .nav-section { font-size:0.7rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-muted); margin-bottom:10px; margin-top:24px; padding-left:12px; }
-  .nav-link { display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:10px; color:var(--text-muted); text-decoration:none; font-size:0.9rem; transition:all 0.2s; margin-bottom:2px; }
-  .nav-link:hover { color:var(--white); background:rgba(124,58,237,0.1); }
-  .nav-link.active { color:var(--white); background:rgba(124,58,237,0.15); border:1px solid var(--border); }
-  .nav-icon { font-size:1rem; width:20px; text-align:center; }
-  .sidebar-bottom { margin-top:auto; border-top:1px solid var(--border); padding-top:20px; }
-  .user-pill { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:10px; cursor:none; transition:background 0.2s; }
-  .user-pill:hover { background:rgba(124,58,237,0.1); }
-  .user-avatar-sm { width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,var(--purple-bright),var(--accent)); display:flex; align-items:center; justify-content:center; font-size:0.9rem; flex-shrink:0; }
-  .user-name-sm { font-size:0.85rem; font-weight:500; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .logout-btn { background:none; border:none; color:var(--text-muted); cursor:none; font-size:1rem; padding:4px; transition:color 0.2s; flex-shrink:0; }
-  .logout-btn:hover { color:#ef4444; }
+/* GLASS CARD */
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:18px;padding:22px 24px;backdrop-filter:blur(12px);position:relative;overflow:hidden;transition:border-color .25s;margin-bottom:18px;}
+.card:hover{border-color:rgba(255,255,255,0.12);}
+.card-title{font-family:'Syne',sans-serif;font-weight:700;font-size:.88rem;margin-bottom:18px;color:rgba(255,255,255,.75);}
 
-  /* MAIN */
-  .main { margin-left:var(--sidebar-w); flex:1; padding:40px 48px; min-height:100vh; }
-  .page-header { margin-bottom:32px; }
-  .page-title { font-family:'Syne',sans-serif; font-weight:800; font-size:2rem; letter-spacing:-0.03em; }
-  .page-title span { background:linear-gradient(135deg,var(--purple-glow),var(--accent)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
-  .page-sub { color:var(--text-muted); font-size:0.92rem; margin-top:6px; }
+/* ROOM INPUT */
+.room-row{display:flex;gap:10px;align-items:center;}
+.room-input{flex:1;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.09);border-radius:12px;padding:12px 16px;color:#fff;font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;transition:border-color .2s,box-shadow .2s;}
+.room-input::placeholder{color:var(--text-muted);}
+.room-input:focus{border-color:rgba(139,92,246,0.45);box-shadow:0 0 0 3px rgba(139,92,246,0.08);}
+.btn-join{background:#fff;color:#080808;border:none;border-radius:11px;padding:12px 20px;font-family:'Syne',sans-serif;font-size:.82rem;font-weight:700;cursor:none;white-space:nowrap;transition:opacity .2s;}
+.btn-join:hover{opacity:.88;}
+.or-divider{text-align:center;color:var(--text-muted);font-size:.8rem;margin:14px 0;display:flex;align-items:center;gap:10px;}
+.or-divider::before,.or-divider::after{content:'';flex:1;height:1px;background:var(--border);}
+.btn-gen{background:var(--bg-card);border:1px solid var(--border);color:rgba(255,255,255,0.45);padding:11px 18px;border-radius:11px;font-family:'DM Sans',sans-serif;font-size:.84rem;cursor:none;width:100%;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:7px;}
+.btn-gen:hover{border-color:rgba(255,255,255,0.14);color:rgba(255,255,255,.7);}
+.btn-gen svg{width:13px;height:13px;}
 
-  /* LOBBY */
-  .lobby { max-width: 680px; }
+/* MATCH CALL ITEMS */
+.match-call-item{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:12px;border:1px solid var(--border);margin-bottom:9px;transition:all .2s;background:rgba(255,255,255,0.02);}
+.match-call-item:hover{border-color:rgba(139,92,246,0.28);background:rgba(139,92,246,0.04);}
+.mc-avatar{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.82rem;font-weight:700;flex-shrink:0;border:1px solid rgba(139,92,246,0.2);background:rgba(139,92,246,0.1);color:rgba(167,139,250,0.8);overflow:hidden;}
+.mc-info{flex:1;min-width:0;}
+.mc-name{font-weight:500;font-size:.875rem;margin-bottom:2px;}
+.mc-swap{font-size:.76rem;color:var(--text-muted);}
+.btn-call{background:#fff;color:#080808;padding:8px 16px;border-radius:9px;font-family:'Syne',sans-serif;font-size:.78rem;font-weight:700;border:none;cursor:none;transition:opacity .2s;display:flex;align-items:center;gap:5px;flex-shrink:0;}
+.btn-call:hover{opacity:.88;}
+.btn-call svg{width:12px;height:12px;}
 
-  .card { background:var(--purple-deep); border:1px solid var(--border); border-radius:16px; padding:28px; margin-bottom:24px; }
-  .card-title { font-family:'Syne',sans-serif; font-weight:700; font-size:1rem; margin-bottom:20px; padding-bottom:14px; border-bottom:1px solid var(--border); }
+/* TIPS */
+.tips-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.tip{background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:12px;padding:14px;display:flex;gap:10px;align-items:flex-start;}
+.tip-icon{flex-shrink:0;color:rgba(167,139,250,0.6);}
+.tip-icon svg{width:16px;height:16px;}
+.tip-text h4{font-size:.82rem;font-weight:500;margin-bottom:3px;}
+.tip-text p{font-size:.76rem;color:var(--text-muted);line-height:1.5;}
 
-  /* QUICK START */
-  .room-row { display:flex; gap:12px; align-items:center; }
-  .room-input {
-    flex:1; background:rgba(124,58,237,0.06); border:1px solid var(--border); border-radius:12px;
-    padding:13px 16px; color:var(--white); font-family:'DM Sans',sans-serif; font-size:0.92rem;
-    outline:none; transition:border-color 0.2s;
-  }
-  .room-input::placeholder { color:var(--text-muted); }
-  .room-input:focus { border-color:var(--purple-bright); background:rgba(124,58,237,0.1); }
-  .btn-primary {
-    background:linear-gradient(135deg,var(--purple-bright),#a855f7); color:white; padding:13px 24px;
-    border-radius:12px; font-family:'DM Sans',sans-serif; font-size:0.92rem; font-weight:500;
-    border:none; cursor:none; transition:all 0.2s; box-shadow:0 5px 20px rgba(124,58,237,0.3); white-space:nowrap;
-  }
-  .btn-primary:hover { transform:translateY(-1px); box-shadow:0 8px 28px rgba(124,58,237,0.45); }
+/* EMPTY */
+.empty-state{text-align:center;padding:28px 16px;color:var(--text-muted);}
+.empty-state p{font-size:.85rem;}
 
-  .or-divider { text-align:center; color:var(--text-muted); font-size:0.82rem; margin:16px 0; display:flex; align-items:center; gap:10px; }
-  .or-divider::before, .or-divider::after { content:''; flex:1; height:1px; background:var(--border); }
+/* SKELETON */
+.skel{background:linear-gradient(90deg,rgba(255,255,255,0.04) 25%,rgba(255,255,255,0.07) 50%,rgba(255,255,255,0.04) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:8px;}
+@keyframes shimmer{to{background-position:-200% 0;}}
 
-  .btn-gen { background:rgba(124,58,237,0.1); border:1px solid var(--border); color:var(--purple-soft); padding:12px 20px; border-radius:12px; font-family:'DM Sans',sans-serif; font-size:0.88rem; cursor:none; transition:all 0.2s; width:100%; }
-  .btn-gen:hover { background:rgba(124,58,237,0.2); color:var(--white); }
+/* CALL OVERLAY */
+.call-container{display:none;position:fixed;top:0;left:var(--sidebar-w);right:0;bottom:0;z-index:200;background:#080808;flex-direction:column;}
+.call-container.active{display:flex;}
+.call-top-bar{display:flex;align-items:center;gap:14px;padding:14px 24px;border-bottom:1px solid var(--border);flex-shrink:0;background:rgba(8,8,8,0.96);backdrop-filter:blur(12px);}
+.call-live-dot{width:7px;height:7px;background:#22c55e;border-radius:50%;animation:blink 1s infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
+.call-room-name{font-family:'Syne',sans-serif;font-weight:700;font-size:.88rem;}
+.call-status{font-size:.75rem;color:rgba(134,239,172,0.8);}
+.call-timer{font-size:.78rem;color:var(--text-muted);margin-left:4px;}
+.call-end-btn{margin-left:auto;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:#f87171;padding:8px 18px;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:500;cursor:none;transition:all .2s;display:flex;align-items:center;gap:6px;}
+.call-end-btn:hover{background:rgba(239,68,68,0.25);color:#fff;}
+.call-end-btn svg{width:12px;height:12px;}
+#jitsiFrame{flex:1;width:100%;border:none;}
 
-  /* MATCHES LIST */
-  .match-call-item {
-    display:flex; align-items:center; gap:14px; padding:12px; border-radius:12px;
-    border:1px solid var(--border); margin-bottom:10px; transition:all 0.2s; cursor:none;
-  }
-  .match-call-item:hover { border-color:rgba(124,58,237,0.4); background:rgba(124,58,237,0.06); }
-  .mc-avatar { width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.2rem; flex-shrink:0; border:2px solid var(--border); }
-  .mc-info { flex:1; }
-  .mc-name { font-weight:500; font-size:0.9rem; margin-bottom:2px; }
-  .mc-swap { font-size:0.78rem; color:var(--text-muted); }
-  .btn-call { background:linear-gradient(135deg,#16a34a,#22c55e); color:white; padding:8px 18px; border-radius:9px; font-family:'DM Sans',sans-serif; font-size:0.82rem; font-weight:500; border:none; cursor:none; transition:all 0.2s; box-shadow:0 3px 12px rgba(34,197,94,0.2); }
-  .btn-call:hover { transform:translateY(-1px); box-shadow:0 5px 16px rgba(34,197,94,0.35); }
-
-  /* TIPS */
-  .tips-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-  .tip { background:rgba(124,58,237,0.06); border:1px solid var(--border); border-radius:12px; padding:16px; display:flex; gap:12px; align-items:flex-start; }
-  .tip-icon { font-size:1.3rem; flex-shrink:0; }
-  .tip-text h4 { font-size:0.85rem; font-weight:500; margin-bottom:3px; }
-  .tip-text p { font-size:0.78rem; color:var(--text-muted); line-height:1.5; }
-
-  /* JITSI CONTAINER */
-  .call-container { display:none; position:fixed; top:0; left:var(--sidebar-w); right:0; bottom:0; z-index:200; background:var(--black); flex-direction:column; }
-  .call-container.active { display:flex; }
-  .call-top-bar { display:flex; align-items:center; gap:14px; padding:14px 24px; border-bottom:1px solid var(--border); flex-shrink:0; background:var(--purple-deep); }
-  .call-room-name { font-family:'Syne',sans-serif; font-weight:700; font-size:0.95rem; }
-  .call-status { font-size:0.78rem; color:#86efac; display:flex; align-items:center; gap:6px; }
-  .live-dot { width:7px; height:7px; background:#22c55e; border-radius:50%; animation:blink 1s infinite; }
-  @keyframes blink { 0%,100%{opacity:1;}50%{opacity:0.3;} }
-  .call-end-btn { margin-left:auto; background:#dc2626; color:white; padding:9px 20px; border-radius:10px; font-family:'DM Sans',sans-serif; font-size:0.85rem; font-weight:500; border:none; cursor:none; transition:all 0.2s; }
-  .call-end-btn:hover { background:#ef4444; }
-  #jitsiFrame { flex:1; width:100%; border:none; }
-
-  .empty-state { text-align:center; padding:36px 20px; color:var(--text-muted); }
-  .empty-icon { font-size:2rem; margin-bottom:10px; }
-  .empty-state p { font-size:0.85rem; }
-
-  .skel { background:linear-gradient(90deg,rgba(124,58,237,0.1) 25%,rgba(124,58,237,0.2) 50%,rgba(124,58,237,0.1) 75%); background-size:200% 100%; animation:shimmer 1.5s infinite; border-radius:8px; }
-  @keyframes shimmer { to{background-position:-200% 0;} }
-
-  .hamburger { display:none; }
-  @media (max-width:900px) {
-    .sidebar { transform:translateX(-100%); transition:transform 0.3s; }
-    .sidebar.open { transform:translateX(0); }
-    .main { margin-left:0; padding:24px 20px; padding-top:70px; }
-    .call-container { left:0; }
-    .hamburger { display:flex; position:fixed; top:16px; left:16px; z-index:200; background:var(--purple-deep); border:1px solid var(--border); border-radius:10px; padding:8px; cursor:none; color:var(--white); font-size:1.2rem; }
-    .tips-grid { grid-template-columns:1fr; }
-  }
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+@media(max-width:900px){.sidebar{transform:translateX(-100%);transition:transform .3s;}.sidebar.open{transform:translateX(0);}.main{margin-left:0;padding:24px 20px;padding-top:56px;}.call-container{left:0;}.hamburger{display:flex;}.tips-grid{grid-template-columns:1fr;}}
 </style>
 </head>
 <body>
-
-<div class="cursor" id="cursor"></div>
-<div class="cursor-ring" id="cursorRing"></div>
-<button class="hamburger" onclick="toggleSidebar()">☰</button>
+<div id="ss-cursor"></div><div id="ss-ring"></div>
+<button class="hamburger" id="hamburger" onclick="toggleSidebar()"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
 
 <!-- JITSI CALL OVERLAY -->
 <div class="call-container" id="callContainer">
   <div class="call-top-bar">
-    <div class="live-dot"></div>
+    <div class="call-live-dot"></div>
     <div class="call-room-name" id="callRoomLabel">Room</div>
     <div class="call-status">Live</div>
-    <button class="call-end-btn" onclick="endCall()">✕ End Call</button>
+    <span class="call-timer" id="callTimer">0:00</span>
+    <button class="call-end-btn" onclick="endCall()"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>End Call</button>
   </div>
   <iframe id="jitsiFrame" src="" allow="camera; microphone; display-capture; autoplay; fullscreen"></iframe>
 </div>
 
-<!-- SIDEBAR -->
 <aside class="sidebar" id="sidebar">
-  <a href="index.html" class="sidebar-logo"><div class="logo-dot"></div>SkillSwap</a>
+  <a href="index.html" class="sidebar-logo"><div class="logo-sq"></div>SkillSwap</a>
   <span class="nav-section">Main</span>
-  <a href="dashboard.html" class="nav-link"><span class="nav-icon">⚡</span> Dashboard</a>
-  <a href="profile.html" class="nav-link"><span class="nav-icon">👤</span> My Profile</a>
-  <a href="discover.html" class="nav-link"><span class="nav-icon">🔍</span> Discover</a>
+  <a href="dashboard.html" class="nav-link"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard</a>
+  <a href="profile.html" class="nav-link"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>My Profile</a>
+  <a href="discover.html" class="nav-link"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>Discover</a>
   <span class="nav-section">Social</span>
-  <a href="matches.html" class="nav-link"><span class="nav-icon">🤝</span> Matches</a>
-  <a href="messages.html" class="nav-link"><span class="nav-icon">💬</span> Messages</a>
-  <a href="videocall.html" class="nav-link active"><span class="nav-icon">🎥</span> Video Call</a>
+  <a href="matches.html" class="nav-link"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Matches</a>
+  <a href="messages.html" class="nav-link"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Messages</a>
+  <a href="videocall.html" class="nav-link active"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>Video Call</a>
   <span class="nav-section">More</span>
-  <a href="webinars.html" class="nav-link"><span class="nav-icon">🎓</span> Webinars</a>
-  <a href="pricing.html" class="nav-link"><span class="nav-icon">✨</span> Upgrade</a>
+  <a href="webinars.html" class="nav-link"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>Webinars</a>
+  <a href="analytics.html" class="nav-link" id="analyticsNavLink" style="display:none;"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Analytics</a>
+  <a href="pricing.html" class="nav-link"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>Upgrade</a>
   <div class="sidebar-bottom">
-    <div class="user-pill">
-      <div class="user-avatar-sm" id="sidebarAvatar">?</div>
-      <span class="user-name-sm" id="sidebarName">Loading...</span>
-      <button class="logout-btn" onclick="handleLogout()">↪</button>
-    </div>
+    <div class="user-pill"><div class="user-avatar-sm" id="sidebarAvatar"></div><span class="user-name-sm" id="sidebarName">Loading...</span></div>
+    <button class="sidebar-logout-full" onclick="handleLogout()"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Sign out</button>
   </div>
 </aside>
 
-<!-- MAIN -->
 <main class="main">
   <div class="page-header">
-    <h1 class="page-title">Video <span>Call</span></h1>
-    <p class="page-sub">Start a live session with your swap partner using Jitsi — no account needed.</p>
+    <h1 class="page-title">Video Call</h1>
+    <p class="page-sub">Start a live session with your swap partner. No account needed.</p>
   </div>
 
   <div class="lobby">
-
     <!-- QUICK START -->
     <div class="card">
       <div class="card-title">Start or Join a Room</div>
       <div class="room-row">
-        <input class="room-input" id="roomInput" type="text" placeholder="Enter room name (e.g. skillswap-alexj)" />
-        <button class="btn-primary" onclick="joinRoom()">Join →</button>
+        <input class="room-input" id="roomInput" type="text" placeholder="Enter a room name...">
+        <button class="btn-join" onclick="joinRoom()">Join</button>
       </div>
       <div class="or-divider">or</div>
-      <button class="btn-gen" onclick="generateRoom()">🎲 Generate a random room</button>
+      <button class="btn-gen" onclick="generateRoom()">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+        Generate a random room
+      </button>
     </div>
 
     <!-- ACTIVE MATCHES -->
     <div class="card">
       <div class="card-title">Call a Match</div>
       <div id="matchesList">
-        <div style="display:flex; gap:12px; padding:10px 0;">
-          <div class="skel" style="width:44px;height:44px;border-radius:50%;flex-shrink:0;"></div>
-          <div style="flex:1;"><div class="skel" style="height:14px;width:50%;margin-bottom:6px;"></div><div class="skel" style="height:11px;width:65%;"></div></div>
-        </div>
+        <div style="display:flex;gap:10px;padding:8px 0;"><div class="skel" style="width:42px;height:42px;border-radius:50%;flex-shrink:0;"></div><div style="flex:1;"><div class="skel" style="height:13px;width:50%;margin-bottom:6px;"></div><div class="skel" style="height:10px;width:65%;"></div></div></div>
       </div>
     </div>
 
@@ -196,158 +167,182 @@
       <div class="card-title">Tips for a great session</div>
       <div class="tips-grid">
         <div class="tip">
-          <div class="tip-icon">📋</div>
-          <div class="tip-text">
-            <h4>Plan your session</h4>
-            <p>Agree on what to cover before the call. Send a quick message first.</p>
-          </div>
+          <div class="tip-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+          <div class="tip-text"><h4>Plan ahead</h4><p>Agree on what to cover before the call. Send a message first.</p></div>
         </div>
         <div class="tip">
-          <div class="tip-icon">⏱️</div>
-          <div class="tip-text">
-            <h4>Keep it focused</h4>
-            <p>30–60 minute sessions tend to work best. Split time evenly.</p>
-          </div>
+          <div class="tip-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+          <div class="tip-text"><h4>Stay focused</h4><p>30-60 minute sessions work best. Split time evenly between topics.</p></div>
         </div>
         <div class="tip">
-          <div class="tip-icon">📝</div>
-          <div class="tip-text">
-            <h4>Take notes</h4>
-            <p>Jot down key takeaways during the session. Review them after.</p>
-          </div>
+          <div class="tip-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></div>
+          <div class="tip-text"><h4>Take notes</h4><p>Jot key takeaways during the session. Review them after.</p></div>
         </div>
         <div class="tip">
-          <div class="tip-icon">🔗</div>
-          <div class="tip-text">
-            <h4>Share the link</h4>
-            <p>Send the room link via Messages so your partner can join easily.</p>
-          </div>
+          <div class="tip-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></div>
+          <div class="tip-text"><h4>Share the link</h4><p>Send the room link via Messages so your partner can join.</p></div>
         </div>
       </div>
     </div>
-
   </div>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const { createClient } = supabase;
-const sb = createClient(
-  'https://vgndpvkywvcnezvjuueq.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZnbmRwdmt5d3ZjbmV6dmp1dWVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MDk5OTEsImV4cCI6MjA5MDA4NTk5MX0.GGwx_-W7pu485h3d6dgkhqSwiqxT3Hx02Ck9HW8nyE0'
-);
+const{createClient}=supabase;
+const sb=createClient('https://vgndpvkywvcnezvjuueq.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZnbmRwdmt5d3ZjbmV6dmp1dWVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MDk5OTEsImV4cCI6MjA5MDA4NTk5MX0.GGwx_-W7pu485h3d6dgkhqSwiqxT3Hx02Ck9HW8nyE0');
 
-// Cursor
-const cursor = document.getElementById('cursor');
-const ring = document.getElementById('cursorRing');
-let mouseX = 0, mouseY = 0, ringX = 0, ringY = 0;
-document.addEventListener('mousemove', e => {
-  mouseX = e.clientX; mouseY = e.clientY;
-  cursor.style.left = mouseX + 'px'; cursor.style.top = mouseY + 'px';
-});
-function animateRing() {
-  ringX += (mouseX - ringX) * 0.12; ringY += (mouseY - ringY) * 0.12;
-  ring.style.left = ringX + 'px'; ring.style.top = ringY + 'px';
-  requestAnimationFrame(animateRing);
-}
-animateRing();
-function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+const cur=document.getElementById('ss-cursor'),ring=document.getElementById('ss-ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px';});
+document.querySelectorAll('a,button').forEach(el=>{el.addEventListener('mouseenter',()=>{ring.style.borderColor='rgba(139,92,246,0.6)';ring.style.width='44px';ring.style.height='44px';});el.addEventListener('mouseleave',()=>{ring.style.borderColor='rgba(255,255,255,0.5)';ring.style.width='34px';ring.style.height='34px';});});
+(function anim(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(anim);})();
 
-let currentUserId = null;
-let myDisplayName = 'SkillSwapper';
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');}
+async function handleLogout(){await sb.auth.signOut();window.location.href='index.html';}
 
-function sanitizeRoom(name) {
-  return name.trim().replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-_]/g, '').toLowerCase();
+let currentUserId=null,myDisplayName='SkillSwapper';
+let callStartTime=null,callTimerInterval=null;
+let activeMatchId=null,activePartnerId=null,activeSkillTaught=null,activeSkillLearned=null;
+
+function sanitizeRoom(name){return name.trim().replace(/\s+/g,'-').replace(/[^a-zA-Z0-9\-_]/g,'').toLowerCase();}
+
+function generateRoom(){
+  const adj=['bright','swift','cool','smart','bold','sharp','calm','keen'];
+  const noun=['panda','tiger','comet','pixel','storm','wave','spark','oak'];
+  const r=()=>Math.floor(Math.random()*1000);
+  document.getElementById('roomInput').value=`skillswap-${adj[Math.floor(Math.random()*adj.length)]}-${noun[Math.floor(Math.random()*noun.length)]}-${r()}`;
 }
 
-function generateRoom() {
-  const adjectives = ['bright','swift','cool','smart','happy','sharp','bold','calm'];
-  const nouns = ['panda','tiger','comet','pixel','storm','wave','spark','leaf'];
-  const rand = () => Math.floor(Math.random() * 1000);
-  const room = `skillswap-${adjectives[Math.floor(Math.random()*adjectives.length)]}-${nouns[Math.floor(Math.random()*nouns.length)]}-${rand()}`;
-  document.getElementById('roomInput').value = room;
+function joinRoom(){
+  const room=sanitizeRoom(document.getElementById('roomInput').value);
+  if(!room)return;
+  startCall(room,null,null,null,null);
 }
 
-function joinRoom() {
-  const raw = document.getElementById('roomInput').value;
-  const room = sanitizeRoom(raw);
-  if (!room) { alert('Please enter a room name.'); return; }
-  startCall(room);
+function startCallFromMatch(matchId,partnerId,skillTaught,skillLearned,peerName){
+  const myId=(myDisplayName||'user').replace(/\s+/g,'-').toLowerCase();
+  const peerId=(peerName||'peer').replace(/\s+/g,'-').toLowerCase();
+  const room='skillswap-'+[myId,peerId].sort().join('--');
+  document.getElementById('roomInput').value=room;
+  activeMatchId=matchId;activePartnerId=partnerId;activeSkillTaught=skillTaught;activeSkillLearned=skillLearned;
+  startCall(room,matchId,partnerId,skillTaught,skillLearned);
 }
 
-function startCallWithPeer(peerName) {
-  const peerId = peerName.replace(/\s+/g, '-').toLowerCase();
-  const myId = myDisplayName.replace(/\s+/g, '-').toLowerCase();
-  // Deterministic room name from sorted IDs so both users land in the same room
-  const sorted = [peerId, myId].sort().join('--');
-  const room = `skillswap-${sorted}`;
-  document.getElementById('roomInput').value = room;
-  startCall(room);
-}
-
-function startCall(room) {
-  document.getElementById('callRoomLabel').textContent = room;
-  // Use meet.jit.si as the Jitsi server
-  const url = `https://meet.jit.si/${encodeURIComponent(room)}#userInfo.displayName="${encodeURIComponent(myDisplayName)}"&config.prejoinPageEnabled=false`;
-  document.getElementById('jitsiFrame').src = url;
+function startCall(room){
+  document.getElementById('callRoomLabel').textContent=room;
+  const url=`https://meet.jit.si/${encodeURIComponent(room)}#userInfo.displayName="${encodeURIComponent(myDisplayName)}"&config.prejoinPageEnabled=false`;
+  document.getElementById('jitsiFrame').src=url;
   document.getElementById('callContainer').classList.add('active');
+  callStartTime=Date.now();
+  // Timer
+  clearInterval(callTimerInterval);
+  callTimerInterval=setInterval(()=>{
+    const sec=Math.floor((Date.now()-callStartTime)/1000);
+    const m=Math.floor(sec/60),s=sec%60;
+    document.getElementById('callTimer').textContent=m+':'+(s<10?'0':'')+s;
+  },1000);
 }
 
-function endCall() {
-  document.getElementById('jitsiFrame').src = '';
+async function endCall(){
+  clearInterval(callTimerInterval);
+  const durationMinutes=callStartTime?Math.max(1,Math.floor((Date.now()-callStartTime)/60000)):0;
+  document.getElementById('jitsiFrame').src='';
   document.getElementById('callContainer').classList.remove('active');
-}
-
-async function handleLogout() {
-  await sb.auth.signOut();
-  window.location.href = 'login.html';
-}
-
-async function init() {
-  const { data: { session } } = await sb.auth.getSession();
-  if (!session) { window.location.href = 'login.html'; return; }
-  currentUserId = session.user.id;
-
-  const { data: profile } = await sb.from('profiles').select('full_name, username, avatar_emoji').eq('id', currentUserId).single();
-  if (profile) {
-    myDisplayName = profile.full_name || profile.username || session.user.email.split('@')[0];
-    document.getElementById('sidebarName').textContent = myDisplayName;
-    document.getElementById('sidebarAvatar').textContent = profile.avatar_emoji || '👤';
+  document.getElementById('callTimer').textContent='0:00';
+  // Log session to Supabase
+  if(currentUserId&&durationMinutes>0){
+    const sessionData={
+      user_id:currentUserId,
+      duration_minutes:durationMinutes
+    };
+    if(activeMatchId)sessionData.match_id=activeMatchId;
+    if(activePartnerId)sessionData.partner_id=activePartnerId;
+    if(activeSkillTaught)sessionData.skill_taught=activeSkillTaught;
+    if(activeSkillLearned)sessionData.skill_learned=activeSkillLearned;
+    const{error}=await sb.from('sessions').insert(sessionData);
+    if(error)console.error('Session log error:',error);
   }
+  callStartTime=null;activeMatchId=null;activePartnerId=null;
+}
 
-  // Load active matches
-  const { data: matchesA } = await sb.from('matches')
-    .select('*, profiles!matches_user_b_fkey(full_name, username, avatar_emoji, skills_offered, skills_wanted)')
-    .eq('user_a', currentUserId).eq('status', 'accepted');
-  const { data: matchesB } = await sb.from('matches')
-    .select('*, profiles!matches_user_a_fkey(full_name, username, avatar_emoji, skills_offered, skills_wanted)')
-    .eq('user_b', currentUserId).eq('status', 'accepted');
+// Log session on page unload too
+window.addEventListener('beforeunload',()=>{
+  if(callStartTime&&currentUserId){
+    const durationMinutes=Math.max(1,Math.floor((Date.now()-callStartTime)/60000));
+    const data={user_id:currentUserId,duration_minutes:durationMinutes};
+    if(activeMatchId)data.match_id=activeMatchId;
+    if(activePartnerId)data.partner_id=activePartnerId;
+    // Use sendBeacon for reliability on unload
+    const payload=JSON.stringify(data);
+    navigator.sendBeacon&&navigator.sendBeacon('/api/session-log',payload);
+    // Also try async insert (may not complete)
+    sb.from('sessions').insert(data);
+  }
+});
 
-  const matches = [...(matchesA || []), ...(matchesB || [])];
-  const list = document.getElementById('matchesList');
+async function init(){
+  const{data:{session}}=await sb.auth.getSession();
+  if(!session){window.location.href='login.html';return;}
+  currentUserId=session.user.id;
+  const{data:profile,error}=await sb.from('profiles').select('full_name,username,avatar_url,avatar_emoji,plan').eq('id',currentUserId).single();
+  if(error)console.error('Profile error:',error);
+  myDisplayName=profile?.full_name||profile?.username||session.user.email.split('@')[0];
+  document.getElementById('sidebarName').textContent=myDisplayName;
+  const avatarEl=document.getElementById('sidebarAvatar');
+  if(profile?.avatar_url){avatarEl.innerHTML=`<img src="${profile.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;}
+  else if(profile?.avatar_emoji){avatarEl.textContent=profile.avatar_emoji;}
+  else{avatarEl.textContent=myDisplayName.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);}
+  if(profile?.plan==='pro'||profile?.plan==='creator'){document.getElementById('analyticsNavLink').style.display='flex';}
 
-  if (matches.length === 0) {
-    list.innerHTML = `<div class="empty-state"><div class="empty-icon">🤝</div><p>No active matches yet. Accept a swap request to enable calling.</p></div>`;
+  // Load active matches using sender_id/receiver_id pattern
+  const{data:matches,error:matchErr}=await sb.from('matches')
+    .select(`*, sender:profiles!matches_sender_id_fkey(full_name,username,avatar_url,avatar_emoji,skills_offering,skills_offered), receiver:profiles!matches_receiver_id_fkey(full_name,username,avatar_url,avatar_emoji,skills_offering,skills_offered)`)
+    .or(`sender_id.eq.${currentUserId},receiver_id.eq.${currentUserId}`)
+    .eq('status','accepted');
+  if(matchErr)console.error('Matches error:',matchErr);
+
+  const list=document.getElementById('matchesList');
+  const matchArr=matches||[];
+  if(!matchArr.length){
+    list.innerHTML=`<div class="empty-state"><p>No active matches yet. Accept a swap request to enable calling.</p></div>`;
     return;
   }
 
-  list.innerHTML = matches.map(m => {
-    const peer = m.profiles;
-    const peerName = peer.full_name || peer.username || 'SkillSwapper';
-    const avatar = peer.avatar_emoji || '👤';
-    const offered = (peer.skills_offered || [])[0] || '?';
-    const wanted = (peer.skills_wanted || [])[0] || '?';
-    return `
-      <div class="match-call-item">
-        <div class="mc-avatar">${avatar}</div>
-        <div class="mc-info">
-          <div class="mc-name">${peerName}</div>
-          <div class="mc-swap">${offered} ↔ ${wanted}</div>
-        </div>
-        <button class="btn-call" onclick="startCallWithPeer('${peerName.replace(/'/g,"\\'")}')">🎥 Call</button>
-      </div>
-    `;
+  list.innerHTML=matchArr.map(m=>{
+    const isSender=m.sender_id===currentUserId;
+    const peer=isSender?m.receiver:m.sender;
+    const peerId=isSender?m.receiver_id:m.sender_id;
+    const peerName=peer?.full_name||peer?.username||'Skill Swapper';
+    const initials=peerName.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+    const avHtml=peer?.avatar_url?`<img src="${peer.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`:(peer?.avatar_emoji||initials);
+    const skillTaught=(m.skill_offered||'');
+    const skillLearned=(m.skill_wanted||'');
+    const swap=`${skillTaught||'?'} ↔ ${skillLearned||'?'}`;
+    const peerNameEsc=peerName.replace(/'/g,"\\'");
+    return`<div class="match-call-item">
+      <div class="mc-avatar">${avHtml}</div>
+      <div class="mc-info"><div class="mc-name">${peerName}</div><div class="mc-swap">${swap}</div></div>
+      <button class="btn-call" onclick="startCallFromMatch('${m.id}','${peerId}','${skillTaught}','${skillLearned}','${peerNameEsc}')">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+        Call
+      </button>
+    </div>`;
   }).join('');
+
+  // Auto-start if match param in URL
+  const params=new URLSearchParams(window.location.search);
+  const matchParam=params.get('match');
+  if(matchParam){
+    const m=matchArr.find(x=>x.id===matchParam);
+    if(m){
+      const isSender=m.sender_id===currentUserId;
+      const peer=isSender?m.receiver:m.sender;
+      const peerId=isSender?m.receiver_id:m.sender_id;
+      const peerName=peer?.full_name||peer?.username||'peer';
+      startCallFromMatch(m.id,peerId,m.skill_offered||'',m.skill_wanted||'',peerName);
+    }
+  }
 }
 
 init();

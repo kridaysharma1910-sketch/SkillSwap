@@ -6,389 +6,242 @@
 <title>SkillSwap — Matches</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --black: #05040a; --purple-deep: #0d0a1a; --purple-mid: #1a1035;
-    --purple-bright: #7c3aed; --purple-glow: #9d5cff; --purple-soft: #c4a8ff;
-    --accent: #ff6bff; --white: #f0ecff; --text-muted: #7a6d99;
-    --border: rgba(124, 58, 237, 0.2); --sidebar-w: 240px;
-  }
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body { background:var(--black); color:var(--white); font-family:'DM Sans',sans-serif; min-height:100vh; display:flex; overflow-x:hidden; cursor:none; }
-  .cursor { position:fixed; width:12px; height:12px; background:var(--purple-glow); border-radius:50%; pointer-events:none; z-index:9999; transform:translate(-50%,-50%); mix-blend-mode:screen; }
-  .cursor-ring { position:fixed; width:36px; height:36px; border:1px solid rgba(157,92,255,0.5); border-radius:50%; pointer-events:none; z-index:9998; transform:translate(-50%,-50%); transition:transform 0.15s ease; }
+:root{--bg:#080808;--bg-card:rgba(255,255,255,0.03);--border:rgba(255,255,255,0.08);--border-hover:rgba(139,92,246,0.3);--text-muted:rgba(255,255,255,0.32);--sidebar-w:240px;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;overflow-x:hidden;cursor:none;}
+#ss-cursor{position:fixed;width:10px;height:10px;background:#fff;border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);mix-blend-mode:difference;}
+#ss-ring{position:fixed;width:34px;height:34px;border:1px solid rgba(255,255,255,0.5);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:all .2s;}
+.sidebar{width:var(--sidebar-w);height:100vh;background:rgba(255,255,255,0.015);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:24px 14px;position:fixed;left:0;top:0;z-index:100;overflow-y:auto;}
+.sidebar-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.15rem;color:#fff;text-decoration:none;display:flex;align-items:center;gap:8px;margin-bottom:32px;padding-left:8px;}
+.logo-sq{width:9px;height:9px;background:#fff;border-radius:2px;flex-shrink:0;}
+.nav-section{font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,0.2);margin:18px 0 5px;padding-left:10px;}
+.nav-link{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;color:rgba(255,255,255,0.42);text-decoration:none;font-size:.875rem;transition:all .15s;margin-bottom:1px;border:1px solid transparent;}
+.nav-link:hover{color:#fff;background:rgba(255,255,255,0.04);}
+.nav-link.active{color:#fff;background:rgba(255,255,255,0.06);border-color:var(--border);}
+.nav-link svg{width:15px;height:15px;flex-shrink:0;opacity:.7;}
+.nav-link.active svg,.nav-link:hover svg{opacity:1;}
+.sidebar-bottom{margin-top:auto;border-top:1px solid var(--border);padding-top:14px;}
+.user-pill{display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px;margin-bottom:8px;}
+.user-avatar-sm{width:30px;height:30px;border-radius:50%;background:rgba(139,92,246,0.18);border:1px solid rgba(139,92,246,0.3);display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;flex-shrink:0;overflow:hidden;color:rgba(167,139,250,0.9);}
+.user-name-sm{font-size:.82rem;font-weight:500;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:rgba(255,255,255,0.65);}
+.sidebar-logout-full{width:100%;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.14);border-radius:10px;color:rgba(239,68,68,0.7);font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:500;padding:9px 12px;cursor:none;display:flex;align-items:center;gap:8px;transition:all .2s;}
+.sidebar-logout-full:hover{background:rgba(239,68,68,0.12);border-color:rgba(239,68,68,0.28);color:#f87171;}
+.sidebar-logout-full svg{width:14px;height:14px;}
+.hamburger{display:none;position:fixed;top:14px;left:14px;z-index:200;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:10px;padding:8px;cursor:none;color:#fff;}
+.main{margin-left:var(--sidebar-w);flex:1;padding:40px 48px;min-height:100vh;}
+.page-header{margin-bottom:28px;}
+.page-title{font-family:'Syne',sans-serif;font-weight:800;font-size:1.9rem;letter-spacing:-.03em;}
+.page-sub{color:var(--text-muted);font-size:.9rem;margin-top:5px;}
 
-  /* SIDEBAR */
-  .sidebar { width:var(--sidebar-w); min-height:100vh; background:var(--purple-deep); border-right:1px solid var(--border); display:flex; flex-direction:column; padding:28px 20px; position:fixed; left:0; top:0; z-index:100; }
-  .sidebar-logo { font-family:'Syne',sans-serif; font-weight:800; font-size:1.3rem; color:var(--white); text-decoration:none; display:flex; align-items:center; gap:10px; margin-bottom:40px; }
-  .logo-dot { width:8px; height:8px; background:var(--accent); border-radius:50%; box-shadow:0 0 10px var(--accent); animation:pulse 2s infinite; flex-shrink:0; }
-  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.5;transform:scale(0.8);} }
-  .nav-section { font-size:0.7rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-muted); margin-bottom:10px; margin-top:24px; padding-left:12px; }
-  .nav-link { display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:10px; color:var(--text-muted); text-decoration:none; font-size:0.9rem; transition:all 0.2s; margin-bottom:2px; }
-  .nav-link:hover { color:var(--white); background:rgba(124,58,237,0.1); }
-  .nav-link.active { color:var(--white); background:rgba(124,58,237,0.15); border:1px solid var(--border); }
-  .nav-icon { font-size:1rem; width:20px; text-align:center; }
-  .sidebar-bottom { margin-top:auto; border-top:1px solid var(--border); padding-top:20px; }
-  .user-pill { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:10px; cursor:none; transition:background 0.2s; }
-  .user-pill:hover { background:rgba(124,58,237,0.1); }
-  .user-avatar-sm { width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,var(--purple-bright),var(--accent)); display:flex; align-items:center; justify-content:center; font-size:0.9rem; flex-shrink:0; }
-  .user-name-sm { font-size:0.85rem; font-weight:500; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .logout-btn { background:none; border:none; color:var(--text-muted); cursor:none; font-size:1rem; padding:4px; transition:color 0.2s; flex-shrink:0; }
-  .logout-btn:hover { color:#ef4444; }
+/* TABS */
+.tabs{display:flex;gap:6px;margin-bottom:28px;background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:5px;}
+.tab-btn{background:none;border:none;color:rgba(255,255,255,0.38);font-family:'DM Sans',sans-serif;font-size:.875rem;padding:8px 16px;cursor:none;transition:all .2s;border-radius:10px;display:flex;align-items:center;gap:6px;}
+.tab-btn:hover{color:rgba(255,255,255,0.7);}
+.tab-btn.active{color:#fff;background:rgba(255,255,255,0.07);}
+.tab-count{background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.5);font-size:.7rem;padding:2px 7px;border-radius:100px;}
+.tab-btn.active .tab-count{background:rgba(139,92,246,0.2);color:rgba(167,139,250,0.8);}
 
-  /* MAIN */
-  .main { margin-left:var(--sidebar-w); flex:1; padding:40px 48px; min-height:100vh; }
-  .page-header { margin-bottom:32px; }
-  .page-title { font-family:'Syne',sans-serif; font-weight:800; font-size:2rem; letter-spacing:-0.03em; }
-  .page-title span { background:linear-gradient(135deg,var(--purple-glow),var(--accent)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
-  .page-sub { color:var(--text-muted); font-size:0.92rem; margin-top:6px; }
-
-  /* TABS */
-  .tabs { display:flex; gap:8px; margin-bottom:28px; border-bottom:1px solid var(--border); padding-bottom:0; }
-  .tab-btn {
-    background:none; border:none; color:var(--text-muted); font-family:'DM Sans',sans-serif;
-    font-size:0.9rem; padding:10px 18px; cursor:none; transition:all 0.2s;
-    border-bottom:2px solid transparent; margin-bottom:-1px;
-  }
-  .tab-btn:hover { color:var(--white); }
-  .tab-btn.active { color:var(--white); border-bottom-color:var(--purple-bright); }
-  .tab-count {
-    display:inline-block; background:rgba(124,58,237,0.2); color:var(--purple-soft);
-    font-size:0.72rem; padding:2px 7px; border-radius:100px; margin-left:6px;
-  }
-
-  /* MATCH LIST */
-  .match-list { display:flex; flex-direction:column; gap:16px; }
-
-  .match-card {
-    background:var(--purple-deep); border:1px solid var(--border); border-radius:16px;
-    padding:20px 24px; display:flex; align-items:center; gap:18px;
-    transition:border-color 0.2s, transform 0.2s;
-    animation:fadeUp 0.35s ease both;
-  }
-  .match-card:hover { border-color:rgba(124,58,237,0.4); transform:translateX(3px); }
-
-  .match-avatar {
-    width:52px; height:52px; border-radius:50%; flex-shrink:0;
-    display:flex; align-items:center; justify-content:center; font-size:1.5rem;
-    border:2px solid var(--border);
-  }
-  .match-body { flex:1; min-width:0; }
-  .match-name { font-family:'Syne',sans-serif; font-weight:700; font-size:0.95rem; margin-bottom:3px; }
-  .match-swap { font-size:0.82rem; color:var(--text-muted); margin-bottom:8px; }
-  .match-tags { display:flex; gap:6px; flex-wrap:wrap; }
-  .mtag { padding:3px 10px; border-radius:100px; font-size:0.75rem; border:1px solid var(--border); color:var(--purple-soft); background:rgba(124,58,237,0.08); }
-  .mtag.want { background:rgba(255,107,255,0.08); border-color:rgba(255,107,255,0.25); color:#f0b8ff; }
-
-  .match-meta { display:flex; flex-direction:column; align-items:flex-end; gap:10px; flex-shrink:0; }
-  .match-date { font-size:0.75rem; color:var(--text-muted); }
-
-  .status-badge {
-    font-size:0.72rem; padding:4px 11px; border-radius:100px; font-weight:500;
-  }
-  .status-pending { background:rgba(251,191,36,0.1); color:#fcd34d; border:1px solid rgba(251,191,36,0.25); }
-  .status-accepted { background:rgba(34,197,94,0.1); color:#86efac; border:1px solid rgba(34,197,94,0.2); }
-  .status-declined { background:rgba(239,68,68,0.1); color:#fca5a5; border:1px solid rgba(239,68,68,0.2); }
-  .status-completed { background:rgba(124,58,237,0.15); color:var(--purple-soft); border:1px solid rgba(124,58,237,0.3); }
-
-  .match-actions { display:flex; gap:8px; }
-  .btn-accept { background:linear-gradient(135deg,#16a34a,#22c55e); color:white; padding:8px 16px; border-radius:9px; font-family:'DM Sans',sans-serif; font-size:0.82rem; font-weight:500; border:none; cursor:none; transition:all 0.2s; box-shadow:0 3px 12px rgba(34,197,94,0.25); }
-  .btn-accept:hover { transform:translateY(-1px); box-shadow:0 5px 16px rgba(34,197,94,0.35); }
-  .btn-decline { background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.25); color:#fca5a5; padding:8px 16px; border-radius:9px; font-family:'DM Sans',sans-serif; font-size:0.82rem; cursor:none; transition:all 0.2s; }
-  .btn-decline:hover { background:rgba(239,68,68,0.15); }
-  .btn-message { background:rgba(124,58,237,0.12); border:1px solid var(--border); color:var(--purple-soft); padding:8px 16px; border-radius:9px; font-family:'DM Sans',sans-serif; font-size:0.82rem; cursor:none; transition:all 0.2s; text-decoration:none; display:inline-flex; align-items:center; gap:5px; }
-  .btn-message:hover { background:rgba(124,58,237,0.2); color:var(--white); }
-  .btn-complete { background:rgba(124,58,237,0.12); border:1px solid var(--border); color:var(--purple-soft); padding:8px 16px; border-radius:9px; font-family:'DM Sans',sans-serif; font-size:0.82rem; cursor:none; transition:all 0.2s; }
-  .btn-complete:hover { background:rgba(124,58,237,0.25); }
-
-  /* EMPTY */
-  .empty-state { text-align:center; padding:60px 20px; color:var(--text-muted); }
-  .empty-icon { font-size:2.5rem; margin-bottom:12px; }
-  .empty-state h3 { font-family:'Syne',sans-serif; font-weight:700; font-size:1.1rem; color:var(--white); margin-bottom:8px; }
-  .empty-state p { font-size:0.88rem; margin-bottom:20px; max-width:320px; margin-left:auto; margin-right:auto; }
-  .btn-sm { display:inline-block; background:linear-gradient(135deg,var(--purple-bright),#a855f7); color:white; padding:10px 22px; border-radius:10px; font-family:'DM Sans',sans-serif; font-size:0.88rem; font-weight:500; text-decoration:none; border:none; cursor:none; transition:all 0.2s; box-shadow:0 4px 16px rgba(124,58,237,0.3); }
-  .btn-sm:hover { transform:translateY(-1px); }
-
-  /* SKELETON */
-  .skel { background:linear-gradient(90deg,rgba(124,58,237,0.1) 25%,rgba(124,58,237,0.2) 50%,rgba(124,58,237,0.1) 75%); background-size:200% 100%; animation:shimmer 1.5s infinite; border-radius:8px; }
-  @keyframes shimmer { to { background-position:-200% 0; } }
-  @keyframes fadeUp { from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);} }
-
-  .toast { position:fixed; bottom:24px; right:24px; z-index:500; background:rgba(34,197,94,0.15); border:1px solid rgba(34,197,94,0.3); color:#86efac; padding:12px 20px; border-radius:12px; font-size:0.88rem; animation:fadeUp 0.3s ease; transition:opacity 0.3s; }
-  .toast.error { background:rgba(239,68,68,0.1); border-color:rgba(239,68,68,0.3); color:#fca5a5; }
-
-  .hamburger { display:none; }
-  @media (max-width:900px) {
-    .sidebar { transform:translateX(-100%); transition:transform 0.3s; }
-    .sidebar.open { transform:translateX(0); }
-    .main { margin-left:0; padding:24px 20px; padding-top:70px; }
-    .hamburger { display:flex; position:fixed; top:16px; left:16px; z-index:200; background:var(--purple-deep); border:1px solid var(--border); border-radius:10px; padding:8px; cursor:none; color:var(--white); font-size:1.2rem; }
-    .match-card { flex-wrap:wrap; }
-    .match-meta { align-items:flex-start; }
-  }
+/* MATCH CARD */
+.match-list{display:flex;flex-direction:column;gap:14px;}
+.match-card{background:var(--bg-card);border:1px solid var(--border);border-radius:18px;padding:20px 22px;display:flex;align-items:center;gap:16px;transition:border-color .2s,transform .2s;backdrop-filter:blur(12px);animation:fadeUp .35s ease both;position:relative;}
+.match-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(139,92,246,0),transparent);transition:background .3s;}
+.match-card:hover{border-color:var(--border-hover);transform:translateX(3px);}
+.match-card:hover::before{background:linear-gradient(90deg,transparent,rgba(139,92,246,0.5),transparent);}
+.match-avatar{width:48px;height:48px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.82rem;font-weight:700;background:rgba(139,92,246,0.12);border:1px solid rgba(139,92,246,0.2);color:rgba(167,139,250,0.8);overflow:hidden;}
+.match-body{flex:1;min-width:0;}
+.match-name{font-family:'Syne',sans-serif;font-weight:700;font-size:.92rem;margin-bottom:4px;}
+.match-swap{font-size:.78rem;color:var(--text-muted);margin-bottom:8px;}
+.match-tags{display:flex;gap:5px;flex-wrap:wrap;}
+.mtag{padding:3px 9px;border-radius:100px;font-size:.72rem;}
+.mtag-v{border:1px solid rgba(139,92,246,0.35);color:rgba(167,139,250,0.7);}
+.mtag-c{border:1px solid rgba(34,211,238,0.28);color:rgba(103,232,249,0.65);}
+.match-meta{display:flex;flex-direction:column;align-items:flex-end;gap:10px;flex-shrink:0;}
+.match-date{font-size:.72rem;color:var(--text-muted);}
+.status-badge{font-size:.7rem;padding:3px 10px;border-radius:100px;font-weight:500;}
+.s-pending{background:rgba(251,191,36,0.1);color:#fcd34d;border:1px solid rgba(251,191,36,0.25);}
+.s-accepted{background:rgba(34,197,94,0.1);color:#86efac;border:1px solid rgba(34,197,94,0.2);}
+.s-rejected{background:rgba(239,68,68,0.1);color:#fca5a5;border:1px solid rgba(239,68,68,0.2);}
+.s-completed{background:rgba(139,92,246,0.1);color:rgba(167,139,250,0.8);border:1px solid rgba(139,92,246,0.25);}
+.match-actions{display:flex;gap:8px;flex-wrap:wrap;}
+.btn-accept{background:#fff;color:#080808;padding:8px 15px;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:.8rem;font-weight:700;border:none;cursor:none;transition:opacity .2s;}
+.btn-accept:hover{opacity:.85;}
+.btn-decline{background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.2);color:rgba(239,68,68,0.7);padding:8px 15px;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:.8rem;cursor:none;transition:all .2s;}
+.btn-decline:hover{background:rgba(239,68,68,0.12);color:#f87171;}
+.btn-action{background:var(--bg-card);border:1px solid var(--border);color:rgba(255,255,255,0.55);padding:8px 14px;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:.8rem;cursor:none;transition:all .2s;text-decoration:none;display:inline-flex;align-items:center;gap:5px;}
+.btn-action:hover{border-color:rgba(255,255,255,0.14);color:#fff;}
+.btn-action svg{width:12px;height:12px;}
+.empty-state{text-align:center;padding:44px 20px;color:var(--text-muted);}
+.empty-state p{font-size:.88rem;margin-bottom:16px;line-height:1.5;}
+.btn-white{display:inline-flex;align-items:center;gap:7px;background:#fff;color:#080808;padding:10px 20px;border-radius:10px;font-family:'Syne',sans-serif;font-size:.82rem;font-weight:700;text-decoration:none;transition:opacity .2s;}
+.btn-white:hover{opacity:.88;}
+.toast{position:fixed;bottom:24px;right:24px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);color:#fff;padding:12px 20px;border-radius:12px;font-size:.85rem;z-index:9000;animation:fadeUp .3s ease;backdrop-filter:blur(12px);}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+@media(max-width:900px){.sidebar{transform:translateX(-100%);transition:transform .3s;}.sidebar.open{transform:translateX(0);}.main{margin-left:0;padding:24px 20px;padding-top:56px;}.hamburger{display:flex;}.match-card{flex-wrap:wrap;}.match-meta{width:100%;flex-direction:row;justify-content:space-between;align-items:center;}}
 </style>
 </head>
 <body>
+<div id="ss-cursor"></div><div id="ss-ring"></div>
+<button class="hamburger" id="hamburger" onclick="toggleSidebar()"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
 
-<div class="cursor" id="cursor"></div>
-<div class="cursor-ring" id="cursorRing"></div>
-<button class="hamburger" onclick="toggleSidebar()">☰</button>
-
-<!-- SIDEBAR -->
 <aside class="sidebar" id="sidebar">
-  <a href="index.html" class="sidebar-logo"><div class="logo-dot"></div>SkillSwap</a>
+  <a href="index.html" class="sidebar-logo"><div class="logo-sq"></div>SkillSwap</a>
   <span class="nav-section">Main</span>
-  <a href="dashboard.html" class="nav-link"><span class="nav-icon">⚡</span> Dashboard</a>
-  <a href="profile.html" class="nav-link"><span class="nav-icon">👤</span> My Profile</a>
-  <a href="discover.html" class="nav-link"><span class="nav-icon">🔍</span> Discover</a>
+  <a href="dashboard.html" class="nav-link"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard</a>
+  <a href="profile.html" class="nav-link"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>My Profile</a>
+  <a href="discover.html" class="nav-link"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>Discover</a>
   <span class="nav-section">Social</span>
-  <a href="matches.html" class="nav-link active"><span class="nav-icon">🤝</span> Matches</a>
-  <a href="messages.html" class="nav-link"><span class="nav-icon">💬</span> Messages</a>
-  <a href="videocall.html" class="nav-link"><span class="nav-icon">🎥</span> Video Call</a>
+  <a href="matches.html" class="nav-link active"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Matches</a>
+  <a href="messages.html" class="nav-link"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Messages</a>
+  <a href="videocall.html" class="nav-link"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>Video Call</a>
   <span class="nav-section">More</span>
-  <a href="webinars.html" class="nav-link"><span class="nav-icon">🎓</span> Webinars</a>
-  <a href="pricing.html" class="nav-link"><span class="nav-icon">✨</span> Upgrade</a>
+  <a href="webinars.html" class="nav-link"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>Webinars</a>
+  <a href="pricing.html" class="nav-link"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>Upgrade</a>
   <div class="sidebar-bottom">
-    <div class="user-pill">
-      <div class="user-avatar-sm" id="sidebarAvatar">?</div>
-      <span class="user-name-sm" id="sidebarName">Loading...</span>
-      <button class="logout-btn" onclick="handleLogout()">↪</button>
-    </div>
+    <div class="user-pill"><div class="user-avatar-sm" id="sidebarAvatar"></div><span class="user-name-sm" id="sidebarName">Loading...</span></div>
+    <button class="sidebar-logout-full" onclick="handleLogout()"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Sign out</button>
   </div>
 </aside>
 
-<!-- MAIN -->
 <main class="main">
   <div class="page-header">
-    <h1 class="page-title">My <span>Matches</span></h1>
+    <h1 class="page-title">Matches</h1>
     <p class="page-sub">Manage your swap requests and active connections.</p>
   </div>
 
-  <!-- TABS -->
   <div class="tabs">
-    <button class="tab-btn active" id="tab-pending" onclick="switchTab('pending')">Pending <span class="tab-count" id="cnt-pending">0</span></button>
-    <button class="tab-btn" id="tab-active" onclick="switchTab('active')">Active <span class="tab-count" id="cnt-active">0</span></button>
-    <button class="tab-btn" id="tab-sent" onclick="switchTab('sent')">Sent <span class="tab-count" id="cnt-sent">0</span></button>
-    <button class="tab-btn" id="tab-completed" onclick="switchTab('completed')">Completed <span class="tab-count" id="cnt-completed">0</span></button>
+    <button class="tab-btn active" onclick="switchTab('requests')" id="tab-requests">
+      Incoming <span class="tab-count" id="cnt-requests">0</span>
+    </button>
+    <button class="tab-btn" onclick="switchTab('sent')" id="tab-sent">
+      Sent <span class="tab-count" id="cnt-sent">0</span>
+    </button>
+    <button class="tab-btn" onclick="switchTab('active')" id="tab-active">
+      Active <span class="tab-count" id="cnt-active">0</span>
+    </button>
+    <button class="tab-btn" onclick="switchTab('completed')" id="tab-completed">
+      Completed <span class="tab-count" id="cnt-completed">0</span>
+    </button>
   </div>
 
-  <!-- LIST -->
-  <div class="match-list" id="matchList">
-    <!-- skeleton -->
-    <div style="background:var(--purple-deep);border:1px solid var(--border);border-radius:16px;padding:20px 24px;display:flex;gap:18px;align-items:center;">
-      <div class="skel" style="width:52px;height:52px;border-radius:50%;flex-shrink:0;"></div>
-      <div style="flex:1;">
-        <div class="skel" style="height:16px;width:50%;margin-bottom:8px;"></div>
-        <div class="skel" style="height:12px;width:70%;margin-bottom:12px;"></div>
-        <div style="display:flex;gap:6px;"><div class="skel" style="height:22px;width:70px;border-radius:100px;"></div><div class="skel" style="height:22px;width:80px;border-radius:100px;"></div></div>
-      </div>
-    </div>
-    <div style="background:var(--purple-deep);border:1px solid var(--border);border-radius:16px;padding:20px 24px;display:flex;gap:18px;align-items:center;">
-      <div class="skel" style="width:52px;height:52px;border-radius:50%;flex-shrink:0;"></div>
-      <div style="flex:1;">
-        <div class="skel" style="height:16px;width:45%;margin-bottom:8px;"></div>
-        <div class="skel" style="height:12px;width:65%;margin-bottom:12px;"></div>
-        <div style="display:flex;gap:6px;"><div class="skel" style="height:22px;width:60px;border-radius:100px;"></div><div class="skel" style="height:22px;width:90px;border-radius:100px;"></div></div>
-      </div>
-    </div>
+  <div id="tabContent">
+    <div class="match-list" id="matchList"></div>
   </div>
-
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const { createClient } = supabase;
-const sb = createClient(
-  'https://vgndpvkywvcnezvjuueq.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZnbmRwdmt5d3ZjbmV6dmp1dWVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MDk5OTEsImV4cCI6MjA5MDA4NTk5MX0.GGwx_-W7pu485h3d6dgkhqSwiqxT3Hx02Ck9HW8nyE0'
-);
+const{createClient}=supabase;
+const sb=createClient('https://vgndpvkywvcnezvjuueq.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZnbmRwdmt5d3ZjbmV6dmp1dWVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MDk5OTEsImV4cCI6MjA5MDA4NTk5MX0.GGwx_-W7pu485h3d6dgkhqSwiqxT3Hx02Ck9HW8nyE0');
 
-// Cursor
-const cursor = document.getElementById('cursor');
-const ring = document.getElementById('cursorRing');
-let mouseX = 0, mouseY = 0, ringX = 0, ringY = 0;
-document.addEventListener('mousemove', e => {
-  mouseX = e.clientX; mouseY = e.clientY;
-  cursor.style.left = mouseX + 'px'; cursor.style.top = mouseY + 'px';
-});
-function animateRing() {
-  ringX += (mouseX - ringX) * 0.12; ringY += (mouseY - ringY) * 0.12;
-  ring.style.left = ringX + 'px'; ring.style.top = ringY + 'px';
-  requestAnimationFrame(animateRing);
-}
-animateRing();
-function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+const cur=document.getElementById('ss-cursor'),ring=document.getElementById('ss-ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px';});
+document.querySelectorAll('a,button').forEach(el=>{el.addEventListener('mouseenter',()=>{ring.style.borderColor='rgba(139,92,246,0.6)';ring.style.width='44px';ring.style.height='44px';});el.addEventListener('mouseleave',()=>{ring.style.borderColor='rgba(255,255,255,0.5)';ring.style.width='34px';ring.style.height='34px';});});
+(function anim(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(anim);})();
 
-let currentUserId = null;
-let allMatches = { pending: [], active: [], sent: [], completed: [] };
-let currentTab = 'pending';
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');}
+async function handleLogout(){await sb.auth.signOut();window.location.href='index.html';}
 
-function showToast(msg, type = 'success') {
-  const t = document.createElement('div');
-  t.className = 'toast' + (type === 'error' ? ' error' : '');
-  t.textContent = msg;
-  document.body.appendChild(t);
-  setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 3000);
+function showToast(msg){const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>{t.style.opacity='0';setTimeout(()=>t.remove(),300);},3000);}
+
+let currentUserId=null;
+let allData={requests:[],sent:[],active:[],completed:[]};
+let currentTab='requests';
+
+function switchTab(tab){
+  currentTab=tab;
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  renderTab(tab);
 }
 
-function relativeDate(iso) {
-  const d = new Date(iso);
-  const diff = Date.now() - d.getTime();
-  const days = Math.floor(diff / 86400000);
-  if (days === 0) return 'Today';
-  if (days === 1) return 'Yesterday';
-  if (days < 7) return `${days}d ago`;
-  if (days < 30) return `${Math.floor(days/7)}w ago`;
-  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+function formatDate(d){return d?new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric'}):''}
+
+function avatarHtml(p){
+  if(p?.avatar_url)return`<img src="${p.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+  const n=p?.full_name||p?.username||'?';
+  return n.split(' ').map(x=>x[0]).join('').toUpperCase().slice(0,2);
 }
 
-function renderMatchCard(m, role, idx) {
-  // role: 'requester' (I sent) or 'receiver' (they sent to me)
-  const peer = m.peer || {};
-  const name = peer.full_name || peer.username || 'SkillSwapper';
-  const avatar = peer.avatar_emoji || '👤';
-  const offered = (peer.skills_offered || []).slice(0, 3);
-  const wanted = (peer.skills_wanted || []).slice(0, 3);
-  const status = m.status || 'pending';
-  const delay = idx * 0.06;
-
-  const statusLabels = { pending: 'Pending', accepted: 'Active', declined: 'Declined', completed: 'Completed' };
-  const statusClass = { pending: 'status-pending', accepted: 'status-accepted', declined: 'status-declined', completed: 'status-completed' };
-
-  let actionsHtml = '';
-  if (status === 'pending' && role === 'receiver') {
-    actionsHtml = `
-      <button class="btn-accept" onclick="updateStatus('${m.id}', 'accepted')">✓ Accept</button>
-      <button class="btn-decline" onclick="updateStatus('${m.id}', 'declined')">✕ Decline</button>
-    `;
-  } else if (status === 'accepted') {
-    actionsHtml = `
-      <a class="btn-message" href="messages.html">💬 Message</a>
-      <button class="btn-complete" onclick="updateStatus('${m.id}', 'completed')">✓ Mark done</button>
-    `;
-  }
-
-  const swapLine = offered.length && wanted.length
-    ? `${offered[0]} ↔ ${wanted[0]}`
-    : offered.length ? `Offers: ${offered[0]}` : wanted.length ? `Wants: ${wanted[0]}` : 'Skill swap';
-
-  return `
-    <div class="match-card" style="animation-delay:${delay}s">
-      <div class="match-avatar">${avatar}</div>
-      <div class="match-body">
-        <div class="match-name">${name}</div>
-        <div class="match-swap">${swapLine}</div>
-        <div class="match-tags">
-          ${offered.map(s => `<span class="mtag">${s}</span>`).join('')}
-          ${wanted.map(s => `<span class="mtag want">${s}</span>`).join('')}
-        </div>
-      </div>
-      <div class="match-meta">
-        <span class="status-badge ${statusClass[status]}">${statusLabels[status]}</span>
-        <span class="match-date">${relativeDate(m.created_at)}</span>
-        ${actionsHtml ? `<div class="match-actions">${actionsHtml}</div>` : ''}
-      </div>
-    </div>
-  `;
-}
-
-function switchTab(tab) {
-  currentTab = tab;
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('tab-' + tab).classList.add('active');
-  renderCurrentTab();
-}
-
-function renderCurrentTab() {
-  const list = document.getElementById('matchList');
-  const items = allMatches[currentTab] || [];
-
-  if (items.length === 0) {
-    const msgs = {
-      pending: { icon: '📬', title: 'No incoming requests', text: 'When someone sends you a swap request, it will appear here.' },
-      active: { icon: '🤝', title: 'No active swaps', text: 'Accept a pending request or send one via Discover to start a swap.' },
-      sent: { icon: '📤', title: "No sent requests", text: 'Go to Discover to find people and send swap requests.' },
-      completed: { icon: '🏆', title: 'No completed swaps yet', text: 'Completed swaps will be archived here.' }
-    };
-    const m = msgs[currentTab];
-    list.innerHTML = `
-      <div class="empty-state">
-        <div class="empty-icon">${m.icon}</div>
-        <h3>${m.title}</h3>
-        <p>${m.text}</p>
-        ${currentTab !== 'pending' ? `<a href="discover.html" class="btn-sm">Discover people →</a>` : ''}
-      </div>`;
+function renderTab(tab){
+  const list=document.getElementById('matchList');
+  const items=allData[tab]||[];
+  if(!items.length){
+    const msgs={requests:'No incoming requests yet.',sent:'No requests sent yet.',active:'No active matches yet.',completed:'No completed swaps yet.'};
+    list.innerHTML=`<div class="empty-state"><p>${msgs[tab]}</p>${tab==='active'||tab==='sent'?`<a href="discover.html" class="btn-white"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>Discover People</a>`:''}</div>`;
     return;
   }
-
-  list.innerHTML = items.map((m, i) => renderMatchCard(m, m._role, i)).join('');
+  list.innerHTML=items.map((m,i)=>{
+    const isSender=m.sender_id===currentUserId;
+    const peer=isSender?m.receiver:m.sender;
+    const peerName=peer?.full_name||peer?.username||'Skill Swapper';
+    const offered=(peer?.skills_offering||peer?.skills_offered||[]).slice(0,3);
+    const swap=`${m.skill_offered||'?'} ↔ ${m.skill_wanted||'?'}`;
+    const statusLabels={pending:'Pending',accepted:'Active',rejected:'Declined',completed:'Done'};
+    const statusClasses={pending:'s-pending',accepted:'s-accepted',rejected:'s-rejected',completed:'s-completed'};
+    let actionsHtml='';
+    if(tab==='requests'){
+      actionsHtml=`<button class="btn-accept" onclick="respond('${m.id}','accepted')">Accept</button><button class="btn-decline" onclick="respond('${m.id}','rejected')">Decline</button>`;
+    } else if(tab==='active'){
+      actionsHtml=`<a href="messages.html?match=${m.id}" class="btn-action"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Message</a><a href="videocall.html?match=${m.id}" class="btn-action"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>Call</a><button class="btn-action" onclick="complete('${m.id}')">Mark Done</button>`;
+    }
+    return`<div class="match-card" style="animation-delay:${i*.04}s">
+      <div class="match-avatar">${avatarHtml(peer)}</div>
+      <div class="match-body">
+        <div class="match-name">${peerName}</div>
+        <div class="match-swap">${swap}</div>
+        <div class="match-tags">${offered.map(s=>`<span class="mtag mtag-v">${s}</span>`).join('')}</div>
+      </div>
+      <div class="match-meta">
+        <span class="match-date">${formatDate(m.created_at)}</span>
+        <span class="status-badge ${statusClasses[m.status]||'s-pending'}">${statusLabels[m.status]||m.status}</span>
+        <div class="match-actions">${actionsHtml}</div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
-async function updateStatus(matchId, newStatus) {
-  const { error } = await sb.from('matches').update({ status: newStatus }).eq('id', matchId);
-  if (error) { showToast(error.message, 'error'); return; }
+async function respond(matchId,action){
+  const{error}=await sb.from('matches').update({status:action,updated_at:new Date().toISOString()}).eq('id',matchId);
+  if(error){console.error('Respond error:',error);showToast('Error: '+error.message);}
+  else{showToast(action==='accepted'?'Match accepted!':'Request declined.');await loadMatches();}
+}
 
-  const labels = { accepted: 'Swap accepted! 🎉', declined: 'Request declined.', completed: 'Swap marked as completed! 🏆' };
-  showToast(labels[newStatus] || 'Updated.');
+async function complete(matchId){
+  const{error}=await sb.from('matches').update({status:'completed',updated_at:new Date().toISOString()}).eq('id',matchId);
+  if(error){console.error('Complete error:',error);showToast('Error: '+error.message);}
+  else{showToast('Swap marked as completed!');await loadMatches();}
+}
+
+async function loadMatches(){
+  const{data,error}=await sb.from('matches')
+    .select(`*, sender:profiles!matches_sender_id_fkey(full_name,avatar_url,skills_offering,skills_offered), receiver:profiles!matches_receiver_id_fkey(full_name,avatar_url,skills_offering,skills_offered)`)
+    .or(`sender_id.eq.${currentUserId},receiver_id.eq.${currentUserId}`)
+    .order('created_at',{ascending:false});
+  if(error){console.error('Load matches error:',error);}
+  const matches=data||[];
+  allData.requests=matches.filter(m=>m.receiver_id===currentUserId&&m.status==='pending');
+  allData.sent=matches.filter(m=>m.sender_id===currentUserId&&m.status==='pending');
+  allData.active=matches.filter(m=>m.status==='accepted');
+  allData.completed=matches.filter(m=>m.status==='completed');
+  document.getElementById('cnt-requests').textContent=allData.requests.length;
+  document.getElementById('cnt-sent').textContent=allData.sent.length;
+  document.getElementById('cnt-active').textContent=allData.active.length;
+  document.getElementById('cnt-completed').textContent=allData.completed.length;
+  renderTab(currentTab);
+}
+
+async function init(){
+  const{data:{session}}=await sb.auth.getSession();
+  if(!session){window.location.href='login.html';return;}
+  currentUserId=session.user.id;
+  const{data:me}=await sb.from('profiles').select('full_name,username,avatar_url').eq('id',currentUserId).single();
+  const name=me?.full_name||me?.username||session.user.email.split('@')[0];
+  document.getElementById('sidebarName').textContent=name;
+  const avatarEl=document.getElementById('sidebarAvatar');
+  if(me?.avatar_url){avatarEl.innerHTML=`<img src="${me.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;}
+  else{avatarEl.textContent=name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);}
   await loadMatches();
-  renderCurrentTab();
-}
-
-async function loadMatches() {
-  // Received (user_b = me)
-  const { data: received } = await sb.from('matches')
-    .select('*, profiles!matches_user_a_fkey(full_name, username, avatar_emoji, skills_offered, skills_wanted)')
-    .eq('user_b', currentUserId)
-    .order('created_at', { ascending: false });
-
-  // Sent (user_a = me)
-  const { data: sent } = await sb.from('matches')
-    .select('*, profiles!matches_user_b_fkey(full_name, username, avatar_emoji, skills_offered, skills_wanted)')
-    .eq('user_a', currentUserId)
-    .order('created_at', { ascending: false });
-
-  allMatches = { pending: [], active: [], sent: [], completed: [] };
-
-  (received || []).forEach(m => {
-    m.peer = m.profiles;
-    m._role = 'receiver';
-    if (m.status === 'pending') allMatches.pending.push(m);
-    else if (m.status === 'accepted') allMatches.active.push(m);
-    else if (m.status === 'completed') allMatches.completed.push(m);
-  });
-
-  (sent || []).forEach(m => {
-    m.peer = m.profiles;
-    m._role = 'requester';
-    if (m.status === 'pending') allMatches.sent.push(m);
-    else if (m.status === 'accepted') allMatches.active.push(m);
-    else if (m.status === 'completed') allMatches.completed.push(m);
-  });
-
-  // Update counts
-  ['pending', 'active', 'sent', 'completed'].forEach(k => {
-    document.getElementById('cnt-' + k).textContent = allMatches[k].length;
-  });
-}
-
-async function handleLogout() {
-  await sb.auth.signOut();
-  window.location.href = 'login.html';
-}
-
-async function init() {
-  const { data: { session } } = await sb.auth.getSession();
-  if (!session) { window.location.href = 'login.html'; return; }
-  currentUserId = session.user.id;
-
-  const { data: profile } = await sb.from('profiles').select('full_name, username, avatar_emoji').eq('id', currentUserId).single();
-  if (profile) {
-    const name = profile.full_name || profile.username || session.user.email.split('@')[0];
-    document.getElementById('sidebarName').textContent = name;
-    document.getElementById('sidebarAvatar').textContent = profile.avatar_emoji || '👤';
-  }
-
-  await loadMatches();
-  renderCurrentTab();
 }
 
 init();

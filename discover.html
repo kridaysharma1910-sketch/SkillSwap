@@ -6,539 +6,324 @@
 <title>SkillSwap — Discover</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --black: #05040a;
-    --purple-deep: #0d0a1a;
-    --purple-mid: #1a1035;
-    --purple-bright: #7c3aed;
-    --purple-glow: #9d5cff;
-    --purple-soft: #c4a8ff;
-    --accent: #ff6bff;
-    --white: #f0ecff;
-    --text-muted: #7a6d99;
-    --border: rgba(124, 58, 237, 0.2);
-    --sidebar-w: 240px;
-  }
+:root{--bg:#080808;--bg-card:rgba(255,255,255,0.03);--border:rgba(255,255,255,0.08);--border-hover:rgba(139,92,246,0.3);--text-muted:rgba(255,255,255,0.32);--sidebar-w:240px;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;overflow-x:hidden;cursor:none;}
+#ss-cursor{position:fixed;width:10px;height:10px;background:#fff;border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);mix-blend-mode:difference;}
+#ss-ring{position:fixed;width:34px;height:34px;border:1px solid rgba(255,255,255,0.5);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:all .2s;}
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
-  body { background: var(--black); color: var(--white); font-family: 'DM Sans', sans-serif; min-height: 100vh; display: flex; overflow-x: hidden; cursor: none; }
+/* SIDEBAR */
+.sidebar{width:var(--sidebar-w);height:100vh;background:rgba(255,255,255,0.015);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:24px 14px;position:fixed;left:0;top:0;z-index:100;overflow-y:auto;}
+.sidebar-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.15rem;color:#fff;text-decoration:none;display:flex;align-items:center;gap:8px;margin-bottom:32px;padding-left:8px;}
+.logo-sq{width:9px;height:9px;background:#fff;border-radius:2px;flex-shrink:0;}
+.nav-section{font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,0.2);margin:18px 0 5px;padding-left:10px;}
+.nav-link{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;color:rgba(255,255,255,0.42);text-decoration:none;font-size:.875rem;transition:all .15s;margin-bottom:1px;border:1px solid transparent;}
+.nav-link:hover{color:#fff;background:rgba(255,255,255,0.04);}
+.nav-link.active{color:#fff;background:rgba(255,255,255,0.06);border-color:var(--border);}
+.nav-link svg{width:15px;height:15px;flex-shrink:0;opacity:.7;}
+.nav-link.active svg,.nav-link:hover svg{opacity:1;}
+.sidebar-bottom{margin-top:auto;border-top:1px solid var(--border);padding-top:14px;}
+.user-pill{display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px;margin-bottom:8px;}
+.user-avatar-sm{width:30px;height:30px;border-radius:50%;background:rgba(139,92,246,0.18);border:1px solid rgba(139,92,246,0.3);display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;flex-shrink:0;overflow:hidden;color:rgba(167,139,250,0.9);}
+.user-name-sm{font-size:.82rem;font-weight:500;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:rgba(255,255,255,0.65);}
+.sidebar-logout-full{width:100%;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.14);border-radius:10px;color:rgba(239,68,68,0.7);font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:500;padding:9px 12px;cursor:none;display:flex;align-items:center;gap:8px;transition:all .2s;}
+.sidebar-logout-full:hover{background:rgba(239,68,68,0.12);border-color:rgba(239,68,68,0.28);color:#f87171;}
+.sidebar-logout-full svg{width:14px;height:14px;}
+.hamburger{display:none;position:fixed;top:14px;left:14px;z-index:200;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:10px;padding:8px;cursor:none;color:#fff;}
 
-  .cursor { position: fixed; width: 12px; height: 12px; background: var(--purple-glow); border-radius: 50%; pointer-events: none; z-index: 9999; transform: translate(-50%, -50%); transition: width 0.2s, height 0.2s; mix-blend-mode: screen; }
-  .cursor-ring { position: fixed; width: 36px; height: 36px; border: 1px solid rgba(157,92,255,0.5); border-radius: 50%; pointer-events: none; z-index: 9998; transform: translate(-50%, -50%); transition: transform 0.15s ease; }
+/* MAIN */
+.main{margin-left:var(--sidebar-w);flex:1;padding:40px 48px;min-height:100vh;}
+.page-header{margin-bottom:28px;}
+.page-title{font-family:'Syne',sans-serif;font-weight:800;font-size:1.9rem;letter-spacing:-.03em;}
+.page-sub{color:var(--text-muted);font-size:.9rem;margin-top:5px;}
 
-  /* SIDEBAR */
-  .sidebar { width: var(--sidebar-w); min-height: 100vh; background: var(--purple-deep); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 28px 20px; position: fixed; left: 0; top: 0; z-index: 100; }
-  .sidebar-logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.3rem; color: var(--white); text-decoration: none; display: flex; align-items: center; gap: 10px; margin-bottom: 40px; }
-  .logo-dot { width: 8px; height: 8px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 10px var(--accent); animation: pulse 2s infinite; flex-shrink: 0; }
-  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.5;transform:scale(0.8);} }
-  .nav-section { font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px; margin-top: 24px; padding-left: 12px; }
-  .nav-link { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 10px; color: var(--text-muted); text-decoration: none; font-size: 0.9rem; transition: all 0.2s; margin-bottom: 2px; }
-  .nav-link:hover { color: var(--white); background: rgba(124,58,237,0.1); }
-  .nav-link.active { color: var(--white); background: rgba(124,58,237,0.15); border: 1px solid var(--border); }
-  .nav-icon { font-size: 1rem; width: 20px; text-align: center; }
-  .sidebar-bottom { margin-top: auto; border-top: 1px solid var(--border); padding-top: 20px; }
-  .user-pill { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; cursor: none; transition: background 0.2s; }
-  .user-pill:hover { background: rgba(124,58,237,0.1); }
-  .user-avatar-sm { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, var(--purple-bright), var(--accent)); display: flex; align-items: center; justify-content: center; font-size: 0.9rem; flex-shrink: 0; }
-  .user-name-sm { font-size: 0.85rem; font-weight: 500; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .logout-btn { background: none; border: none; color: var(--text-muted); cursor: none; font-size: 1rem; padding: 4px; transition: color 0.2s; flex-shrink: 0; }
-  .logout-btn:hover { color: #ef4444; }
+/* SEARCH */
+.search-bar{display:flex;gap:12px;margin-bottom:22px;align-items:center;flex-wrap:wrap;}
+.search-input-wrap{flex:1;min-width:240px;position:relative;}
+.search-icon-abs{position:absolute;left:13px;top:50%;transform:translateY(-50%);opacity:.3;pointer-events:none;}
+.search-icon-abs svg{width:15px;height:15px;}
+.search-input{width:100%;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:11px 16px 11px 40px;color:#fff;font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;transition:border-color .2s,background .2s;}
+.search-input::placeholder{color:var(--text-muted);}
+.search-input:focus{border-color:rgba(139,92,246,0.45);background:rgba(139,92,246,0.04);}
+.filter-select{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:11px 14px;color:rgba(255,255,255,0.6);font-family:'DM Sans',sans-serif;font-size:.85rem;outline:none;cursor:none;transition:border-color .2s;}
+.filter-select:focus{border-color:rgba(139,92,246,0.45);}
+.filter-select option{background:#111;}
 
-  /* MAIN */
-  .main { margin-left: var(--sidebar-w); flex: 1; padding: 40px 48px; min-height: 100vh; }
-  .page-header { margin-bottom: 28px; }
-  .page-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 2rem; letter-spacing: -0.03em; }
-  .page-title span { background: linear-gradient(135deg, var(--purple-glow), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-  .page-sub { color: var(--text-muted); font-size: 0.92rem; margin-top: 6px; }
+.results-info{font-size:.82rem;color:var(--text-muted);margin-bottom:18px;}
+.results-info strong{color:rgba(255,255,255,0.6);}
 
-  /* SEARCH + FILTERS */
-  .search-bar {
-    display: flex; gap: 12px; margin-bottom: 24px; align-items: center; flex-wrap: wrap;
-  }
-  .search-input-wrap {
-    flex: 1; min-width: 240px; position: relative;
-  }
-  .search-icon {
-    position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 1rem; pointer-events: none;
-  }
-  .search-input {
-    width: 100%; background: rgba(124,58,237,0.06); border: 1px solid var(--border); border-radius: 12px;
-    padding: 12px 16px 12px 42px; color: var(--white); font-family: 'DM Sans', sans-serif; font-size: 0.92rem;
-    outline: none; transition: border-color 0.2s, background 0.2s;
-  }
-  .search-input::placeholder { color: var(--text-muted); }
-  .search-input:focus { border-color: var(--purple-bright); background: rgba(124,58,237,0.1); }
-  .filter-select {
-    background: rgba(124,58,237,0.06); border: 1px solid var(--border); border-radius: 12px;
-    padding: 12px 16px; color: var(--white); font-family: 'DM Sans', sans-serif; font-size: 0.88rem;
-    outline: none; cursor: none; transition: border-color 0.2s;
-  }
-  .filter-select:focus { border-color: var(--purple-bright); }
-  .filter-select option { background: var(--purple-mid); }
+/* GRID */
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px;}
 
-  /* RESULTS INFO */
-  .results-info {
-    font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px;
-  }
-  .results-info strong { color: var(--white); }
+/* USER CARD */
+.user-card{background:var(--bg-card);border:1px solid var(--border);border-radius:18px;padding:22px;display:flex;flex-direction:column;gap:0;transition:border-color .25s,transform .25s;backdrop-filter:blur(12px);position:relative;animation:fadeUp .4s ease both;}
+.user-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(139,92,246,0),transparent);transition:background .3s;}
+.user-card:hover{border-color:var(--border-hover);transform:translateY(-3px);}
+.user-card:hover::before{background:linear-gradient(90deg,transparent,rgba(139,92,246,0.6),transparent);}
+.card-top{display:flex;align-items:center;gap:13px;margin-bottom:12px;}
+.card-avatar{width:46px;height:46px;border-radius:50%;background:rgba(139,92,246,0.12);border:1px solid rgba(139,92,246,0.2);display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:700;flex-shrink:0;overflow:hidden;color:rgba(167,139,250,0.8);}
+.card-meta{}
+.card-name{font-family:'Syne',sans-serif;font-weight:700;font-size:.92rem;margin-bottom:2px;}
+.card-location{font-size:.75rem;color:var(--text-muted);}
+.match-score{display:flex;align-items:center;gap:8px;font-size:.75rem;color:rgba(167,139,250,0.7);margin-bottom:10px;}
+.score-bar{flex:1;height:3px;background:rgba(255,255,255,0.07);border-radius:100px;overflow:hidden;}
+.score-fill{height:100%;background:linear-gradient(90deg,rgba(139,92,246,.7),rgba(103,232,249,.6));border-radius:100px;}
+.card-bio{font-size:.8rem;color:var(--text-muted);line-height:1.5;margin-bottom:14px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.skills-section{margin-bottom:16px;}
+.skill-section-label{font-size:.68rem;text-transform:uppercase;letter-spacing:.07em;color:rgba(255,255,255,0.2);margin-bottom:6px;margin-top:10px;}
+.skill-section-label:first-child{margin-top:0;}
+.skill-tags{display:flex;flex-wrap:wrap;gap:5px;}
+.skill-tag{border:1px solid rgba(139,92,246,0.35);color:rgba(167,139,250,0.7);padding:3px 9px;border-radius:100px;font-size:.72rem;}
+.skill-tag.want{border-color:rgba(34,211,238,0.28);color:rgba(103,232,249,0.65);}
+.card-actions{margin-top:auto;}
+.btn-request{width:100%;background:#fff;color:#080808;border:none;border-radius:10px;padding:10px;font-family:'Syne',sans-serif;font-size:.82rem;font-weight:700;cursor:none;transition:opacity .2s;display:flex;align-items:center;justify-content:center;gap:7px;}
+.btn-request:hover{opacity:.88;}
+.btn-request.sent{background:rgba(34,197,94,0.1);color:#86efac;border:1px solid rgba(34,197,94,0.2);font-weight:500;}
+.btn-request:disabled{opacity:.6;cursor:default;}
+.btn-request svg{width:13px;height:13px;}
 
-  /* CARDS GRID */
-  .cards-grid {
-    display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;
-  }
+/* LOAD MORE */
+.load-more-wrap{text-align:center;margin-top:28px;}
+.btn-load-more{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;color:rgba(255,255,255,0.5);padding:11px 24px;font-family:'DM Sans',sans-serif;font-size:.88rem;cursor:none;transition:all .2s;}
+.btn-load-more:hover{border-color:rgba(255,255,255,0.14);color:#fff;}
 
-  /* USER CARD */
-  .user-card {
-    background: var(--purple-deep); border: 1px solid var(--border); border-radius: 18px;
-    padding: 24px; display: flex; flex-direction: column; gap: 0;
-    transition: border-color 0.25s, transform 0.25s, box-shadow 0.25s;
-    animation: fadeUp 0.4s ease both;
-  }
-  .user-card:hover {
-    border-color: rgba(124,58,237,0.45); transform: translateY(-3px);
-    box-shadow: 0 12px 40px rgba(124,58,237,0.15);
-  }
-  .card-top { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 14px; }
-  .card-avatar {
-    width: 52px; height: 52px; border-radius: 50%;
-    background: linear-gradient(135deg, var(--purple-bright), var(--accent));
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1.5rem; flex-shrink: 0; border: 2px solid var(--border);
-  }
-  .card-meta { flex: 1; min-width: 0; }
-  .card-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.98rem; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .card-location { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 6px; }
-  .card-availability {
-    display: inline-flex; align-items: center; gap: 5px;
-    font-size: 0.72rem; color: #86efac;
-    background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.2);
-    padding: 3px 9px; border-radius: 100px;
-  }
-  .card-bio { font-size: 0.85rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 16px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-  .skills-section { margin-bottom: 14px; }
-  .skill-section-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); margin-bottom: 7px; }
-  .skill-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
-  .skill-tag { padding: 4px 11px; border-radius: 100px; font-size: 0.78rem; border: 1px solid var(--border); color: var(--purple-soft); background: rgba(124,58,237,0.08); }
-  .skill-tag.want { background: rgba(255,107,255,0.08); border-color: rgba(255,107,255,0.25); color: #f0b8ff; }
-  .card-actions { display: flex; gap: 10px; margin-top: 4px; }
-  .btn-connect {
-    flex: 1; background: linear-gradient(135deg, var(--purple-bright), #a855f7);
-    color: white; padding: 10px; border-radius: 10px;
-    font-family: 'DM Sans', sans-serif; font-size: 0.85rem; font-weight: 500;
-    border: none; cursor: none; transition: all 0.2s;
-    box-shadow: 0 4px 14px rgba(124,58,237,0.3);
-  }
-  .btn-connect:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(124,58,237,0.4); }
-  .btn-connect:disabled { opacity: 0.5; transform: none; cursor: default; }
-  .btn-connect.sent { background: rgba(34,197,94,0.15); border: 1px solid rgba(34,197,94,0.3); color: #86efac; box-shadow: none; }
-  .btn-view {
-    background: rgba(124,58,237,0.1); border: 1px solid var(--border); color: var(--purple-soft);
-    padding: 10px 14px; border-radius: 10px; font-family: 'DM Sans', sans-serif;
-    font-size: 0.85rem; cursor: none; transition: all 0.2s;
-  }
-  .btn-view:hover { background: rgba(124,58,237,0.2); border-color: rgba(124,58,237,0.4); color: var(--white); }
+/* EMPTY */
+.empty-state{grid-column:1/-1;text-align:center;padding:48px 24px;color:var(--text-muted);}
+.empty-state h3{font-family:'Syne',sans-serif;font-weight:700;font-size:1.1rem;margin-bottom:8px;color:rgba(255,255,255,.6);}
+.empty-state p{font-size:.85rem;margin-bottom:18px;line-height:1.5;}
+.btn-white{display:inline-flex;align-items:center;gap:7px;background:#fff;color:#080808;padding:10px 20px;border-radius:10px;font-family:'Syne',sans-serif;font-size:.82rem;font-weight:700;text-decoration:none;transition:opacity .2s;}
+.btn-white:hover{opacity:.88;}
 
-  /* MATCH SCORE */
-  .match-score {
-    display: flex; align-items: center; gap: 6px;
-    font-size: 0.75rem; color: var(--accent); margin-bottom: 14px;
-  }
-  .score-bar { flex: 1; height: 4px; background: rgba(124,58,237,0.2); border-radius: 100px; overflow: hidden; }
-  .score-fill { height: 100%; border-radius: 100px; background: linear-gradient(90deg, var(--purple-bright), var(--accent)); }
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);color:#fff;padding:12px 20px;border-radius:12px;font-size:.85rem;z-index:9000;animation:fadeUp .3s ease;backdrop-filter:blur(12px);}
+.toast.error{border-color:rgba(239,68,68,0.3);color:#fca5a5;}
 
-  /* EMPTY + LOADING */
-  .empty-state { grid-column: 1/-1; text-align: center; padding: 60px 20px; color: var(--text-muted); }
-  .empty-icon { font-size: 2.5rem; margin-bottom: 12px; }
-  .empty-state h3 { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.1rem; color: var(--white); margin-bottom: 8px; }
-  .empty-state p { font-size: 0.88rem; margin-bottom: 20px; max-width: 360px; margin-left: auto; margin-right: auto; }
-  .btn-sm { display: inline-block; background: linear-gradient(135deg, var(--purple-bright), #a855f7); color: white; padding: 10px 22px; border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 0.88rem; font-weight: 500; text-decoration: none; border: none; cursor: none; transition: all 0.2s; box-shadow: 0 4px 16px rgba(124,58,237,0.3); }
-  .btn-sm:hover { transform: translateY(-1px); }
-
-  .skeleton-card { background: var(--purple-deep); border: 1px solid var(--border); border-radius: 18px; padding: 24px; }
-  .skel { background: linear-gradient(90deg, rgba(124,58,237,0.1) 25%, rgba(124,58,237,0.2) 50%, rgba(124,58,237,0.1) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 8px; }
-  @keyframes shimmer { to { background-position: -200% 0; } }
-
-  @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
-
-  /* LOAD MORE */
-  .load-more-wrap { text-align: center; margin-top: 32px; margin-bottom: 20px; }
-
-  /* ALERT TOAST */
-  .toast {
-    position: fixed; bottom: 24px; right: 24px; z-index: 500;
-    background: rgba(34,197,94,0.15); border: 1px solid rgba(34,197,94,0.3); color: #86efac;
-    padding: 12px 20px; border-radius: 12px; font-size: 0.88rem;
-    animation: fadeUp 0.3s ease;
-    transition: opacity 0.3s;
-  }
-  .toast.error { background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.3); color: #fca5a5; }
-
-  /* MOBILE */
-  .hamburger { display: none; }
-  @media (max-width: 900px) {
-    .sidebar { transform: translateX(-100%); transition: transform 0.3s; }
-    .sidebar.open { transform: translateX(0); }
-    .main { margin-left: 0; padding: 24px 20px; padding-top: 70px; }
-    .hamburger { display: flex; position: fixed; top: 16px; left: 16px; z-index: 200; background: var(--purple-deep); border: 1px solid var(--border); border-radius: 10px; padding: 8px; cursor: none; color: var(--white); font-size: 1.2rem; }
-  }
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+@media(max-width:900px){.sidebar{transform:translateX(-100%);transition:transform .3s;}.sidebar.open{transform:translateX(0);}.main{margin-left:0;padding:24px 20px;padding-top:56px;}.hamburger{display:flex;}}
 </style>
 </head>
 <body>
+<div id="ss-cursor"></div><div id="ss-ring"></div>
+<button class="hamburger" id="hamburger" onclick="toggleSidebar()"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
 
-<div class="cursor" id="cursor"></div>
-<div class="cursor-ring" id="cursorRing"></div>
-<button class="hamburger" onclick="toggleSidebar()">☰</button>
-
-<!-- SIDEBAR -->
 <aside class="sidebar" id="sidebar">
-  <a href="index.html" class="sidebar-logo">
-    <div class="logo-dot"></div>
-    SkillSwap
-  </a>
+  <a href="index.html" class="sidebar-logo"><div class="logo-sq"></div>SkillSwap</a>
   <span class="nav-section">Main</span>
-  <a href="dashboard.html" class="nav-link"><span class="nav-icon">⚡</span> Dashboard</a>
-  <a href="profile.html" class="nav-link"><span class="nav-icon">👤</span> My Profile</a>
-  <a href="discover.html" class="nav-link active"><span class="nav-icon">🔍</span> Discover</a>
+  <a href="dashboard.html" class="nav-link"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard</a>
+  <a href="profile.html" class="nav-link"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>My Profile</a>
+  <a href="discover.html" class="nav-link active"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>Discover</a>
   <span class="nav-section">Social</span>
-  <a href="matches.html" class="nav-link"><span class="nav-icon">🤝</span> Matches</a>
-  <a href="messages.html" class="nav-link"><span class="nav-icon">💬</span> Messages</a>
-  <a href="videocall.html" class="nav-link"><span class="nav-icon">🎥</span> Video Call</a>
+  <a href="matches.html" class="nav-link"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Matches</a>
+  <a href="messages.html" class="nav-link"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Messages</a>
+  <a href="videocall.html" class="nav-link"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>Video Call</a>
   <span class="nav-section">More</span>
-  <a href="webinars.html" class="nav-link"><span class="nav-icon">🎓</span> Webinars</a>
-  <a href="pricing.html" class="nav-link"><span class="nav-icon">✨</span> Upgrade</a>
+  <a href="webinars.html" class="nav-link"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>Webinars</a>
+  <a href="pricing.html" class="nav-link"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>Upgrade</a>
   <div class="sidebar-bottom">
-    <div class="user-pill">
-      <div class="user-avatar-sm" id="sidebarAvatar">?</div>
-      <span class="user-name-sm" id="sidebarName">Loading...</span>
-      <button class="logout-btn" onclick="handleLogout()" title="Sign out">↪</button>
-    </div>
+    <div class="user-pill"><div class="user-avatar-sm" id="sidebarAvatar"></div><span class="user-name-sm" id="sidebarName">Loading...</span></div>
+    <button class="sidebar-logout-full" onclick="handleLogout()"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Sign out</button>
   </div>
 </aside>
 
-<!-- MAIN -->
 <main class="main">
   <div class="page-header">
-    <h1 class="page-title">Discover <span>People</span></h1>
-    <p class="page-sub">Find people whose skills match what you want to learn.</p>
+    <h1 class="page-title">Discover</h1>
+    <p class="page-sub">Find people to swap skills with. Matches are ranked by compatibility.</p>
   </div>
 
-  <!-- SEARCH + FILTERS -->
   <div class="search-bar">
     <div class="search-input-wrap">
-      <span class="search-icon">🔍</span>
-      <input class="search-input" id="searchInput" type="text" placeholder="Search by skill, name, or keyword…" oninput="onSearch()" />
+      <span class="search-icon-abs"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg></span>
+      <input class="search-input" type="text" id="searchInput" placeholder="Search by name, skill, bio..." oninput="onSearch()">
     </div>
-    <select class="filter-select" id="filterOffering" onchange="applyFilters()">
-      <option value="">All skills offered</option>
+    <select class="filter-select" id="filterSkill" onchange="applyFilters()">
+      <option value="">All skills</option>
     </select>
     <select class="filter-select" id="filterFormat" onchange="applyFilters()">
       <option value="">Any format</option>
-      <option value="video">Video call</option>
+      <option value="video">Video</option>
       <option value="text">Text / async</option>
       <option value="both">Both</option>
     </select>
   </div>
 
   <div class="results-info" id="resultsInfo"></div>
-
-  <!-- GRID -->
-  <div class="cards-grid" id="cardsGrid">
-    <!-- Skeleton placeholders while loading -->
-    <div class="skeleton-card">
-      <div class="skel" style="width:52px;height:52px;border-radius:50%;margin-bottom:14px;"></div>
-      <div class="skel" style="height:16px;width:60%;margin-bottom:8px;"></div>
-      <div class="skel" style="height:12px;width:40%;margin-bottom:16px;"></div>
-      <div class="skel" style="height:40px;width:100%;margin-bottom:14px;"></div>
-      <div style="display:flex;gap:6px;margin-bottom:14px;">
-        <div class="skel" style="height:26px;width:70px;border-radius:100px;"></div>
-        <div class="skel" style="height:26px;width:80px;border-radius:100px;"></div>
-      </div>
-      <div class="skel" style="height:40px;width:100%;border-radius:10px;"></div>
-    </div>
-    <div class="skeleton-card">
-      <div class="skel" style="width:52px;height:52px;border-radius:50%;margin-bottom:14px;"></div>
-      <div class="skel" style="height:16px;width:55%;margin-bottom:8px;"></div>
-      <div class="skel" style="height:12px;width:35%;margin-bottom:16px;"></div>
-      <div class="skel" style="height:40px;width:100%;margin-bottom:14px;"></div>
-      <div style="display:flex;gap:6px;margin-bottom:14px;">
-        <div class="skel" style="height:26px;width:60px;border-radius:100px;"></div>
-        <div class="skel" style="height:26px;width:90px;border-radius:100px;"></div>
-      </div>
-      <div class="skel" style="height:40px;width:100%;border-radius:10px;"></div>
-    </div>
-    <div class="skeleton-card">
-      <div class="skel" style="width:52px;height:52px;border-radius:50%;margin-bottom:14px;"></div>
-      <div class="skel" style="height:16px;width:65%;margin-bottom:8px;"></div>
-      <div class="skel" style="height:12px;width:45%;margin-bottom:16px;"></div>
-      <div class="skel" style="height:40px;width:100%;margin-bottom:14px;"></div>
-      <div style="display:flex;gap:6px;margin-bottom:14px;">
-        <div class="skel" style="height:26px;width:80px;border-radius:100px;"></div>
-        <div class="skel" style="height:26px;width:70px;border-radius:100px;"></div>
-      </div>
-      <div class="skel" style="height:40px;width:100%;border-radius:10px;"></div>
-    </div>
-  </div>
-
+  <div class="cards-grid" id="cardsGrid"></div>
   <div class="load-more-wrap" id="loadMoreWrap" style="display:none;">
-    <button class="btn-sm" onclick="loadMore()">Load more</button>
+    <button class="btn-load-more" onclick="loadMore()">Load more</button>
   </div>
-
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const { createClient } = supabase;
-const sb = createClient(
-  'https://vgndpvkywvcnezvjuueq.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZnbmRwdmt5d3ZjbmV6dmp1dWVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MDk5OTEsImV4cCI6MjA5MDA4NTk5MX0.GGwx_-W7pu485h3d6dgkhqSwiqxT3Hx02Ck9HW8nyE0'
-);
+const{createClient}=supabase;
+const sb=createClient('https://vgndpvkywvcnezvjuueq.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZnbmRwdmt5d3ZjbmV6dmp1dWVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MDk5OTEsImV4cCI6MjA5MDA4NTk5MX0.GGwx_-W7pu485h3d6dgkhqSwiqxT3Hx02Ck9HW8nyE0');
 
 // Cursor
-const cursor = document.getElementById('cursor');
-const ring = document.getElementById('cursorRing');
-let mouseX = 0, mouseY = 0, ringX = 0, ringY = 0;
-document.addEventListener('mousemove', e => {
-  mouseX = e.clientX; mouseY = e.clientY;
-  cursor.style.left = mouseX + 'px'; cursor.style.top = mouseY + 'px';
-});
-function animateRing() {
-  ringX += (mouseX - ringX) * 0.12; ringY += (mouseY - ringY) * 0.12;
-  ring.style.left = ringX + 'px'; ring.style.top = ringY + 'px';
-  requestAnimationFrame(animateRing);
-}
-animateRing();
+const cur=document.getElementById('ss-cursor'),ring=document.getElementById('ss-ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px';});
+document.querySelectorAll('a,button,select,input').forEach(el=>{el.addEventListener('mouseenter',()=>{ring.style.borderColor='rgba(139,92,246,0.6)';ring.style.width='44px';ring.style.height='44px';});el.addEventListener('mouseleave',()=>{ring.style.borderColor='rgba(255,255,255,0.5)';ring.style.width='34px';ring.style.height='34px';});});
+(function anim(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(anim);})();
 
-function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');}
+async function handleLogout(){await sb.auth.signOut();window.location.href='index.html';}
 
-let currentUserId = null;
-let mySkillsWanted = [];
-let allProfiles = [];
-let filtered = [];
-let sentRequests = new Set();
-const PAGE_SIZE = 12;
-let page = 0;
+function showToast(msg,type='success'){const t=document.createElement('div');t.className='toast'+(type==='error'?' error':'');t.textContent=msg;document.body.appendChild(t);setTimeout(()=>{t.style.opacity='0';setTimeout(()=>t.remove(),300);},3000);}
 
-// Toast
-function showToast(msg, type = 'success') {
-  const t = document.createElement('div');
-  t.className = 'toast' + (type === 'error' ? ' error' : '');
-  t.textContent = msg;
-  document.body.appendChild(t);
-  setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 3000);
+let currentUserId=null,mySkillsWanting=[],mySkillsOffering=[],allProfiles=[],filtered=[],sentRequests=new Set();
+const PAGE_SIZE=12;let page=0;
+
+function matchScore(p){
+  const theyOffer=(p.skills_offering||p.skills_offered||[]).map(s=>s.toLowerCase());
+  const iWant=mySkillsWanting.map(s=>s.toLowerCase());
+  const iOffer=mySkillsOffering.map(s=>s.toLowerCase());
+  const theyWant=(p.skills_wanting||p.skills_wanted||[]).map(s=>s.toLowerCase());
+  let score=0;
+  iWant.forEach(s=>{if(theyOffer.includes(s))score+=2;});
+  iOffer.forEach(s=>{if(theyWant.includes(s))score+=1;});
+  return Math.min(score/Math.max((iWant.length+iOffer.length)||1,1),1);
 }
 
-// Compute match score: how many of their offered overlap with what I want, and vice versa
-function matchScore(profile) {
-  const theyOffer = (profile.skills_offered || []).map(s => s.toLowerCase());
-  const theyWant = (profile.skills_wanted || []).map(s => s.toLowerCase());
-  const iWant = mySkillsWanted.map(s => s.toLowerCase());
-  let score = 0;
-  iWant.forEach(s => { if (theyOffer.includes(s)) score += 2; });
-  // bonus if they want something I might offer (we don't track myOffered here, so use partial)
-  theyWant.forEach(s => { if (iWant.some(w => w.includes(s) || s.includes(w))) score += 0.5; });
-  return Math.min(score / Math.max(iWant.length * 2, 1), 1);
-}
-
-function renderCard(p, idx) {
-  const name = p.full_name || p.username || 'SkillSwapper';
-  const avatar = p.avatar_emoji || '👤';
-  const location = p.location ? `📍 ${p.location}` : '';
-  const bio = p.bio || 'No bio yet.';
-  const offered = (p.skills_offered || []).slice(0, 4);
-  const wanted = (p.skills_wanted || []).slice(0, 3);
-  const score = matchScore(p);
-  const scorePct = Math.round(score * 100);
-  const isSent = sentRequests.has(p.id);
-  const delay = (idx % PAGE_SIZE) * 0.05;
-
-  return `
-    <div class="user-card" style="animation-delay:${delay}s">
-      <div class="card-top">
-        <div class="card-avatar">${avatar}</div>
-        <div class="card-meta">
-          <div class="card-name">${name}</div>
-          ${location ? `<div class="card-location">${location}</div>` : ''}
-          ${p.hours_per_week ? `<div class="card-availability">🟢 ${p.hours_per_week}h/wk</div>` : ''}
-        </div>
-      </div>
-      ${scorePct > 0 ? `
-        <div class="match-score">
-          <span>⚡ ${scorePct}% match</span>
-          <div class="score-bar"><div class="score-fill" style="width:${scorePct}%"></div></div>
-        </div>` : ''}
-      <div class="card-bio">${bio}</div>
-      <div class="skills-section">
-        ${offered.length ? `
-          <div class="skill-section-label">Offers</div>
-          <div class="skill-tags">${offered.map(s => `<span class="skill-tag">${s}</span>`).join('')}</div>` : ''}
-        ${wanted.length ? `
-          <div class="skill-section-label">Wants to learn</div>
-          <div class="skill-tags">${wanted.map(s => `<span class="skill-tag want">${s}</span>`).join('')}</div>` : ''}
-      </div>
-      <div class="card-actions">
-        <button class="btn-connect${isSent ? ' sent' : ''}" id="btn-${p.id}" onclick="sendRequest('${p.id}')" ${isSent ? 'disabled' : ''}>
-          ${isSent ? '✓ Request sent' : '🤝 Request swap'}
-        </button>
+function renderCard(p,idx){
+  const name=p.full_name||p.username||'Skill Swapper';
+  const initials=name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+  const avatarHtml=p.avatar_url?`<img src="${p.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`:(p.avatar_emoji||initials);
+  const bio=(p.bio||'').slice(0,100)||'No bio yet.';
+  const offered=(p.skills_offering||p.skills_offered||[]).slice(0,4);
+  const wanted=(p.skills_wanting||p.skills_wanted||[]).slice(0,3);
+  const score=matchScore(p);
+  const scorePct=Math.round(score*100);
+  const isSent=sentRequests.has(p.id);
+  const delay=(idx%PAGE_SIZE)*0.05;
+  return`<div class="user-card" style="animation-delay:${delay}s">
+    <div class="card-top">
+      <div class="card-avatar">${avatarHtml}</div>
+      <div class="card-meta">
+        <div class="card-name">${name}</div>
+        ${p.location?`<div class="card-location">${p.location}</div>`:''}
       </div>
     </div>
-  `;
+    ${scorePct>0?`<div class="match-score"><span>${scorePct}% match</span><div class="score-bar"><div class="score-fill" style="width:${scorePct}%"></div></div></div>`:''}
+    <div class="card-bio">${bio}</div>
+    <div class="skills-section">
+      ${offered.length?`<div class="skill-section-label">Offers</div><div class="skill-tags">${offered.map(s=>`<span class="skill-tag">${s}</span>`).join('')}</div>`:''}
+      ${wanted.length?`<div class="skill-section-label">Wants to learn</div><div class="skill-tags">${wanted.map(s=>`<span class="skill-tag want">${s}</span>`).join('')}</div>`:''}
+    </div>
+    <div class="card-actions">
+      <button class="btn-request${isSent?' sent':''}" id="btn-${p.id}" onclick="sendRequest('${p.id}',this)" ${isSent?'disabled':''}>
+        ${isSent?'<svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Requested':'<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Send Request'}
+      </button>
+    </div>
+  </div>`;
 }
 
-function renderGrid(profiles, append = false) {
-  const grid = document.getElementById('cardsGrid');
-  if (!append) grid.innerHTML = '';
-
-  if (profiles.length === 0 && !append) {
-    grid.innerHTML = `
-      <div class="empty-state">
-        <div class="empty-icon">🌌</div>
-        <h3>No one found</h3>
-        <p>Try a different search or filter — or be the first to add those skills.</p>
-        <a href="profile.html" class="btn-sm">Add my skills →</a>
-      </div>`;
-    document.getElementById('loadMoreWrap').style.display = 'none';
+function renderGrid(profiles,append=false){
+  const grid=document.getElementById('cardsGrid');
+  if(!append)grid.innerHTML='';
+  if(!profiles.length&&!append){
+    grid.innerHTML=`<div class="empty-state"><h3>No one found</h3><p>Try a different search or add more skills to your profile.</p><a href="profile.html" class="btn-white">Add my skills</a></div>`;
+    document.getElementById('loadMoreWrap').style.display='none';
     return;
   }
-
-  grid.insertAdjacentHTML('beforeend', profiles.map((p, i) => renderCard(p, i)).join(''));
+  grid.insertAdjacentHTML('beforeend',profiles.map((p,i)=>renderCard(p,i)).join(''));
 }
 
-function applyFilters() {
-  const q = document.getElementById('searchInput').value.toLowerCase().trim();
-  const offeringFilter = document.getElementById('filterOffering').value.toLowerCase();
-  const formatFilter = document.getElementById('filterFormat').value;
-
-  filtered = allProfiles.filter(p => {
-    const name = (p.full_name || p.username || '').toLowerCase();
-    const bio = (p.bio || '').toLowerCase();
-    const offered = (p.skills_offered || []).map(s => s.toLowerCase());
-    const wanted = (p.skills_wanted || []).map(s => s.toLowerCase());
-    const allText = [name, bio, ...offered, ...wanted].join(' ');
-
-    if (q && !allText.includes(q)) return false;
-    if (offeringFilter && !offered.some(s => s.includes(offeringFilter))) return false;
-    if (formatFilter && p.session_format && p.session_format !== formatFilter && p.session_format !== 'both') return false;
+function applyFilters(){
+  const q=document.getElementById('searchInput').value.toLowerCase().trim();
+  const skillF=document.getElementById('filterSkill').value.toLowerCase();
+  const fmtF=document.getElementById('filterFormat').value;
+  filtered=allProfiles.filter(p=>{
+    const name=(p.full_name||p.username||'').toLowerCase();
+    const bio=(p.bio||'').toLowerCase();
+    const offered=(p.skills_offering||p.skills_offered||[]).map(s=>s.toLowerCase());
+    const wanted=(p.skills_wanting||p.skills_wanted||[]).map(s=>s.toLowerCase());
+    const all=[name,bio,...offered,...wanted].join(' ');
+    if(q&&!all.includes(q))return false;
+    if(skillF&&!offered.some(s=>s.includes(skillF)))return false;
+    if(fmtF&&p.session_format&&p.session_format!==fmtF&&p.session_format!=='both')return false;
     return true;
   });
-
-  // Sort by match score descending
-  filtered.sort((a, b) => matchScore(b) - matchScore(a));
-
-  page = 0;
-  const slice = filtered.slice(0, PAGE_SIZE);
+  filtered.sort((a,b)=>matchScore(b)-matchScore(a));
+  page=0;
+  const slice=filtered.slice(0,PAGE_SIZE);
   renderGrid(slice);
-
-  const total = filtered.length;
-  document.getElementById('resultsInfo').innerHTML = total
-    ? `Showing <strong>${Math.min(PAGE_SIZE, total)}</strong> of <strong>${total}</strong> people`
-    : '';
-  document.getElementById('loadMoreWrap').style.display = total > PAGE_SIZE ? 'block' : 'none';
+  const total=filtered.length;
+  document.getElementById('resultsInfo').innerHTML=total?`Showing <strong>${Math.min(PAGE_SIZE,total)}</strong> of <strong>${total}</strong> people`:'';
+  document.getElementById('loadMoreWrap').style.display=total>PAGE_SIZE?'block':'none';
 }
 
-let searchTimeout;
-function onSearch() {
-  clearTimeout(searchTimeout);
-  searchTimeout = setTimeout(applyFilters, 220);
-}
+let searchTimer;
+function onSearch(){clearTimeout(searchTimer);searchTimer=setTimeout(applyFilters,220);}
 
-function loadMore() {
+function loadMore(){
   page++;
-  const start = page * PAGE_SIZE;
-  const slice = filtered.slice(start, start + PAGE_SIZE);
-  renderGrid(slice, true);
-  if (start + PAGE_SIZE >= filtered.length) {
-    document.getElementById('loadMoreWrap').style.display = 'none';
-  }
-  const shown = Math.min((page + 1) * PAGE_SIZE, filtered.length);
-  document.getElementById('resultsInfo').innerHTML = `Showing <strong>${shown}</strong> of <strong>${filtered.length}</strong> people`;
+  const start=page*PAGE_SIZE;
+  renderGrid(filtered.slice(start,start+PAGE_SIZE),true);
+  if(start+PAGE_SIZE>=filtered.length)document.getElementById('loadMoreWrap').style.display='none';
+  const shown=Math.min((page+1)*PAGE_SIZE,filtered.length);
+  document.getElementById('resultsInfo').innerHTML=`Showing <strong>${shown}</strong> of <strong>${filtered.length}</strong> people`;
 }
 
-async function sendRequest(userId) {
-  const btn = document.getElementById('btn-' + userId);
-  if (!btn || btn.disabled) return;
-
-  btn.disabled = true;
-  btn.textContent = 'Sending…';
-
-  // Check if match already exists
-  const { data: existing } = await sb.from('matches')
-    .select('id')
-    .or(`and(user_a.eq.${currentUserId},user_b.eq.${userId}),and(user_a.eq.${userId},user_b.eq.${currentUserId})`)
-    .maybeSingle();
-
-  if (existing) {
+async function sendRequest(userId,btn){
+  if(!btn||btn.disabled)return;
+  btn.disabled=true;
+  btn.innerHTML='Sending...';
+  // Check existing
+  const{data:existing}=await sb.from('matches').select('id').or(`and(sender_id.eq.${currentUserId},receiver_id.eq.${userId}),and(sender_id.eq.${userId},receiver_id.eq.${currentUserId})`).maybeSingle();
+  if(existing){
     sentRequests.add(userId);
-    btn.textContent = '✓ Request sent';
+    btn.innerHTML='<svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Requested';
     btn.classList.add('sent');
-    showToast('You already have a connection with this person!');
+    showToast('Already connected!');
     return;
   }
-
-  const { error } = await sb.from('matches').insert({
-    user_a: currentUserId,
-    user_b: userId,
-    status: 'pending',
-    created_at: new Date().toISOString()
-  });
-
-  if (error) {
-    btn.disabled = false;
-    btn.textContent = '🤝 Request swap';
-    showToast(error.message, 'error');
-  } else {
+  // Find skill context
+  const peer=allProfiles.find(p=>p.id===userId);
+  const skillOffered=(mySkillsOffering[0]||'');
+  const skillWanted=(peer?.skills_offering||peer?.skills_offered||[])[0]||'';
+  const{error}=await sb.from('matches').insert({sender_id:currentUserId,receiver_id:userId,status:'pending',skill_offered:skillOffered,skill_wanted:skillWanted});
+  if(error){
+    console.error('Send request error:',error);
+    btn.disabled=false;
+    btn.innerHTML='<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Send Request';
+    showToast(error.message,'error');
+  }else{
     sentRequests.add(userId);
-    btn.textContent = '✓ Request sent';
+    btn.innerHTML='<svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Requested';
     btn.classList.add('sent');
-    showToast('Swap request sent! 🎉');
+    showToast('Swap request sent!');
   }
 }
 
-async function handleLogout() {
-  await sb.auth.signOut();
-  window.location.href = 'login.html';
-}
-
-async function init() {
-  const { data: { session } } = await sb.auth.getSession();
-  if (!session) { window.location.href = 'login.html'; return; }
-
-  currentUserId = session.user.id;
-
-  // Load my profile for match scoring
-  const { data: myProfile } = await sb.from('profiles').select('full_name, username, avatar_emoji, skills_wanted').eq('id', currentUserId).single();
-  if (myProfile) {
-    mySkillsWanted = myProfile.skills_wanted || [];
-    const name = myProfile.full_name || myProfile.username || session.user.email.split('@')[0];
-    document.getElementById('sidebarName').textContent = name;
-    document.getElementById('sidebarAvatar').textContent = myProfile.avatar_emoji || '👤';
-  }
-
-  // Load all profiles except self
-  const { data: profiles, error } = await sb.from('profiles')
-    .select('id, full_name, username, avatar_emoji, bio, location, skills_offered, skills_wanted, hours_per_week, session_format')
-    .neq('id', currentUserId)
-    .not('skills_offered', 'is', null)
-    .order('updated_at', { ascending: false });
-
-  if (error) { showToast(error.message, 'error'); return; }
-
-  allProfiles = profiles || [];
+async function init(){
+  const{data:{session}}=await sb.auth.getSession();
+  if(!session){window.location.href='login.html';return;}
+  currentUserId=session.user.id;
+  const{data:me,error:meErr}=await sb.from('profiles').select('*').eq('id',currentUserId).single();
+  if(meErr)console.error('Profile error:',meErr);
+  const name=me?.full_name||me?.username||session.user.email.split('@')[0];
+  document.getElementById('sidebarName').textContent=name;
+  const avatarEl=document.getElementById('sidebarAvatar');
+  if(me?.avatar_url){avatarEl.innerHTML=`<img src="${me.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;}
+  else{avatarEl.textContent=name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);}
+  mySkillsOffering=me?.skills_offering||me?.skills_offered||[];
+  mySkillsWanting=me?.skills_wanting||me?.skills_wanted||[];
 
   // Load already-sent requests
-  const { data: sent } = await sb.from('matches').select('user_b').eq('user_a', currentUserId);
-  const { data: received } = await sb.from('matches').select('user_a').eq('user_b', currentUserId);
-  (sent || []).forEach(r => sentRequests.add(r.user_b));
-  (received || []).forEach(r => sentRequests.add(r.user_a));
+  const{data:sent}=await sb.from('matches').select('receiver_id').eq('sender_id',currentUserId);
+  (sent||[]).forEach(m=>sentRequests.add(m.receiver_id));
 
-  // Build offering filter options from all skills
-  const allOffered = [...new Set(allProfiles.flatMap(p => p.skills_offered || []))].sort();
-  const sel = document.getElementById('filterOffering');
-  allOffered.forEach(s => {
-    const opt = document.createElement('option');
-    opt.value = s; opt.textContent = s;
-    sel.appendChild(opt);
-  });
+  // Load all users except self
+  const{data:profiles,error:pErr}=await sb.from('profiles').select('*').neq('id',currentUserId);
+  if(pErr)console.error('Profiles error:',pErr);
+  allProfiles=profiles||[];
+
+  // Populate skill filter
+  const allSkills=new Set();
+  allProfiles.forEach(p=>(p.skills_offering||p.skills_offered||[]).forEach(s=>allSkills.add(s)));
+  const sel=document.getElementById('filterSkill');
+  [...allSkills].sort().forEach(s=>{const o=document.createElement('option');o.value=s;o.textContent=s;sel.appendChild(o);});
 
   applyFilters();
 }

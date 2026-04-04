@@ -6,592 +6,289 @@
 <title>SkillSwap — Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --black: #05040a;
-    --purple-deep: #0d0a1a;
-    --purple-mid: #1a1035;
-    --purple-bright: #7c3aed;
-    --purple-glow: #9d5cff;
-    --purple-soft: #c4a8ff;
-    --accent: #ff6bff;
-    --white: #f0ecff;
-    --text-muted: #7a6d99;
-    --border: rgba(124, 58, 237, 0.2);
-    --sidebar-w: 240px;
-  }
+:root {
+  --bg: #080808;
+  --bg-card: rgba(255,255,255,0.03);
+  --border: rgba(255,255,255,0.08);
+  --border-hover: rgba(139,92,246,0.3);
+  --text-muted: rgba(255,255,255,0.32);
+  --accent-v: rgba(139,92,246,1);
+  --accent-v-soft: rgba(167,139,250,0.65);
+  --accent-c-soft: rgba(103,232,249,0.6);
+  --sidebar-w: 240px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body { background:var(--bg); color:#fff; font-family:'DM Sans',sans-serif; min-height:100vh; display:flex; overflow-x:hidden; cursor:none; }
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
+/* CURSOR */
+#ss-cursor { position:fixed; width:10px; height:10px; background:#fff; border-radius:50%; pointer-events:none; z-index:9999; transform:translate(-50%,-50%); mix-blend-mode:difference; transition:width .2s,height .2s; }
+#ss-ring { position:fixed; width:34px; height:34px; border:1px solid rgba(255,255,255,0.5); border-radius:50%; pointer-events:none; z-index:9998; transform:translate(-50%,-50%); transition:border-color .2s; }
+body:hover #ss-cursor { width:10px; height:10px; }
+a:hover ~ #ss-cursor, button:hover ~ #ss-cursor { width:16px; height:16px; }
 
-  body {
-    background: var(--black);
-    color: var(--white);
-    font-family: 'DM Sans', sans-serif;
-    min-height: 100vh;
-    display: flex;
-    overflow-x: hidden;
-    cursor: none;
-  }
+/* SIDEBAR */
+.sidebar {
+  width:var(--sidebar-w); height:100vh;
+  background:rgba(255,255,255,0.015);
+  border-right:1px solid var(--border);
+  display:flex; flex-direction:column;
+  padding:24px 14px;
+  position:fixed; left:0; top:0; z-index:100;
+  overflow-y:auto;
+}
+.sidebar-logo { font-family:'Syne',sans-serif; font-weight:800; font-size:1.15rem; color:#fff; text-decoration:none; display:flex; align-items:center; gap:8px; margin-bottom:32px; padding-left:8px; }
+.logo-sq { width:9px; height:9px; background:#fff; border-radius:2px; flex-shrink:0; }
+.nav-section { font-size:0.66rem; letter-spacing:.12em; text-transform:uppercase; color:rgba(255,255,255,0.2); margin:18px 0 5px; padding-left:10px; }
+.nav-link { display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:10px; color:rgba(255,255,255,0.42); text-decoration:none; font-size:0.875rem; transition:all .15s; margin-bottom:1px; border:1px solid transparent; }
+.nav-link:hover { color:#fff; background:rgba(255,255,255,0.04); }
+.nav-link.active { color:#fff; background:rgba(255,255,255,0.06); border-color:var(--border); }
+.nav-link svg { width:15px; height:15px; flex-shrink:0; opacity:.7; }
+.nav-link.active svg, .nav-link:hover svg { opacity:1; }
+.sidebar-bottom { margin-top:auto; border-top:1px solid var(--border); padding-top:14px; }
+.user-pill { display:flex; align-items:center; gap:10px; padding:10px; border-radius:10px; margin-bottom:8px; }
+.user-avatar-sm { width:30px; height:30px; border-radius:50%; background:rgba(139,92,246,0.18); border:1px solid rgba(139,92,246,0.3); display:flex; align-items:center; justify-content:center; font-size:0.75rem; font-weight:700; flex-shrink:0; overflow:hidden; color:rgba(167,139,250,0.9); }
+.user-name-sm { font-size:0.82rem; font-weight:500; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:rgba(255,255,255,0.65); }
+.sidebar-logout-full { width:100%; background:rgba(239,68,68,0.06); border:1px solid rgba(239,68,68,0.14); border-radius:10px; color:rgba(239,68,68,0.7); font-family:'DM Sans',sans-serif; font-size:0.82rem; font-weight:500; padding:9px 12px; cursor:none; display:flex; align-items:center; gap:8px; transition:all .2s; }
+.sidebar-logout-full:hover { background:rgba(239,68,68,0.12); border-color:rgba(239,68,68,0.28); color:#f87171; }
+.sidebar-logout-full svg { width:14px; height:14px; }
 
-  .cursor {
-    position: fixed;
-    width: 12px; height: 12px;
-    background: var(--purple-glow);
-    border-radius: 50%;
-    pointer-events: none;
-    z-index: 9999;
-    transform: translate(-50%, -50%);
-    transition: width 0.2s, height 0.2s, background 0.2s;
-    mix-blend-mode: screen;
-  }
-  .cursor-ring {
-    position: fixed;
-    width: 36px; height: 36px;
-    border: 1px solid rgba(157, 92, 255, 0.5);
-    border-radius: 50%;
-    pointer-events: none;
-    z-index: 9998;
-    transform: translate(-50%, -50%);
-    transition: transform 0.15s ease;
-  }
+/* HAMBURGER */
+.hamburger { display:none; position:fixed; top:14px; left:14px; z-index:200; background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:10px; padding:8px; cursor:none; color:#fff; }
 
-  /* SIDEBAR */
-  .sidebar {
-    width: var(--sidebar-w);
-    height: 100vh;
-    background: var(--purple-deep);
-    border-right: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    padding: 28px 20px;
-    position: fixed;
-    left: 0; top: 0;
-    z-index: 100;
-    overflow-y: auto;
-  }
+/* MAIN */
+.main { margin-left:var(--sidebar-w); flex:1; padding:40px 48px; min-height:100vh; }
 
-  .sidebar-logo {
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: 1.3rem;
-    color: var(--white);
-    text-decoration: none;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 40px;
-  }
-  .logo-dot {
-    width: 8px; height: 8px;
-    background: var(--accent);
-    border-radius: 50%;
-    box-shadow: 0 0 10px var(--accent);
-    animation: pulse 2s infinite;
-    flex-shrink: 0;
-  }
-  @keyframes pulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.5; transform: scale(0.8); }
-  }
+/* PAGE HEADER */
+.page-header { margin-bottom:32px; }
+.page-greeting { font-size:0.82rem; color:var(--text-muted); margin-bottom:6px; font-weight:300; }
+.page-title { font-family:'Syne',sans-serif; font-weight:800; font-size:1.9rem; letter-spacing:-.03em; }
 
-  .nav-section {
-    font-size: 0.7rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    margin-bottom: 10px;
-    margin-top: 24px;
-    padding-left: 12px;
-  }
-  .nav-section:first-of-type { margin-top: 0; }
+/* STATS */
+.stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:32px; }
+.stat-card {
+  background:var(--bg-card); border:1px solid var(--border); border-radius:18px;
+  padding:22px; backdrop-filter:blur(12px); position:relative; overflow:hidden;
+  transition:border-color .25s,transform .25s;
+}
+.stat-card:hover { border-color:var(--border-hover); transform:translateY(-3px); }
+.stat-card::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,rgba(139,92,246,0),transparent); transition:background .3s; }
+.stat-card:hover::before { background:linear-gradient(90deg,transparent,rgba(139,92,246,0.6),transparent); }
+.stat-icon { width:32px; height:32px; border-radius:8px; background:rgba(255,255,255,0.04); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; margin-bottom:14px; }
+.stat-icon svg { width:15px; height:15px; color:rgba(167,139,250,0.7); }
+.stat-value { font-family:'Syne',sans-serif; font-weight:700; font-size:1.9rem; letter-spacing:-.02em; margin-bottom:3px; }
+.stat-label { font-size:0.78rem; color:var(--text-muted); }
 
-  .nav-link {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 10px 12px;
-    border-radius: 10px;
-    color: var(--text-muted);
-    text-decoration: none;
-    font-size: 0.9rem;
-    font-weight: 400;
-    transition: all 0.2s;
-    margin-bottom: 2px;
-  }
-  .nav-link:hover {
-    color: var(--white);
-    background: rgba(124,58,237,0.1);
-  }
-  .nav-link.active {
-    color: var(--white);
-    background: rgba(124,58,237,0.15);
-    border: 1px solid var(--border);
-  }
-  .nav-icon { font-size: 1rem; width: 20px; text-align: center; }
+/* GLASS CARD */
+.card {
+  background:var(--bg-card); border:1px solid var(--border); border-radius:18px;
+  padding:24px; backdrop-filter:blur(12px); position:relative; overflow:hidden;
+  transition:border-color .25s;
+}
+.card:hover { border-color:rgba(255,255,255,0.12); }
+.card-title { font-family:'Syne',sans-serif; font-weight:700; font-size:0.92rem; margin-bottom:18px; display:flex; align-items:center; justify-content:space-between; color:rgba(255,255,255,0.85); }
+.card-link { font-size:0.78rem; color:rgba(255,255,255,0.3); text-decoration:none; font-weight:400; font-family:'DM Sans',sans-serif; transition:color .2s; }
+.card-link:hover { color:rgba(167,139,250,0.8); }
 
-  .sidebar-bottom {
-    margin-top: auto;
-    border-top: 1px solid var(--border);
-    padding-top: 20px;
-  }
-  .user-pill {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 12px;
-    border-radius: 10px;
-    cursor: none;
-    transition: background 0.2s;
-  }
-  .user-pill:hover { background: rgba(124,58,237,0.1); }
-  .user-avatar-sm {
-    width: 32px; height: 32px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--purple-bright), var(--accent));
-    display: flex; align-items: center; justify-content: center;
-    font-size: 0.9rem;
-    flex-shrink: 0;
-  }
-  .user-name-sm { font-size: 0.85rem; font-weight: 500; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .logout-btn {
-    background: none;
-    border: none;
-    color: rgba(255,255,255,0.45);
-    cursor: none;
-    font-size: 0.82rem;
-    padding: 4px 6px;
-    transition: color 0.2s;
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    white-space: nowrap;
-  }
-  .logout-btn:hover { color: #ef4444; }
-  .sidebar-logout-row {
-    margin-top: 10px;
-    padding: 0 4px;
-  }
-  .sidebar-logout-full {
-    width: 100%;
-    background: rgba(239,68,68,0.07);
-    border: 1px solid rgba(239,68,68,0.18);
-    border-radius: 10px;
-    color: rgba(239,68,68,0.75);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.85rem;
-    font-weight: 500;
-    padding: 10px 14px;
-    cursor: none;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    transition: background 0.2s, border-color 0.2s, color 0.2s;
-    text-align: left;
-  }
-  .sidebar-logout-full:hover {
-    background: rgba(239,68,68,0.14);
-    border-color: rgba(239,68,68,0.35);
-    color: #f87171;
-  }
+/* TWO COL */
+.two-col { display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:20px; }
 
-  /* MAIN */
-  .main {
-    margin-left: var(--sidebar-w);
-    flex: 1;
-    padding: 40px 48px;
-    min-height: 100vh;
-  }
+/* MATCH ITEMS */
+.match-item { display:flex; align-items:center; gap:13px; padding:11px; border-radius:12px; transition:background .2s; cursor:none; margin:0 -4px; }
+.match-item:hover { background:rgba(255,255,255,0.03); }
+.match-avatar { width:38px; height:38px; border-radius:50%; background:rgba(139,92,246,0.12); border:1px solid rgba(139,92,246,0.2); display:flex; align-items:center; justify-content:center; font-size:0.8rem; font-weight:700; flex-shrink:0; overflow:hidden; color:rgba(167,139,250,0.8); }
+.match-info { flex:1; min-width:0; }
+.match-name { font-weight:500; font-size:0.875rem; margin-bottom:2px; }
+.match-swap { font-size:0.75rem; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.match-badge { font-size:0.68rem; padding:3px 9px; border-radius:100px; flex-shrink:0; }
+.badge-active { background:rgba(34,197,94,0.1); color:#86efac; border:1px solid rgba(34,197,94,0.2); }
+.badge-pending { background:rgba(251,191,36,0.1); color:#fcd34d; border:1px solid rgba(251,191,36,0.2); }
+.badge-sent { background:rgba(103,232,249,0.08); color:rgba(103,232,249,0.7); border:1px solid rgba(103,232,249,0.2); }
 
-  .page-header {
-    margin-bottom: 36px;
-  }
-  .page-greeting {
-    font-size: 0.85rem;
-    color: var(--text-muted);
-    margin-bottom: 6px;
-  }
-  .page-title {
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: 2rem;
-    letter-spacing: -0.03em;
-  }
-  .page-title span {
-    background: linear-gradient(135deg, var(--purple-glow), var(--accent));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
+/* SKILLS */
+.skills-list { display:flex; flex-wrap:wrap; gap:7px; }
+.skill-tag-v { border:1px solid rgba(139,92,246,0.35); color:rgba(167,139,250,0.7); padding:3px 10px; border-radius:100px; font-size:0.75rem; }
+.skill-tag-c { border:1px solid rgba(34,211,238,0.28); color:rgba(103,232,249,0.65); padding:3px 10px; border-radius:100px; font-size:0.75rem; }
 
-  /* STATS GRID */
-  .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
-    margin-bottom: 36px;
-  }
-  .stat-card {
-    background: var(--purple-deep);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 24px;
-    position: relative;
-    overflow: hidden;
-    transition: border-color 0.2s, transform 0.2s;
-  }
-  .stat-card:hover {
-    border-color: rgba(124,58,237,0.4);
-    transform: translateY(-2px);
-  }
-  .stat-card::before {
-    content: '';
-    position: absolute;
-    top: -40px; right: -40px;
-    width: 120px; height: 120px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(124,58,237,0.15) 0%, transparent 70%);
-    pointer-events: none;
-  }
-  .stat-icon {
-    font-size: 1.5rem;
-    margin-bottom: 12px;
-  }
-  .stat-value {
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 2rem;
-    letter-spacing: -0.02em;
-    margin-bottom: 4px;
-  }
-  .stat-label {
-    font-size: 0.82rem;
-    color: var(--text-muted);
-  }
+/* EMPTY STATE */
+.empty-state { text-align:center; padding:28px 16px; color:var(--text-muted); }
+.empty-state p { font-size:0.85rem; margin-bottom:14px; line-height:1.5; }
+.btn-white { display:inline-flex; align-items:center; gap:7px; background:#fff; color:#080808; padding:9px 18px; border-radius:10px; font-family:'DM Sans',sans-serif; font-size:0.82rem; font-weight:700; text-decoration:none; border:none; cursor:none; transition:opacity .2s; }
+.btn-white:hover { opacity:.88; }
 
-  /* TWO-COL LAYOUT */
-  .two-col {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 24px;
-    margin-bottom: 24px;
-  }
+/* QUICK ACTIONS */
+.actions-row { display:flex; gap:10px; flex-wrap:wrap; }
+.action-btn { display:inline-flex; align-items:center; gap:7px; padding:9px 16px; border-radius:10px; font-family:'DM Sans',sans-serif; font-size:0.82rem; font-weight:500; text-decoration:none; cursor:none; transition:all .2s; border:1px solid var(--border); color:rgba(255,255,255,0.55); background:var(--bg-card); }
+.action-btn:hover { border-color:rgba(255,255,255,0.16); color:#fff; background:rgba(255,255,255,0.05); }
+.action-btn svg { width:14px; height:14px; }
 
-  /* CARDS */
-  .card {
-    background: var(--purple-deep);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 24px;
-  }
-  .card-title {
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 1rem;
-    margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .card-link {
-    font-size: 0.8rem;
-    color: var(--purple-soft);
-    text-decoration: none;
-    font-weight: 400;
-    font-family: 'DM Sans', sans-serif;
-    transition: color 0.2s;
-  }
-  .card-link:hover { color: var(--accent); }
+/* PROFILE BANNER */
+.profile-banner { background:rgba(139,92,246,0.04); border:1px solid rgba(139,92,246,0.18); border-radius:16px; padding:18px 22px; display:flex; align-items:center; gap:16px; margin-bottom:24px; }
+.banner-icon svg { width:28px; height:28px; color:rgba(167,139,250,0.7); flex-shrink:0; }
+.banner-text { flex:1; }
+.banner-text h3 { font-family:'Syne',sans-serif; font-weight:700; font-size:0.88rem; margin-bottom:3px; }
+.banner-text p { font-size:0.78rem; color:var(--text-muted); }
+.progress-bar { width:120px; height:4px; background:rgba(255,255,255,0.07); border-radius:100px; overflow:hidden; margin-top:7px; }
+.progress-fill { height:100%; background:linear-gradient(90deg,rgba(139,92,246,1),rgba(103,232,249,0.8)); border-radius:100px; transition:width .6s ease; }
 
-  /* MATCH ITEMS */
-  .match-item {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 12px 0;
-    border-bottom: 1px solid var(--border);
-    transition: background 0.2s;
-    border-radius: 8px;
-    padding: 12px;
-    margin: 0 -12px;
-    cursor: none;
-  }
-  .match-item:hover { background: rgba(124,58,237,0.06); }
-  .match-item:last-child { border-bottom: none; }
-  .match-avatar {
-    width: 42px; height: 42px;
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1.2rem;
-    flex-shrink: 0;
-  }
-  .match-info { flex: 1; min-width: 0; }
-  .match-name { font-weight: 500; font-size: 0.9rem; margin-bottom: 2px; }
-  .match-swap { font-size: 0.78rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .match-badge {
-    font-size: 0.7rem;
-    padding: 4px 10px;
-    border-radius: 100px;
-    flex-shrink: 0;
-  }
-  .badge-new { background: rgba(157,92,255,0.15); color: var(--purple-soft); border: 1px solid rgba(157,92,255,0.3); }
-  .badge-active { background: rgba(34,197,94,0.1); color: #86efac; border: 1px solid rgba(34,197,94,0.2); }
-  .badge-pending { background: rgba(251,191,36,0.1); color: #fcd34d; border: 1px solid rgba(251,191,36,0.2); }
+/* ANALYTICS SECTION */
+#analyticsSection { display:none; }
+.analytics-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+.analytics-stat { background:rgba(103,232,249,0.03); border:1px solid rgba(103,232,249,0.1); border-radius:14px; padding:18px; text-align:center; }
+.analytics-val { font-family:'Syne',sans-serif; font-weight:700; font-size:1.5rem; color:rgba(103,232,249,0.7); }
+.analytics-lbl { font-size:0.75rem; color:var(--text-muted); margin-top:3px; }
 
-  /* SKILLS */
-  .skills-list { display: flex; flex-wrap: wrap; gap: 8px; }
-  .skill-tag {
-    background: rgba(124,58,237,0.1);
-    border: 1px solid var(--border);
-    color: var(--purple-soft);
-    padding: 6px 14px;
-    border-radius: 100px;
-    font-size: 0.82rem;
-    cursor: none;
-    transition: all 0.2s;
-  }
-  .skill-tag:hover {
-    background: rgba(124,58,237,0.2);
-    border-color: var(--purple-bright);
-    color: var(--white);
-  }
-  .skill-tag.want {
-    background: rgba(255,107,255,0.08);
-    border-color: rgba(255,107,255,0.25);
-    color: #f0b8ff;
-  }
-  .skill-tag.want:hover {
-    background: rgba(255,107,255,0.15);
-    border-color: rgba(255,107,255,0.5);
-  }
+/* SKELETON */
+.skeleton { background:linear-gradient(90deg,rgba(255,255,255,0.04) 25%,rgba(255,255,255,0.07) 50%,rgba(255,255,255,0.04) 75%); background-size:200% 100%; animation:shimmer 1.5s infinite; border-radius:8px; height:16px; }
+@keyframes shimmer { to { background-position:-200% 0; } }
+@keyframes fadeUp { from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);} }
 
-  /* EMPTY STATE */
-  .empty-state {
-    text-align: center;
-    padding: 32px 20px;
-    color: var(--text-muted);
-  }
-  .empty-state .empty-icon { font-size: 2rem; margin-bottom: 10px; }
-  .empty-state p { font-size: 0.88rem; margin-bottom: 16px; }
-  .btn-sm {
-    display: inline-block;
-    background: linear-gradient(135deg, var(--purple-bright), #a855f7);
-    color: white;
-    padding: 9px 20px;
-    border-radius: 10px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.85rem;
-    font-weight: 500;
-    text-decoration: none;
-    border: none;
-    cursor: none;
-    transition: all 0.2s;
-    box-shadow: 0 4px 16px rgba(124,58,237,0.3);
-  }
-  .btn-sm:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(124,58,237,0.4); }
-
-  /* PROFILE COMPLETION BANNER */
-  .profile-banner {
-    background: linear-gradient(135deg, rgba(124,58,237,0.15), rgba(255,107,255,0.08));
-    border: 1px solid rgba(124,58,237,0.3);
-    border-radius: 16px;
-    padding: 20px 24px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    margin-bottom: 28px;
-    animation: fadeUp 0.4s ease;
-  }
-  .banner-icon { font-size: 1.8rem; flex-shrink: 0; }
-  .banner-text { flex: 1; }
-  .banner-text h3 { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.95rem; margin-bottom: 4px; }
-  .banner-text p { font-size: 0.82rem; color: var(--text-muted); }
-  .progress-bar {
-    width: 140px;
-    height: 6px;
-    background: rgba(124,58,237,0.2);
-    border-radius: 100px;
-    overflow: hidden;
-    margin-top: 8px;
-  }
-  .progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--purple-bright), var(--accent));
-    border-radius: 100px;
-    transition: width 0.6s ease;
-  }
-  .banner-btn {
-    background: linear-gradient(135deg, var(--purple-bright), #a855f7);
-    color: white;
-    padding: 10px 20px;
-    border-radius: 10px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.85rem;
-    font-weight: 500;
-    text-decoration: none;
-    white-space: nowrap;
-    box-shadow: 0 4px 16px rgba(124,58,237,0.3);
-    transition: all 0.2s;
-    flex-shrink: 0;
-  }
-  .banner-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(124,58,237,0.4); }
-
-  /* LOADING SKELETON */
-  .skeleton {
-    background: linear-gradient(90deg, rgba(124,58,237,0.1) 25%, rgba(124,58,237,0.2) 50%, rgba(124,58,237,0.1) 75%);
-    background-size: 200% 100%;
-    animation: shimmer 1.5s infinite;
-    border-radius: 8px;
-  }
-  @keyframes shimmer { to { background-position: -200% 0; } }
-
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(12px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  /* MOBILE */
-  .hamburger { display: none; }
-  @media (max-width: 900px) {
-    .sidebar { transform: translateX(-100%); transition: transform 0.3s; }
-    .sidebar.open { transform: translateX(0); }
-    .main { margin-left: 0; padding: 24px 20px; }
-    .hamburger {
-      display: flex;
-      position: fixed;
-      top: 16px; left: 16px;
-      z-index: 200;
-      background: var(--purple-deep);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 8px;
-      cursor: none;
-      color: var(--white);
-      font-size: 1.2rem;
-      align-items: center;
-      justify-content: center;
-    }
-    .stats-grid { grid-template-columns: 1fr 1fr; }
-    .two-col { grid-template-columns: 1fr; }
-  }
-  @media (max-width: 500px) {
-    .stats-grid { grid-template-columns: 1fr; }
-  }
+/* MOBILE */
+@media(max-width:900px){
+  .sidebar{transform:translateX(-100%);transition:transform .3s;}
+  .sidebar.open{transform:translateX(0);}
+  .main{margin-left:0;padding:24px 20px;padding-top:56px;}
+  .hamburger{display:flex;}
+  .stats-grid{grid-template-columns:1fr 1fr;}
+  .two-col{grid-template-columns:1fr;}
+}
+@media(max-width:500px){
+  .stats-grid{grid-template-columns:1fr 1fr;}
+}
 </style>
 </head>
 <body>
 
-<div class="cursor" id="cursor"></div>
-<div class="cursor-ring" id="cursorRing"></div>
+<div id="ss-cursor"></div>
+<div id="ss-ring"></div>
 
-<!-- HAMBURGER (mobile) -->
-<button class="hamburger" id="hamburger" onclick="toggleSidebar()">☰</button>
+<button class="hamburger" id="hamburger" onclick="toggleSidebar()">
+  <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+</button>
 
-<!-- SIDEBAR -->
 <aside class="sidebar" id="sidebar">
   <a href="index.html" class="sidebar-logo">
-    <div class="logo-dot"></div>
+    <div class="logo-sq"></div>
     SkillSwap
   </a>
 
   <span class="nav-section">Main</span>
   <a href="dashboard.html" class="nav-link active">
-    <span class="nav-icon">⚡</span> Dashboard
+    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    Dashboard
   </a>
   <a href="profile.html" class="nav-link">
-    <span class="nav-icon">👤</span> My Profile
+    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+    My Profile
   </a>
   <a href="discover.html" class="nav-link">
-    <span class="nav-icon">🔍</span> Discover
+    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+    Discover
   </a>
 
   <span class="nav-section">Social</span>
   <a href="matches.html" class="nav-link">
-    <span class="nav-icon">🤝</span> Matches
+    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    Matches
   </a>
   <a href="messages.html" class="nav-link">
-    <span class="nav-icon">💬</span> Messages
+    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    Messages
   </a>
   <a href="videocall.html" class="nav-link">
-    <span class="nav-icon">🎥</span> Video Call
+    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+    Video Call
   </a>
 
   <span class="nav-section">More</span>
   <a href="webinars.html" class="nav-link">
-    <span class="nav-icon">🎓</span> Webinars
+    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+    Webinars
+  </a>
+  <a href="analytics.html" class="nav-link" id="analyticsNavLink">
+    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+    Analytics
   </a>
   <a href="pricing.html" class="nav-link">
-    <span class="nav-icon">✨</span> Upgrade
+    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+    Upgrade
   </a>
 
   <div class="sidebar-bottom">
     <div class="user-pill">
-      <div class="user-avatar-sm" id="sidebarAvatar">?</div>
+      <div class="user-avatar-sm" id="sidebarAvatar"></div>
       <span class="user-name-sm" id="sidebarName">Loading...</span>
     </div>
-    <div class="sidebar-logout-row">
-      <button class="sidebar-logout-full" onclick="handleLogout()">
-        <span>↪</span> Sign out
-      </button>
-    </div>
+    <button class="sidebar-logout-full" onclick="handleLogout()">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Sign out
+    </button>
   </div>
 </aside>
 
-<!-- MAIN CONTENT -->
 <main class="main">
 
-  <!-- HEADER -->
   <div class="page-header">
     <div class="page-greeting" id="greetingText">Good morning</div>
-    <h1 class="page-title">Welcome back, <span id="displayName">...</span></h1>
+    <h1 class="page-title" id="pageTitle">Welcome back</h1>
   </div>
 
   <!-- PROFILE COMPLETION BANNER -->
   <div class="profile-banner" id="profileBanner" style="display:none;">
-    <div class="banner-icon">🚀</div>
+    <div class="banner-icon">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+    </div>
     <div class="banner-text">
       <h3>Complete your profile to get matched</h3>
-      <p>Add your skills to start receiving match suggestions.</p>
-      <div class="progress-bar">
-        <div class="progress-fill" id="progressFill" style="width:20%"></div>
-      </div>
+      <p id="bannerMsg">Add your skills to start receiving match suggestions.</p>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:20%"></div></div>
     </div>
-    <a href="profile.html" class="banner-btn">Complete Profile →</a>
+    <a href="profile.html" class="btn-white">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+      Complete
+    </a>
   </div>
 
   <!-- STATS -->
   <div class="stats-grid">
     <div class="stat-card">
-      <div class="stat-icon">🎯</div>
-      <div class="stat-value" id="statOffered">—</div>
-      <div class="stat-label">Skills Offered</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon">🌱</div>
-      <div class="stat-value" id="statWanted">—</div>
-      <div class="stat-label">Skills Wanted</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon">🤝</div>
+      <div class="stat-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
       <div class="stat-value" id="statMatches">—</div>
       <div class="stat-label">Active Matches</div>
     </div>
+    <div class="stat-card">
+      <div class="stat-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>
+      <div class="stat-value" id="statSessions">—</div>
+      <div class="stat-label">Sessions Done</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+      <div class="stat-value" id="statRating">—</div>
+      <div class="stat-label">Rating</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+      <div class="stat-value" id="statMessages">—</div>
+      <div class="stat-label">Unread Messages</div>
+    </div>
   </div>
 
-  <!-- TWO COLUMNS -->
+  <!-- TWO COL -->
   <div class="two-col">
 
     <!-- RECENT MATCHES -->
     <div class="card">
       <div class="card-title">
         Recent Matches
-        <a href="matches.html" class="card-link">View all →</a>
+        <a href="matches.html" class="card-link">View all</a>
       </div>
       <div id="matchesList">
         <div class="empty-state">
-          <div class="empty-icon">🔍</div>
           <p>No matches yet. Discover people with complementary skills.</p>
-          <a href="discover.html" class="btn-sm">Discover People</a>
+          <a href="discover.html" class="btn-white">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+            Discover People
+          </a>
         </div>
       </div>
     </div>
@@ -600,34 +297,62 @@
     <div class="card">
       <div class="card-title">
         My Skills
-        <a href="profile.html" class="card-link">Edit →</a>
+        <a href="profile.html" class="card-link">Edit</a>
       </div>
-
-      <div style="margin-bottom:20px;">
-        <div style="font-size:0.78rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:10px;">I can teach</div>
-        <div class="skills-list" id="offeredSkills">
-          <div style="color:var(--text-muted); font-size:0.85rem;">No skills listed yet.</div>
-        </div>
+      <div style="margin-bottom:18px;">
+        <div style="font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:9px;">I can teach</div>
+        <div class="skills-list" id="offeredSkills"><span style="color:var(--text-muted);font-size:0.82rem;">No skills listed.</span></div>
       </div>
-
       <div>
-        <div style="font-size:0.78rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:10px;">I want to learn</div>
-        <div class="skills-list" id="wantedSkills">
-          <div style="color:var(--text-muted); font-size:0.85rem;">No skills listed yet.</div>
-        </div>
+        <div style="font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:9px;">I want to learn</div>
+        <div class="skills-list" id="wantedSkills"><span style="color:var(--text-muted);font-size:0.82rem;">No skills listed.</span></div>
       </div>
     </div>
 
   </div>
 
   <!-- QUICK ACTIONS -->
-  <div class="card">
+  <div class="card" style="margin-bottom:20px;">
     <div class="card-title">Quick Actions</div>
-    <div style="display:flex; gap:12px; flex-wrap:wrap;">
-      <a href="profile.html" class="btn-sm">✏️ Edit Profile</a>
-      <a href="discover.html" class="btn-sm" style="background:rgba(124,58,237,0.15); color:var(--purple-soft); box-shadow:none; border:1px solid var(--border);">🔍 Discover Swaps</a>
-      <a href="webinars.html" class="btn-sm" style="background:rgba(124,58,237,0.15); color:var(--purple-soft); box-shadow:none; border:1px solid var(--border);">🎓 Browse Webinars</a>
-      <a href="pricing.html" class="btn-sm" style="background:rgba(255,107,255,0.1); color:#f0b8ff; box-shadow:none; border:1px solid rgba(255,107,255,0.2);">✨ Go Pro</a>
+    <div class="actions-row">
+      <a href="profile.html" class="action-btn">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        Edit Profile
+      </a>
+      <a href="discover.html" class="action-btn">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+        Discover Swaps
+      </a>
+      <a href="webinars.html" class="action-btn">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+        Browse Webinars
+      </a>
+      <a href="pricing.html" class="action-btn" style="border-color:rgba(167,139,250,0.2);color:rgba(167,139,250,0.65);">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        Go Pro
+      </a>
+    </div>
+  </div>
+
+  <!-- ANALYTICS SECTION (Pro/Creator only) -->
+  <div class="card" id="analyticsSection">
+    <div class="card-title">
+      Analytics
+      <a href="analytics.html" class="card-link">Full view</a>
+    </div>
+    <div class="analytics-grid" id="analyticsGrid">
+      <div class="analytics-stat">
+        <div class="analytics-val" id="aSkillsTaught">—</div>
+        <div class="analytics-lbl">Skills Taught</div>
+      </div>
+      <div class="analytics-stat">
+        <div class="analytics-val" id="aSkillsLearned">—</div>
+        <div class="analytics-lbl">Skills Learned</div>
+      </div>
+      <div class="analytics-stat">
+        <div class="analytics-val" id="aRank">—</div>
+        <div class="analytics-lbl">Global Rank</div>
+      </div>
     </div>
   </div>
 
@@ -642,147 +367,166 @@ const sb = createClient(
 );
 
 // Cursor
-const cursor = document.getElementById('cursor');
-const ring = document.getElementById('cursorRing');
-let mouseX = 0, mouseY = 0, ringX = 0, ringY = 0;
-document.addEventListener('mousemove', e => {
-  mouseX = e.clientX; mouseY = e.clientY;
-  cursor.style.left = mouseX + 'px';
-  cursor.style.top = mouseY + 'px';
+const cur = document.getElementById('ss-cursor');
+const ring = document.getElementById('ss-ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px';});
+document.querySelectorAll('a,button').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{ring.style.borderColor='rgba(139,92,246,0.6)';ring.style.width='44px';ring.style.height='44px';});
+  el.addEventListener('mouseleave',()=>{ring.style.borderColor='rgba(255,255,255,0.5)';ring.style.width='34px';ring.style.height='34px';});
 });
-function animateRing() {
-  ringX += (mouseX - ringX) * 0.12;
-  ringY += (mouseY - ringY) * 0.12;
-  ring.style.left = ringX + 'px';
-  ring.style.top = ringY + 'px';
-  requestAnimationFrame(animateRing);
-}
-animateRing();
+(function animRing(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(animRing);})();
 
 // Greeting
-function setGreeting() {
-  const h = new Date().getHours();
-  const greet = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
-  document.getElementById('greetingText').textContent = greet;
+const h=new Date().getHours();
+document.getElementById('greetingText').textContent=h<12?'Good morning':h<17?'Good afternoon':'Good evening';
+
+// Sidebar toggle
+function toggleSidebar(){ document.getElementById('sidebar').classList.toggle('open'); }
+
+async function handleLogout(){
+  await sb.auth.signOut();
+  window.location.href='index.html';
 }
-setGreeting();
 
-// Mobile sidebar
-function toggleSidebar() {
-  document.getElementById('sidebar').classList.toggle('open');
-}
-
-// Auth guard
-async function init() {
-  const { data: { session } } = await sb.auth.getSession();
-  if (!session) { window.location.href = 'login.html'; return; }
-
+async function init(){
+  const { data:{ session } } = await sb.auth.getSession();
+  if(!session){ window.location.href='login.html'; return; }
   const user = session.user;
 
-  // Load profile
-  const { data: profile } = await sb.from('profiles').select('*').eq('id', user.id).single();
+  // Profile
+  const { data:profile, error:profileErr } = await sb.from('profiles').select('*').eq('id',user.id).single();
+  if(profileErr) console.error('Profile load error:', profileErr);
 
-  // Set display name
   const name = profile?.full_name || profile?.username || user.email.split('@')[0];
-  document.getElementById('displayName').textContent = name;
+  document.getElementById('pageTitle').textContent = 'Welcome back, '+name.split(' ')[0];
   document.getElementById('sidebarName').textContent = name;
 
-  // Sidebar avatar initials
-  const initials = name.charAt(0).toUpperCase();
-  document.getElementById('sidebarAvatar').textContent = profile?.avatar_emoji || initials;
+  // Avatar
+  const avatarEl = document.getElementById('sidebarAvatar');
+  if(profile?.avatar_url){
+    avatarEl.innerHTML = `<img src="${profile.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+  } else {
+    const initials = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+    avatarEl.textContent = initials;
+  }
+
+  // Rating
+  document.getElementById('statRating').textContent = profile?.rating ? profile.rating.toFixed(1) : '—';
 
   // Skills
-  const offered = profile?.skills_offered || [];
-  const wanted = profile?.skills_wanted || [];
-
-  document.getElementById('statOffered').textContent = offered.length;
-  document.getElementById('statWanted').textContent = wanted.length;
-
-  // Render skills
-  if (offered.length > 0) {
-    document.getElementById('offeredSkills').innerHTML = offered.map(s =>
-      `<span class="skill-tag">${s}</span>`
-    ).join('');
+  const offered = profile?.skills_offering || profile?.skills_offered || [];
+  const wanted = profile?.skills_wanting || profile?.skills_wanted || [];
+  if(offered.length > 0){
+    document.getElementById('offeredSkills').innerHTML = offered.map(s=>`<span class="skill-tag-v">${s}</span>`).join('');
   }
-  if (wanted.length > 0) {
-    document.getElementById('wantedSkills').innerHTML = wanted.map(s =>
-      `<span class="skill-tag want">${s}</span>`
-    ).join('');
+  if(wanted.length > 0){
+    document.getElementById('wantedSkills').innerHTML = wanted.map(s=>`<span class="skill-tag-c">${s}</span>`).join('');
   }
 
   // Profile completion banner
-  const hasName = !!(profile?.full_name);
-  const hasBio = !!(profile?.bio);
+  const hasName = !!profile?.full_name;
+  const hasBio = !!profile?.bio;
   const hasOffered = offered.length > 0;
   const hasWanted = wanted.length > 0;
-  const completedFields = [hasName, hasBio, hasOffered, hasWanted].filter(Boolean).length;
-  const pct = Math.round((completedFields / 4) * 100);
-
-  if (pct < 100) {
-    document.getElementById('profileBanner').style.display = 'flex';
-    document.getElementById('progressFill').style.width = pct + '%';
-    const msgs = {
-      0: 'Add your name, bio and skills to get started.',
-      25: 'Almost there — add your bio and skills.',
-      50: 'Good start! Add skills to attract matches.',
-      75: 'One more thing — complete your profile!'
-    };
-    const closest = [0, 25, 50, 75].reduce((a, b) => Math.abs(b - pct) < Math.abs(a - pct) ? b : a);
-    document.querySelector('.profile-banner .banner-text p').textContent = msgs[closest];
+  const completed = [hasName,hasBio,hasOffered,hasWanted].filter(Boolean).length;
+  const pct = Math.round((completed/4)*100);
+  if(pct < 100){
+    document.getElementById('profileBanner').style.display='flex';
+    document.getElementById('progressFill').style.width=pct+'%';
+    const msgs = ['Add your name, bio and skills to get started.','Add your bio and skills.','Add skills to attract matches.','One more thing — almost done!'];
+    document.getElementById('bannerMsg').textContent = msgs[Math.min(completed,3)];
   }
 
-  // Load matches
-  const { data: matches } = await sb.from('matches')
-    .select('*, profiles!matches_user_b_fkey(full_name, username, avatar_emoji, skills_offered, skills_wanted)')
-    .eq('user_a', user.id)
-    .order('created_at', { ascending: false })
-    .limit(4);
+  // Matches count (accepted)
+  const { count:matchCount } = await sb.from('matches')
+    .select('*',{count:'exact',head:true})
+    .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
+    .eq('status','accepted');
+  document.getElementById('statMatches').textContent = matchCount || 0;
 
-  // Also check reverse matches
-  const { data: matchesRev } = await sb.from('matches')
-    .select('*, profiles!matches_user_a_fkey(full_name, username, avatar_emoji, skills_offered, skills_wanted)')
-    .eq('user_b', user.id)
-    .order('created_at', { ascending: false })
-    .limit(4);
+  // Sessions count
+  const { count:sessCount } = await sb.from('sessions')
+    .select('*',{count:'exact',head:true})
+    .eq('user_id',user.id);
+  document.getElementById('statSessions').textContent = sessCount || 0;
 
-  const allMatches = [...(matches || []), ...(matchesRev || [])].slice(0, 4);
-  document.getElementById('statMatches').textContent = allMatches.length;
+  // Unread messages
+  const { data:myMatches } = await sb.from('matches')
+    .select('id')
+    .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
+    .eq('status','accepted');
+  const matchIds = (myMatches||[]).map(m=>m.id);
+  let unreadCount = 0;
+  if(matchIds.length > 0){
+    const { count } = await sb.from('messages')
+      .select('*',{count:'exact',head:true})
+      .in('match_id',matchIds)
+      .neq('sender_id',user.id)
+      .eq('read',false);
+    unreadCount = count || 0;
+  }
+  document.getElementById('statMessages').textContent = unreadCount;
 
-  if (allMatches.length > 0) {
-    const emojis = ['🎨', '🎸', '🎯', '💻', '🌍', '📸', '✍️', '🎤'];
-    const colors = [
-      'rgba(255,107,255,0.15)',
-      'rgba(124,58,237,0.15)',
-      'rgba(34,197,94,0.15)',
-      'rgba(251,191,36,0.15)'
-    ];
+  // Recent matches list
+  const { data:recentMatches, error:matchErr } = await sb.from('matches')
+    .select(`*, sender:profiles!matches_sender_id_fkey(full_name,avatar_url,skills_offering), receiver:profiles!matches_receiver_id_fkey(full_name,avatar_url,skills_offering)`)
+    .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
+    .order('created_at',{ascending:false})
+    .limit(5);
+  if(matchErr) console.error('Matches load error:', matchErr);
 
-    document.getElementById('matchesList').innerHTML = allMatches.map((m, i) => {
-      const peer = m.profiles || {};
-      const peerName = peer.full_name || peer.username || 'Skill Swapper';
-      const emoji = peer.avatar_emoji || emojis[i % emojis.length];
-      const offeredSkill = (peer.skills_offered || [])[0] || '?';
-      const wantedSkill = (peer.skills_wanted || [])[0] || '?';
-      const statusMap = { pending: 'Pending', accepted: 'Active', completed: 'Done' };
-      const badgeMap = { pending: 'badge-pending', accepted: 'badge-active', completed: 'badge-active' };
-      const status = m.status || 'pending';
-      return `
-        <div class="match-item" onclick="window.location.href='messages.html'">
-          <div class="match-avatar" style="background:${colors[i % colors.length]}">${emoji}</div>
-          <div class="match-info">
-            <div class="match-name">${peerName}</div>
-            <div class="match-swap">${offeredSkill} ↔ ${wantedSkill}</div>
-          </div>
-          <span class="match-badge ${badgeMap[status]}">${statusMap[status]}</span>
+  if(recentMatches && recentMatches.length > 0){
+    document.getElementById('matchesList').innerHTML = recentMatches.map(m=>{
+      const isSender = m.sender_id === user.id;
+      const peer = isSender ? m.receiver : m.sender;
+      const peerName = peer?.full_name || 'Skill Swapper';
+      const initials = peerName.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+      const avatarHtml = peer?.avatar_url
+        ? `<img src="${peer.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
+        : initials;
+      const statusMap = {pending:'Pending',accepted:'Active',rejected:'Declined',completed:'Done'};
+      const badgeMap = {pending:'badge-pending',accepted:'badge-active',rejected:'',completed:'badge-active'};
+      const swap = isSender
+        ? `${m.skill_offered||'?'} → ${m.skill_wanted||'?'}`
+        : `${m.skill_wanted||'?'} → ${m.skill_offered||'?'}`;
+      return `<div class="match-item" onclick="window.location.href='messages.html?match=${m.id}'" style="cursor:none;">
+        <div class="match-avatar">${avatarHtml}</div>
+        <div class="match-info">
+          <div class="match-name">${peerName}</div>
+          <div class="match-swap">${swap}</div>
         </div>
-      `;
+        <span class="match-badge ${badgeMap[m.status]||'badge-pending'}">${statusMap[m.status]||m.status}</span>
+      </div>`;
     }).join('');
+  }
+
+  // Plan gating
+  const plan = profile?.plan || 'free';
+  gatePlanFeatures(plan);
+}
+
+function gatePlanFeatures(plan){
+  const analyticsLink = document.getElementById('analyticsNavLink');
+  if(plan === 'pro' || plan === 'creator'){
+    document.getElementById('analyticsSection').style.display='block';
+    if(analyticsLink) analyticsLink.style.display='flex';
+    loadAnalytics();
+  } else {
+    if(analyticsLink) analyticsLink.style.display='none';
   }
 }
 
-async function handleLogout() {
-  await sb.auth.signOut();
-  window.location.href = 'index.html';
+async function loadAnalytics(){
+  const { data:{ session } } = await sb.auth.getSession();
+  if(!session) return;
+  const { data:analytics, error } = await sb.from('analytics').select('*').eq('user_id',session.user.id).single();
+  if(error) console.error('Analytics load error:', error);
+  if(analytics){
+    document.getElementById('aSkillsTaught').textContent = analytics.skills_taught_count || 0;
+    document.getElementById('aSkillsLearned').textContent = analytics.skills_learned_count || 0;
+    document.getElementById('aRank').textContent = analytics.global_rank ? '#'+analytics.global_rank : '—';
+  }
 }
 
 init();

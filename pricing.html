@@ -6,258 +6,201 @@
 <title>SkillSwap — Pricing</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --black: #05040a; --purple-deep: #0d0a1a; --purple-mid: #1a1035;
-    --purple-bright: #7c3aed; --purple-glow: #9d5cff; --purple-soft: #c4a8ff;
-    --accent: #ff6bff; --white: #f0ecff; --text-muted: #7a6d99;
-    --border: rgba(124, 58, 237, 0.2); --sidebar-w: 240px;
-  }
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body { background:var(--black); color:var(--white); font-family:'DM Sans',sans-serif; min-height:100vh; display:flex; overflow-x:hidden; cursor:none; }
-  .cursor { position:fixed; width:12px; height:12px; background:var(--purple-glow); border-radius:50%; pointer-events:none; z-index:9999; transform:translate(-50%,-50%); mix-blend-mode:screen; }
-  .cursor-ring { position:fixed; width:36px; height:36px; border:1px solid rgba(157,92,255,0.5); border-radius:50%; pointer-events:none; z-index:9998; transform:translate(-50%,-50%); transition:transform 0.15s ease; }
+:root{--bg:#080808;--bg-card:rgba(255,255,255,0.03);--border:rgba(255,255,255,0.08);--border-hover:rgba(139,92,246,0.3);--text-muted:rgba(255,255,255,0.32);--sidebar-w:240px;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;overflow-x:hidden;cursor:none;}
+#ss-cursor{position:fixed;width:10px;height:10px;background:#fff;border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);mix-blend-mode:difference;}
+#ss-ring{position:fixed;width:34px;height:34px;border:1px solid rgba(255,255,255,0.5);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:all .2s;}
+.sidebar{width:var(--sidebar-w);height:100vh;background:rgba(255,255,255,0.015);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:24px 14px;position:fixed;left:0;top:0;z-index:100;overflow-y:auto;}
+.sidebar-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.15rem;color:#fff;text-decoration:none;display:flex;align-items:center;gap:8px;margin-bottom:32px;padding-left:8px;}
+.logo-sq{width:9px;height:9px;background:#fff;border-radius:2px;flex-shrink:0;}
+.nav-section{font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,0.2);margin:18px 0 5px;padding-left:10px;}
+.nav-link{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;color:rgba(255,255,255,0.42);text-decoration:none;font-size:.875rem;transition:all .15s;margin-bottom:1px;border:1px solid transparent;}
+.nav-link:hover{color:#fff;background:rgba(255,255,255,0.04);}
+.nav-link.active{color:#fff;background:rgba(255,255,255,0.06);border-color:var(--border);}
+.nav-link svg{width:15px;height:15px;flex-shrink:0;opacity:.7;}
+.nav-link.active svg,.nav-link:hover svg{opacity:1;}
+.sidebar-bottom{margin-top:auto;border-top:1px solid var(--border);padding-top:14px;}
+.user-pill{display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px;margin-bottom:8px;}
+.user-avatar-sm{width:30px;height:30px;border-radius:50%;background:rgba(139,92,246,0.18);border:1px solid rgba(139,92,246,0.3);display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;flex-shrink:0;overflow:hidden;color:rgba(167,139,250,0.9);}
+.user-name-sm{font-size:.82rem;font-weight:500;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:rgba(255,255,255,0.65);}
+.sidebar-logout-full{width:100%;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.14);border-radius:10px;color:rgba(239,68,68,0.7);font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:500;padding:9px 12px;cursor:none;display:flex;align-items:center;gap:8px;transition:all .2s;}
+.sidebar-logout-full:hover{background:rgba(239,68,68,0.12);border-color:rgba(239,68,68,0.28);color:#f87171;}
+.sidebar-logout-full svg{width:14px;height:14px;}
+.hamburger{display:none;position:fixed;top:14px;left:14px;z-index:200;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:10px;padding:8px;cursor:none;color:#fff;}
+.main{margin-left:var(--sidebar-w);flex:1;padding:40px 48px;min-height:100vh;}
 
-  /* SIDEBAR */
-  .sidebar { width:var(--sidebar-w); min-height:100vh; background:var(--purple-deep); border-right:1px solid var(--border); display:flex; flex-direction:column; padding:28px 20px; position:fixed; left:0; top:0; z-index:100; }
-  .sidebar-logo { font-family:'Syne',sans-serif; font-weight:800; font-size:1.3rem; color:var(--white); text-decoration:none; display:flex; align-items:center; gap:10px; margin-bottom:40px; }
-  .logo-dot { width:8px; height:8px; background:var(--accent); border-radius:50%; box-shadow:0 0 10px var(--accent); animation:pulse 2s infinite; flex-shrink:0; }
-  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.5;transform:scale(0.8);} }
-  .nav-section { font-size:0.7rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-muted); margin-bottom:10px; margin-top:24px; padding-left:12px; }
-  .nav-link { display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:10px; color:var(--text-muted); text-decoration:none; font-size:0.9rem; transition:all 0.2s; margin-bottom:2px; }
-  .nav-link:hover { color:var(--white); background:rgba(124,58,237,0.1); }
-  .nav-link.active { color:var(--white); background:rgba(124,58,237,0.15); border:1px solid var(--border); }
-  .nav-icon { font-size:1rem; width:20px; text-align:center; }
-  .sidebar-bottom { margin-top:auto; border-top:1px solid var(--border); padding-top:20px; }
-  .user-pill { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:10px; cursor:none; transition:background 0.2s; }
-  .user-pill:hover { background:rgba(124,58,237,0.1); }
-  .user-avatar-sm { width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,var(--purple-bright),var(--accent)); display:flex; align-items:center; justify-content:center; font-size:0.9rem; flex-shrink:0; }
-  .user-name-sm { font-size:0.85rem; font-weight:500; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .logout-btn { background:none; border:none; color:var(--text-muted); cursor:none; font-size:1rem; padding:4px; transition:color 0.2s; flex-shrink:0; }
-  .logout-btn:hover { color:#ef4444; }
+/* PAGE HEADER */
+.page-header{text-align:center;margin-bottom:40px;}
+.page-title{font-family:'Syne',sans-serif;font-weight:800;font-size:2.2rem;letter-spacing:-.03em;margin-bottom:10px;}
+.page-sub{color:var(--text-muted);font-size:.95rem;max-width:480px;margin:0 auto;}
 
-  /* MAIN */
-  .main { margin-left:var(--sidebar-w); flex:1; padding:40px 48px; }
-  .page-header { text-align:center; margin-bottom:48px; }
-  .page-tag { display:inline-block; background:rgba(255,107,255,0.1); border:1px solid rgba(255,107,255,0.25); color:#f0b8ff; padding:5px 14px; border-radius:100px; font-size:0.8rem; margin-bottom:16px; }
-  .page-title { font-family:'Syne',sans-serif; font-weight:800; font-size:2.4rem; letter-spacing:-0.03em; margin-bottom:12px; }
-  .page-title span { background:linear-gradient(135deg,var(--purple-glow),var(--accent)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
-  .page-sub { color:var(--text-muted); font-size:1rem; max-width:480px; margin:0 auto 28px; line-height:1.6; }
+/* BILLING TOGGLE */
+.billing-toggle{display:flex;align-items:center;gap:12px;justify-content:center;margin-bottom:36px;}
+.toggle-label{font-size:.88rem;color:var(--text-muted);}
+.toggle-switch{width:46px;height:24px;background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:100px;position:relative;cursor:none;transition:background .2s;}
+.toggle-switch.on{background:rgba(139,92,246,0.4);border-color:rgba(139,92,246,0.5);}
+.toggle-knob{width:18px;height:18px;background:#fff;border-radius:50%;position:absolute;top:2px;left:3px;transition:left .2s;box-shadow:0 1px 4px rgba(0,0,0,0.4);}
+.toggle-switch.on .toggle-knob{left:24px;}
+.save-badge{background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.25);color:#86efac;padding:2px 9px;border-radius:100px;font-size:.72rem;}
 
-  /* BILLING TOGGLE */
-  .billing-toggle { display:flex; align-items:center; gap:12px; justify-content:center; margin-bottom:40px; }
-  .toggle-label { font-size:0.88rem; color:var(--text-muted); }
-  .toggle-switch {
-    width:48px; height:26px; background:rgba(124,58,237,0.2); border:1px solid var(--border);
-    border-radius:100px; position:relative; cursor:none; transition:background 0.2s;
-  }
-  .toggle-switch.on { background:var(--purple-bright); }
-  .toggle-knob {
-    width:20px; height:20px; background:white; border-radius:50%; position:absolute;
-    top:2px; left:3px; transition:left 0.2s; box-shadow:0 1px 4px rgba(0,0,0,0.3);
-  }
-  .toggle-switch.on .toggle-knob { left:25px; }
-  .save-badge { background:rgba(34,197,94,0.15); border:1px solid rgba(34,197,94,0.3); color:#86efac; padding:3px 10px; border-radius:100px; font-size:0.75rem; }
+/* CURRENT PLAN BANNER */
+.current-banner{max-width:960px;margin:0 auto 28px;background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.18);border-radius:14px;padding:14px 22px;display:none;align-items:center;gap:10px;font-size:.88rem;}
+.current-banner strong{color:#86efac;}
+.current-dot{width:7px;height:7px;border-radius:50%;background:#22c55e;flex-shrink:0;}
 
-  /* PRICING GRID */
-  .plans-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:24px; max-width:960px; margin:0 auto 48px; }
+/* PLANS GRID */
+.plans-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:960px;margin:0 auto 48px;}
+.plan-card{background:var(--bg-card);border:1px solid var(--border);border-radius:18px;padding:28px 24px;display:flex;flex-direction:column;position:relative;overflow:hidden;transition:border-color .25s,transform .25s;backdrop-filter:blur(12px);}
+.plan-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(139,92,246,0),transparent);transition:background .3s;}
+.plan-card:hover{border-color:var(--border-hover);transform:translateY(-4px);}
+.plan-card:hover::before{background:linear-gradient(90deg,transparent,rgba(139,92,246,0.6),transparent);}
+.plan-card.popular{border-color:rgba(139,92,246,0.3);}
+.plan-card.popular::before{background:linear-gradient(90deg,transparent,rgba(139,92,246,0.5),transparent);}
+.popular-badge{position:absolute;top:18px;right:18px;background:#fff;color:#080808;font-size:.68rem;font-weight:700;font-family:'Syne',sans-serif;padding:3px 10px;border-radius:100px;letter-spacing:.03em;}
+.plan-icon-wrap{width:36px;height:36px;border-radius:9px;background:rgba(255,255,255,0.04);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;margin-bottom:16px;}
+.plan-icon-wrap svg{width:16px;height:16px;color:rgba(167,139,250,0.7);}
+.plan-name{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;margin-bottom:6px;}
+.plan-desc{font-size:.8rem;color:var(--text-muted);margin-bottom:18px;line-height:1.5;}
+.plan-price{margin-bottom:4px;}
+.price-amount{font-family:'Syne',sans-serif;font-weight:800;font-size:2.6rem;letter-spacing:-.04em;}
+.price-period{font-size:.82rem;color:var(--text-muted);}
+.price-annual{font-size:.76rem;color:rgba(34,197,94,0.8);margin-bottom:20px;min-height:18px;}
+.plan-divider{height:1px;background:var(--border);margin-bottom:18px;}
+.feature-list{list-style:none;display:flex;flex-direction:column;gap:9px;margin-bottom:24px;flex:1;}
+.feature-list li{display:flex;align-items:flex-start;gap:8px;font-size:.83rem;line-height:1.4;}
+.feat-check{color:rgba(34,197,94,0.8);flex-shrink:0;font-size:.82rem;margin-top:1px;}
+.feat-x{color:rgba(255,255,255,0.18);flex-shrink:0;font-size:.82rem;margin-top:1px;}
+.feat-x-text{color:var(--text-muted);}
+.plan-btn{width:100%;padding:11px;border-radius:11px;font-family:'Syne',sans-serif;font-size:.82rem;font-weight:700;border:none;cursor:none;transition:all .2s;text-align:center;}
+.plan-btn.outline{background:rgba(255,255,255,0.04);border:1px solid var(--border);color:rgba(255,255,255,0.5);}
+.plan-btn.outline:hover{border-color:rgba(255,255,255,0.14);color:#fff;}
+.plan-btn.solid{background:#fff;color:#080808;}
+.plan-btn.solid:hover{opacity:.88;}
+.plan-btn.current{background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.25);color:#86efac;cursor:default;}
 
-  .plan-card {
-    background:var(--purple-deep); border:1px solid var(--border); border-radius:20px;
-    padding:32px 28px; display:flex; flex-direction:column; position:relative; overflow:hidden;
-    transition:border-color 0.25s, transform 0.25s, box-shadow 0.25s;
-  }
-  .plan-card:hover { transform:translateY(-4px); box-shadow:0 16px 48px rgba(124,58,237,0.15); border-color:rgba(124,58,237,0.4); }
-  .plan-card.popular {
-    border-color:var(--purple-bright);
-    background:linear-gradient(160deg, rgba(124,58,237,0.12) 0%, var(--purple-deep) 60%);
-    box-shadow:0 0 0 1px rgba(124,58,237,0.5), 0 16px 48px rgba(124,58,237,0.2);
-  }
-  .popular-badge {
-    position:absolute; top:20px; right:20px;
-    background:linear-gradient(135deg,var(--purple-bright),var(--accent)); color:white;
-    font-size:0.7rem; font-weight:500; padding:4px 12px; border-radius:100px;
-    letter-spacing:0.05em;
-  }
-  .plan-icon { font-size:2rem; margin-bottom:16px; }
-  .plan-name { font-family:'Syne',sans-serif; font-weight:700; font-size:1.1rem; margin-bottom:8px; }
-  .plan-desc { font-size:0.82rem; color:var(--text-muted); margin-bottom:20px; line-height:1.5; }
-  .plan-price { margin-bottom:8px; }
-  .price-amount { font-family:'Syne',sans-serif; font-weight:800; font-size:2.8rem; letter-spacing:-0.04em; }
-  .price-period { font-size:0.85rem; color:var(--text-muted); }
-  .price-annual { font-size:0.78rem; color:#86efac; margin-bottom:24px; }
-  .plan-divider { height:1px; background:var(--border); margin-bottom:20px; }
-  .feature-list { list-style:none; display:flex; flex-direction:column; gap:10px; margin-bottom:28px; flex:1; }
-  .feature-list li { display:flex; align-items:flex-start; gap:10px; font-size:0.85rem; line-height:1.4; }
-  .feat-check { color:#86efac; flex-shrink:0; margin-top:1px; }
-  .feat-x { color:var(--text-muted); flex-shrink:0; margin-top:1px; }
-  .plan-btn {
-    width:100%; padding:13px; border-radius:12px; font-family:'DM Sans',sans-serif;
-    font-size:0.92rem; font-weight:500; border:none; cursor:none; transition:all 0.25s; text-align:center;
-  }
-  .plan-btn.free { background:rgba(124,58,237,0.1); border:1px solid var(--border); color:var(--purple-soft); }
-  .plan-btn.free:hover { background:rgba(124,58,237,0.2); color:var(--white); }
-  .plan-btn.pro { background:linear-gradient(135deg,var(--purple-bright),#a855f7); color:white; box-shadow:0 6px 22px rgba(124,58,237,0.35); }
-  .plan-btn.pro:hover { transform:translateY(-1px); box-shadow:0 10px 30px rgba(124,58,237,0.5); }
-  .plan-btn.creator { background:linear-gradient(135deg,#9333ea,var(--accent)); color:white; box-shadow:0 6px 22px rgba(255,107,255,0.25); }
-  .plan-btn.creator:hover { transform:translateY(-1px); box-shadow:0 10px 30px rgba(255,107,255,0.4); }
-  .plan-btn.current { background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.3); color:#86efac; }
+/* FAQ */
+.faq-section{max-width:680px;margin:0 auto 48px;}
+.faq-title{font-family:'Syne',sans-serif;font-weight:700;font-size:1.2rem;text-align:center;margin-bottom:22px;}
+.faq-item{border:1px solid var(--border);border-radius:12px;margin-bottom:8px;overflow:hidden;background:var(--bg-card);}
+.faq-q{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;cursor:none;transition:background .2s;font-weight:500;font-size:.875rem;}
+.faq-q:hover{background:rgba(255,255,255,0.03);}
+.faq-icon{width:16px;height:16px;color:var(--text-muted);transition:transform .25s;flex-shrink:0;}
+.faq-item.open .faq-icon{transform:rotate(180deg);}
+.faq-a{padding:0 18px;max-height:0;overflow:hidden;transition:max-height .3s ease,padding .3s ease;font-size:.84rem;color:var(--text-muted);line-height:1.7;}
+.faq-item.open .faq-a{max-height:200px;padding:0 18px 14px;}
 
-  /* FAQ */
-  .faq-section { max-width:680px; margin:0 auto 48px; }
-  .faq-title { font-family:'Syne',sans-serif; font-weight:700; font-size:1.3rem; text-align:center; margin-bottom:24px; }
-  .faq-item { border:1px solid var(--border); border-radius:12px; margin-bottom:10px; overflow:hidden; }
-  .faq-q { display:flex; align-items:center; justify-content:space-between; padding:16px 20px; cursor:none; transition:background 0.2s; font-weight:500; font-size:0.9rem; }
-  .faq-q:hover { background:rgba(124,58,237,0.06); }
-  .faq-icon { transition:transform 0.25s; font-size:0.85rem; color:var(--text-muted); }
-  .faq-item.open .faq-icon { transform:rotate(180deg); }
-  .faq-a { padding:0 20px; max-height:0; overflow:hidden; transition:max-height 0.3s ease, padding 0.3s ease; font-size:0.85rem; color:var(--text-muted); line-height:1.7; }
-  .faq-item.open .faq-a { max-height:200px; padding:0 20px 16px; }
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);color:#fff;padding:12px 20px;border-radius:12px;font-size:.85rem;z-index:9000;backdrop-filter:blur(12px);}
+.toast.success{border-color:rgba(34,197,94,0.3);color:#86efac;}
 
-  /* CURRENT PLAN BANNER */
-  .current-plan-banner {
-    max-width:960px; margin:0 auto 32px;
-    background:rgba(34,197,94,0.08); border:1px solid rgba(34,197,94,0.2); border-radius:14px;
-    padding:16px 24px; display:flex; align-items:center; gap:12px; font-size:0.88rem;
-  }
-  .current-plan-banner strong { color:#86efac; }
-
-  @keyframes fadeUp { from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);} }
-
-  .hamburger { display:none; }
-  @media (max-width:1100px) { .plans-grid { grid-template-columns:1fr 1fr; } }
-  @media (max-width:900px) {
-    .sidebar { transform:translateX(-100%); transition:transform 0.3s; }
-    .sidebar.open { transform:translateX(0); }
-    .main { margin-left:0; padding:24px 20px; padding-top:70px; }
-    .plans-grid { grid-template-columns:1fr; max-width:400px; }
-    .hamburger { display:flex; position:fixed; top:16px; left:16px; z-index:200; background:var(--purple-deep); border:1px solid var(--border); border-radius:10px; padding:8px; cursor:none; color:var(--white); font-size:1.2rem; }
-  }
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+@media(max-width:1100px){.plans-grid{grid-template-columns:1fr 1fr;}}
+@media(max-width:900px){.sidebar{transform:translateX(-100%);transition:transform .3s;}.sidebar.open{transform:translateX(0);}.main{margin-left:0;padding:24px 20px;padding-top:56px;}.hamburger{display:flex;}.plans-grid{grid-template-columns:1fr;max-width:420px;margin:0 auto 48px;}}
 </style>
 </head>
 <body>
+<div id="ss-cursor"></div><div id="ss-ring"></div>
+<button class="hamburger" id="hamburger" onclick="toggleSidebar()"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
 
-<div class="cursor" id="cursor"></div>
-<div class="cursor-ring" id="cursorRing"></div>
-<button class="hamburger" onclick="toggleSidebar()">☰</button>
-
-<!-- SIDEBAR -->
 <aside class="sidebar" id="sidebar">
-  <a href="index.html" class="sidebar-logo"><div class="logo-dot"></div>SkillSwap</a>
+  <a href="index.html" class="sidebar-logo"><div class="logo-sq"></div>SkillSwap</a>
   <span class="nav-section">Main</span>
-  <a href="dashboard.html" class="nav-link"><span class="nav-icon">⚡</span> Dashboard</a>
-  <a href="profile.html" class="nav-link"><span class="nav-icon">👤</span> My Profile</a>
-  <a href="discover.html" class="nav-link"><span class="nav-icon">🔍</span> Discover</a>
+  <a href="dashboard.html" class="nav-link"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard</a>
+  <a href="profile.html" class="nav-link"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>My Profile</a>
+  <a href="discover.html" class="nav-link"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>Discover</a>
   <span class="nav-section">Social</span>
-  <a href="matches.html" class="nav-link"><span class="nav-icon">🤝</span> Matches</a>
-  <a href="messages.html" class="nav-link"><span class="nav-icon">💬</span> Messages</a>
-  <a href="videocall.html" class="nav-link"><span class="nav-icon">🎥</span> Video Call</a>
+  <a href="matches.html" class="nav-link"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Matches</a>
+  <a href="messages.html" class="nav-link"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Messages</a>
+  <a href="videocall.html" class="nav-link"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>Video Call</a>
   <span class="nav-section">More</span>
-  <a href="webinars.html" class="nav-link"><span class="nav-icon">🎓</span> Webinars</a>
-  <a href="pricing.html" class="nav-link active"><span class="nav-icon">✨</span> Upgrade</a>
+  <a href="webinars.html" class="nav-link"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>Webinars</a>
+  <a href="analytics.html" class="nav-link" id="analyticsNavLink" style="display:none;"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Analytics</a>
+  <a href="pricing.html" class="nav-link active"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>Upgrade</a>
   <div class="sidebar-bottom">
-    <div class="user-pill">
-      <div class="user-avatar-sm" id="sidebarAvatar">?</div>
-      <span class="user-name-sm" id="sidebarName">Loading...</span>
-      <button class="logout-btn" onclick="handleLogout()">↪</button>
-    </div>
+    <div class="user-pill"><div class="user-avatar-sm" id="sidebarAvatar"></div><span class="user-name-sm" id="sidebarName">Loading...</span></div>
+    <button class="sidebar-logout-full" onclick="handleLogout()"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Sign out</button>
   </div>
 </aside>
 
-<!-- MAIN -->
 <main class="main">
-
   <div class="page-header">
-    <div class="page-tag">✨ Plans & Pricing</div>
-    <h1 class="page-title">Level up your <span>skill swaps</span></h1>
-    <p class="page-sub">Start free, upgrade when you need more matches, visibility, and creator tools.</p>
+    <h1 class="page-title">Plans & Pricing</h1>
+    <p class="page-sub">Start free. Upgrade when you need more swaps, analytics, and hosting tools.</p>
   </div>
 
-  <!-- BILLING TOGGLE -->
   <div class="billing-toggle">
     <span class="toggle-label">Monthly</span>
-    <div class="toggle-switch" id="billingToggle" onclick="toggleBilling()">
-      <div class="toggle-knob"></div>
-    </div>
+    <div class="toggle-switch" id="billingToggle" onclick="toggleBilling()"><div class="toggle-knob"></div></div>
     <span class="toggle-label">Annual <span class="save-badge">Save 20%</span></span>
   </div>
 
-  <!-- CURRENT PLAN BANNER -->
-  <div class="current-plan-banner" id="currentPlanBanner" style="display:none;">
-    <span>🟢</span>
-    <span>You're on the <strong id="currentPlanName">Free</strong> plan.</span>
+  <div class="current-banner" id="currentPlanBanner">
+    <div class="current-dot"></div>
+    <span>You are on the <strong id="currentPlanName">Free</strong> plan.</span>
   </div>
 
-  <!-- PLANS -->
   <div class="plans-grid">
 
     <!-- FREE -->
     <div class="plan-card">
-      <div class="plan-icon">🌱</div>
+      <div class="plan-icon-wrap"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M12 8v4l3 3"/></svg></div>
       <div class="plan-name">Free</div>
-      <div class="plan-desc">Everything you need to start swapping skills.</div>
-      <div class="plan-price">
-        <span class="price-amount">$0</span>
-        <span class="price-period">/month</span>
-      </div>
-      <div class="price-annual" style="visibility:hidden;">–</div>
+      <div class="plan-desc">Everything you need to start swapping skills with others.</div>
+      <div class="plan-price"><span class="price-amount">$0</span><span class="price-period">/month</span></div>
+      <div class="price-annual" style="visibility:hidden;">-</div>
       <div class="plan-divider"></div>
       <ul class="feature-list">
-        <li><span class="feat-check">✓</span> Up to 3 active swaps</li>
-        <li><span class="feat-check">✓</span> Basic discover & matching</li>
-        <li><span class="feat-check">✓</span> In-app messaging</li>
-        <li><span class="feat-check">✓</span> Video calls via Jitsi</li>
-        <li><span class="feat-x">–</span> <span style="color:var(--text-muted);">Priority matching algorithm</span></li>
-        <li><span class="feat-x">–</span> <span style="color:var(--text-muted);">Webinar hosting</span></li>
-        <li><span class="feat-x">–</span> <span style="color:var(--text-muted);">Profile analytics</span></li>
+        <li><span class="feat-check">+</span>7 days/month skill swapping</li>
+        <li><span class="feat-check">+</span>1 skill at a time</li>
+        <li><span class="feat-check">+</span>Free in-app messaging</li>
+        <li><span class="feat-check">+</span>3 hours video call/month</li>
+        <li><span class="feat-check">+</span>Join &amp; watch webinars (pay per webinar)</li>
+        <li><span class="feat-x">-</span><span class="feat-x-text">Analytics dashboard</span></li>
+        <li><span class="feat-x">-</span><span class="feat-x-text">Host webinars</span></li>
       </ul>
-      <button class="plan-btn free" id="btn-free" onclick="selectPlan('free')">Current plan</button>
+      <button class="plan-btn outline" id="btn-free" onclick="selectPlan('free')">Get started free</button>
     </div>
 
     <!-- PRO -->
     <div class="plan-card popular">
-      <div class="popular-badge">Most Popular</div>
-      <div class="plan-icon">🚀</div>
+      <div class="popular-badge">Popular</div>
+      <div class="plan-icon-wrap"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
       <div class="plan-name">Pro</div>
-      <div class="plan-desc">For serious learners who want more swaps and better matches.</div>
-      <div class="plan-price">
-        <span class="price-amount" id="pro-price">$9</span>
-        <span class="price-period">/month</span>
-      </div>
-      <div class="price-annual" id="pro-annual">Billed $108/year</div>
+      <div class="plan-desc">For serious learners who want unlimited swaps and personal analytics.</div>
+      <div class="plan-price"><span class="price-amount" id="pro-price">$9</span><span class="price-period">/month</span></div>
+      <div class="price-annual" id="pro-annual">Billed $86/year</div>
       <div class="plan-divider"></div>
       <ul class="feature-list">
-        <li><span class="feat-check">✓</span> Unlimited active swaps</li>
-        <li><span class="feat-check">✓</span> Priority matching algorithm</li>
-        <li><span class="feat-check">✓</span> Advanced filters in Discover</li>
-        <li><span class="feat-check">✓</span> Profile badge & boost</li>
-        <li><span class="feat-check">✓</span> Attend webinars</li>
-        <li><span class="feat-check">✓</span> Message templates</li>
-        <li><span class="feat-x">–</span> <span style="color:var(--text-muted);">Host webinars</span></li>
+        <li><span class="feat-check">+</span>Unlimited skill swapping</li>
+        <li><span class="feat-check">+</span>Unlimited messaging</li>
+        <li><span class="feat-check">+</span>Unlimited video calls</li>
+        <li><span class="feat-check">+</span>Personal analytics dashboard</li>
+        <li><span class="feat-check">+</span>Skills taught &amp; learned stats</li>
+        <li><span class="feat-check">+</span>Global ranking &amp; leaderboard</li>
+        <li><span class="feat-check">+</span>Priority placement in Discover</li>
       </ul>
-      <button class="plan-btn pro" id="btn-pro" onclick="selectPlan('pro')">Get Pro →</button>
+      <button class="plan-btn solid" id="btn-pro" onclick="selectPlan('pro')">Get Pro</button>
     </div>
 
     <!-- CREATOR -->
     <div class="plan-card">
-      <div class="plan-icon">🎓</div>
+      <div class="plan-icon-wrap"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>
       <div class="plan-name">Creator</div>
-      <div class="plan-desc">For educators and experts who want to share knowledge at scale.</div>
-      <div class="plan-price">
-        <span class="price-amount" id="creator-price">$19</span>
-        <span class="price-period">/month</span>
-      </div>
-      <div class="price-annual" id="creator-annual">Billed $228/year</div>
+      <div class="plan-desc">For educators who want to host webinars and earn from their knowledge.</div>
+      <div class="plan-price"><span class="price-amount" id="creator-price">$19</span><span class="price-period">/month</span></div>
+      <div class="price-annual" id="creator-annual">Billed $182/year</div>
       <div class="plan-divider"></div>
       <ul class="feature-list">
-        <li><span class="feat-check">✓</span> Everything in Pro</li>
-        <li><span class="feat-check">✓</span> Host unlimited webinars</li>
-        <li><span class="feat-check">✓</span> Profile analytics dashboard</li>
-        <li><span class="feat-check">✓</span> Featured in Discover</li>
-        <li><span class="feat-check">✓</span> Custom profile URL</li>
-        <li><span class="feat-check">✓</span> Early access to new features</li>
-        <li><span class="feat-check">✓</span> Priority support</li>
+        <li><span class="feat-check">+</span>Everything in Pro</li>
+        <li><span class="feat-check">+</span>Host live webinars (free or paid)</li>
+        <li><span class="feat-check">+</span>Earn money from paid webinars</li>
+        <li><span class="feat-check">+</span>Creator analytics: attendees &amp; earnings</li>
+        <li><span class="feat-check">+</span>Special creator badge on profile</li>
+        <li><span class="feat-check">+</span>Webinar results &amp; total earnings</li>
+        <li><span class="feat-check">+</span>Priority support</li>
       </ul>
-      <button class="plan-btn creator" id="btn-creator" onclick="selectPlan('creator')">Get Creator →</button>
+      <button class="plan-btn solid" id="btn-creator" onclick="selectPlan('creator')">Get Creator</button>
     </div>
 
   </div>
@@ -265,110 +208,120 @@
   <!-- FAQ -->
   <div class="faq-section">
     <div class="faq-title">Frequently asked questions</div>
-
     <div class="faq-item" onclick="toggleFaq(this)">
-      <div class="faq-q">Can I cancel anytime? <span class="faq-icon">▼</span></div>
-      <div class="faq-a">Yes — you can cancel your subscription at any time. You'll keep access to your plan until the end of the billing period.</div>
+      <div class="faq-q">Can I cancel anytime? <svg class="faq-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+      <div class="faq-a">Yes, cancel at any time from your account settings. You keep access until the end of your billing period.</div>
     </div>
     <div class="faq-item" onclick="toggleFaq(this)">
-      <div class="faq-q">What happens to my matches if I downgrade? <span class="faq-icon">▼</span></div>
-      <div class="faq-a">Existing matches and messages are preserved. You'll be limited to 3 active swaps going forward on the Free plan.</div>
+      <div class="faq-q">What happens to my matches if I downgrade? <svg class="faq-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+      <div class="faq-a">Existing matches and messages are preserved. You'll return to Free plan limits for new swaps going forward.</div>
     </div>
     <div class="faq-item" onclick="toggleFaq(this)">
-      <div class="faq-q">Is there a free trial for Pro or Creator? <span class="faq-icon">▼</span></div>
-      <div class="faq-a">We offer a 7-day free trial for both Pro and Creator plans. No credit card required to start.</div>
+      <div class="faq-q">Is there a free trial? <svg class="faq-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+      <div class="faq-a">We offer a 7-day free trial for Pro and Creator. No credit card required to start.</div>
     </div>
     <div class="faq-item" onclick="toggleFaq(this)">
-      <div class="faq-q">How do webinars work on Creator? <span class="faq-icon">▼</span></div>
-      <div class="faq-a">Creator plan members can host live webinars using Jitsi, list them in the Webinars section, and invite any SkillSwap user to attend.</div>
+      <div class="faq-q">How do webinars work on Creator? <svg class="faq-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+      <div class="faq-a">Creator members can host live sessions via Jitsi, set them as free or paid, and earn from attendees who pay to join.</div>
     </div>
     <div class="faq-item" onclick="toggleFaq(this)">
-      <div class="faq-q">Are payments secure? <span class="faq-icon">▼</span></div>
-      <div class="faq-a">Payments are processed by Lemon Squeezy, a trusted payment provider. We never store your card details.</div>
+      <div class="faq-q">Are payments secure? <svg class="faq-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+      <div class="faq-a">Payments are processed by Lemon Squeezy. We never store your card details.</div>
     </div>
   </div>
-
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const { createClient } = supabase;
-const sb = createClient(
-  'https://vgndpvkywvcnezvjuueq.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZnbmRwdmt5d3ZjbmV6dmp1dWVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MDk5OTEsImV4cCI6MjA5MDA4NTk5MX0.GGwx_-W7pu485h3d6dgkhqSwiqxT3Hx02Ck9HW8nyE0'
-);
+const{createClient}=supabase;
+const sb=createClient('https://vgndpvkywvcnezvjuueq.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZnbmRwdmt5d3ZjbmV6dmp1dWVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MDk5OTEsImV4cCI6MjA5MDA4NTk5MX0.GGwx_-W7pu485h3d6dgkhqSwiqxT3Hx02Ck9HW8nyE0');
 
-// Cursor
-const cursor = document.getElementById('cursor');
-const ring = document.getElementById('cursorRing');
-let mouseX = 0, mouseY = 0, ringX = 0, ringY = 0;
-document.addEventListener('mousemove', e => {
-  mouseX = e.clientX; mouseY = e.clientY;
-  cursor.style.left = mouseX + 'px'; cursor.style.top = mouseY + 'px';
-});
-function animateRing() {
-  ringX += (mouseX - ringX) * 0.12; ringY += (mouseY - ringY) * 0.12;
-  ring.style.left = ringX + 'px'; ring.style.top = ringY + 'px';
-  requestAnimationFrame(animateRing);
-}
-animateRing();
-function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+const cur=document.getElementById('ss-cursor'),ring=document.getElementById('ss-ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px';});
+document.querySelectorAll('a,button').forEach(el=>{el.addEventListener('mouseenter',()=>{ring.style.borderColor='rgba(139,92,246,0.6)';ring.style.width='44px';ring.style.height='44px';});el.addEventListener('mouseleave',()=>{ring.style.borderColor='rgba(255,255,255,0.5)';ring.style.width='34px';ring.style.height='34px';});});
+(function anim(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(anim);})();
 
-let isAnnual = false;
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');}
+async function handleLogout(){await sb.auth.signOut();window.location.href='index.html';}
 
-const prices = {
-  monthly: { pro: '$9', creator: '$19', proAnnual: 'Billed $108/year', creatorAnnual: 'Billed $228/year' },
-  annual:  { pro: '$7', creator: '$15', proAnnual: 'Billed $86/year — save $22', creatorAnnual: 'Billed $183/year — save $45' }
-};
+let isAnnual=false;
+let currentPlan='free';
+let currentUserId=null;
 
-function toggleBilling() {
-  isAnnual = !isAnnual;
-  const toggle = document.getElementById('billingToggle');
-  toggle.classList.toggle('on', isAnnual);
-  const p = isAnnual ? prices.annual : prices.monthly;
-  document.getElementById('pro-price').textContent = p.pro;
-  document.getElementById('creator-price').textContent = p.creator;
-  document.getElementById('pro-annual').textContent = p.proAnnual;
-  document.getElementById('creator-annual').textContent = p.creatorAnnual;
+function toggleBilling(){
+  isAnnual=!isAnnual;
+  document.getElementById('billingToggle').classList.toggle('on',isAnnual);
+  document.getElementById('pro-price').textContent=isAnnual?'$7':'$9';
+  document.getElementById('pro-annual').textContent=isAnnual?'Billed $86/year':'Billed $108/year';
+  document.getElementById('creator-price').textContent=isAnnual?'$15':'$19';
+  document.getElementById('creator-annual').textContent=isAnnual?'Billed $182/year':'Billed $228/year';
 }
 
-function toggleFaq(el) {
-  el.classList.toggle('open');
-}
-
-function selectPlan(plan) {
-  if (plan === 'free') return;
-  // Placeholder — integrate Lemon Squeezy / Paddle checkout URLs here
-  alert(`Upgrade to ${plan.charAt(0).toUpperCase() + plan.slice(1)} — payment integration coming soon!`);
-}
-
-async function handleLogout() {
-  await sb.auth.signOut();
-  window.location.href = 'login.html';
-}
-
-async function init() {
-  const { data: { session } } = await sb.auth.getSession();
-  if (!session) { window.location.href = 'login.html'; return; }
-
-  const { data: profile } = await sb.from('profiles').select('full_name, username, avatar_emoji, plan').eq('id', session.user.id).single();
-  if (profile) {
-    const name = profile.full_name || profile.username || session.user.email.split('@')[0];
-    document.getElementById('sidebarName').textContent = name;
-    document.getElementById('sidebarAvatar').textContent = profile.avatar_emoji || '👤';
-
-    const plan = profile.plan || 'free';
-    const planNames = { free: 'Free', pro: 'Pro', creator: 'Creator' };
-    document.getElementById('currentPlanBanner').style.display = 'flex';
-    document.getElementById('currentPlanName').textContent = planNames[plan] || 'Free';
-
-    // Mark current plan button
-    if (plan !== 'free') {
-      const curBtn = document.getElementById('btn-' + plan);
-      if (curBtn) { curBtn.textContent = 'Current plan'; curBtn.className = 'plan-btn current'; }
-      const freeBtn = document.getElementById('btn-free');
-      if (freeBtn) { freeBtn.textContent = 'Downgrade'; }
+function updateButtonStates(plan){
+  ['free','pro','creator'].forEach(p=>{
+    const btn=document.getElementById('btn-'+p);
+    if(!btn)return;
+    if(p===plan){
+      btn.className='plan-btn current';
+      btn.textContent='Current plan';
+    } else {
+      if(p==='free'){btn.className='plan-btn outline';btn.textContent='Get started free';}
+      else{btn.className='plan-btn solid';btn.textContent='Get '+p.charAt(0).toUpperCase()+p.slice(1);}
     }
+  });
+}
+
+async function selectPlan(plan){
+  if(plan===currentPlan)return;
+  if(!currentUserId)return;
+  // Payment integration placeholder — update plan directly for now
+  const{error}=await sb.from('profiles').update({plan}).eq('id',currentUserId);
+  if(error){console.error('Plan update error:',error);showToast('Error updating plan: '+error.message,'error');return;}
+  currentPlan=plan;
+  updateButtonStates(plan);
+  const planNames={free:'Free',pro:'Pro',creator:'Creator'};
+  document.getElementById('currentPlanName').textContent=planNames[plan]||plan;
+  document.getElementById('currentPlanBanner').style.display='flex';
+  showToast('Plan updated to '+planNames[plan]+'.');
+  // Show/hide analytics link
+  if(plan==='pro'||plan==='creator'){
+    document.getElementById('analyticsNavLink').style.display='flex';
+  } else {
+    document.getElementById('analyticsNavLink').style.display='none';
+  }
+}
+
+function toggleFaq(el){el.classList.toggle('open');}
+
+function showToast(msg,type='success'){
+  const t=document.createElement('div');
+  t.className='toast'+(type==='success'?' success':'');
+  t.textContent=msg;
+  t.style.animation='fadeUp .3s ease';
+  document.body.appendChild(t);
+  setTimeout(()=>{t.style.opacity='0';setTimeout(()=>t.remove(),300);},3000);
+}
+
+async function init(){
+  const{data:{session}}=await sb.auth.getSession();
+  if(!session){window.location.href='login.html';return;}
+  currentUserId=session.user.id;
+  const{data:profile,error}=await sb.from('profiles').select('full_name,username,avatar_url,avatar_emoji,plan').eq('id',currentUserId).single();
+  if(error)console.error('Profile load error:',error);
+  const name=profile?.full_name||profile?.username||session.user.email.split('@')[0];
+  document.getElementById('sidebarName').textContent=name;
+  const avatarEl=document.getElementById('sidebarAvatar');
+  if(profile?.avatar_url){avatarEl.innerHTML=`<img src="${profile.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;}
+  else if(profile?.avatar_emoji){avatarEl.textContent=profile.avatar_emoji;}
+  else{avatarEl.textContent=name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);}
+  currentPlan=profile?.plan||'free';
+  const planNames={free:'Free',pro:'Pro',creator:'Creator'};
+  document.getElementById('currentPlanName').textContent=planNames[currentPlan]||currentPlan;
+  document.getElementById('currentPlanBanner').style.display='flex';
+  updateButtonStates(currentPlan);
+  if(currentPlan==='pro'||currentPlan==='creator'){
+    document.getElementById('analyticsNavLink').style.display='flex';
   }
 }
 

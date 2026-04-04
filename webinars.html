@@ -6,645 +6,430 @@
 <title>SkillSwap — Webinars</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --black: #05040a; --purple-deep: #0d0a1a; --purple-mid: #1a1035;
-    --purple-bright: #7c3aed; --purple-glow: #9d5cff; --purple-soft: #c4a8ff;
-    --accent: #ff6bff; --white: #f0ecff; --text-muted: #7a6d99;
-    --border: rgba(124, 58, 237, 0.2); --sidebar-w: 240px;
-  }
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body { background:var(--black); color:var(--white); font-family:'DM Sans',sans-serif; min-height:100vh; display:flex; overflow-x:hidden; cursor:none; }
-  .cursor { position:fixed; width:12px; height:12px; background:var(--purple-glow); border-radius:50%; pointer-events:none; z-index:9999; transform:translate(-50%,-50%); mix-blend-mode:screen; }
-  .cursor-ring { position:fixed; width:36px; height:36px; border:1px solid rgba(157,92,255,0.5); border-radius:50%; pointer-events:none; z-index:9998; transform:translate(-50%,-50%); transition:transform 0.15s ease; }
+:root{--bg:#080808;--bg-card:rgba(255,255,255,0.03);--border:rgba(255,255,255,0.08);--border-hover:rgba(139,92,246,0.3);--text-muted:rgba(255,255,255,0.32);--sidebar-w:240px;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;overflow-x:hidden;cursor:none;}
+#ss-cursor{position:fixed;width:10px;height:10px;background:#fff;border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);mix-blend-mode:difference;}
+#ss-ring{position:fixed;width:34px;height:34px;border:1px solid rgba(255,255,255,0.5);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:all .2s;}
+.sidebar{width:var(--sidebar-w);height:100vh;background:rgba(255,255,255,0.015);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:24px 14px;position:fixed;left:0;top:0;z-index:100;overflow-y:auto;}
+.sidebar-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.15rem;color:#fff;text-decoration:none;display:flex;align-items:center;gap:8px;margin-bottom:32px;padding-left:8px;}
+.logo-sq{width:9px;height:9px;background:#fff;border-radius:2px;flex-shrink:0;}
+.nav-section{font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,0.2);margin:18px 0 5px;padding-left:10px;}
+.nav-link{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;color:rgba(255,255,255,0.42);text-decoration:none;font-size:.875rem;transition:all .15s;margin-bottom:1px;border:1px solid transparent;}
+.nav-link:hover{color:#fff;background:rgba(255,255,255,0.04);}
+.nav-link.active{color:#fff;background:rgba(255,255,255,0.06);border-color:var(--border);}
+.nav-link svg{width:15px;height:15px;flex-shrink:0;opacity:.7;}
+.nav-link.active svg,.nav-link:hover svg{opacity:1;}
+.sidebar-bottom{margin-top:auto;border-top:1px solid var(--border);padding-top:14px;}
+.user-pill{display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px;margin-bottom:8px;}
+.user-avatar-sm{width:30px;height:30px;border-radius:50%;background:rgba(139,92,246,0.18);border:1px solid rgba(139,92,246,0.3);display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;flex-shrink:0;overflow:hidden;color:rgba(167,139,250,0.9);}
+.user-name-sm{font-size:.82rem;font-weight:500;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:rgba(255,255,255,0.65);}
+.sidebar-logout-full{width:100%;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.14);border-radius:10px;color:rgba(239,68,68,0.7);font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:500;padding:9px 12px;cursor:none;display:flex;align-items:center;gap:8px;transition:all .2s;}
+.sidebar-logout-full:hover{background:rgba(239,68,68,0.12);border-color:rgba(239,68,68,0.28);color:#f87171;}
+.sidebar-logout-full svg{width:14px;height:14px;}
+.hamburger{display:none;position:fixed;top:14px;left:14px;z-index:200;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:10px;padding:8px;cursor:none;color:#fff;}
+.main{margin-left:var(--sidebar-w);flex:1;padding:40px 48px;min-height:100vh;}
 
-  /* SIDEBAR */
-  .sidebar { width:var(--sidebar-w); min-height:100vh; background:var(--purple-deep); border-right:1px solid var(--border); display:flex; flex-direction:column; padding:28px 20px; position:fixed; left:0; top:0; z-index:100; }
-  .sidebar-logo { font-family:'Syne',sans-serif; font-weight:800; font-size:1.3rem; color:var(--white); text-decoration:none; display:flex; align-items:center; gap:10px; margin-bottom:40px; }
-  .logo-dot { width:8px; height:8px; background:var(--accent); border-radius:50%; box-shadow:0 0 10px var(--accent); animation:pulse 2s infinite; flex-shrink:0; }
-  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.5;transform:scale(0.8);} }
-  .nav-section { font-size:0.7rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-muted); margin-bottom:10px; margin-top:24px; padding-left:12px; }
-  .nav-link { display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:10px; color:var(--text-muted); text-decoration:none; font-size:0.9rem; transition:all 0.2s; margin-bottom:2px; }
-  .nav-link:hover { color:var(--white); background:rgba(124,58,237,0.1); }
-  .nav-link.active { color:var(--white); background:rgba(124,58,237,0.15); border:1px solid var(--border); }
-  .nav-icon { font-size:1rem; width:20px; text-align:center; }
-  .sidebar-bottom { margin-top:auto; border-top:1px solid var(--border); padding-top:20px; }
-  .user-pill { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:10px; cursor:none; transition:background 0.2s; }
-  .user-pill:hover { background:rgba(124,58,237,0.1); }
-  .user-avatar-sm { width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,var(--purple-bright),var(--accent)); display:flex; align-items:center; justify-content:center; font-size:0.9rem; flex-shrink:0; }
-  .user-name-sm { font-size:0.85rem; font-weight:500; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .logout-btn { background:none; border:none; color:var(--text-muted); cursor:none; font-size:1rem; padding:4px; transition:color 0.2s; flex-shrink:0; }
-  .logout-btn:hover { color:#ef4444; }
+/* PAGE HEADER */
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:28px;flex-wrap:wrap;}
+.page-title{font-family:'Syne',sans-serif;font-weight:800;font-size:1.9rem;letter-spacing:-.03em;}
+.page-sub{color:var(--text-muted);font-size:.9rem;margin-top:5px;}
+.btn-host{background:#fff;color:#080808;border:none;border-radius:11px;padding:11px 20px;font-family:'Syne',sans-serif;font-size:.82rem;font-weight:700;cursor:none;display:inline-flex;align-items:center;gap:7px;transition:opacity .2s;white-space:nowrap;}
+.btn-host:hover{opacity:.88;}
+.btn-host svg{width:14px;height:14px;}
 
-  /* MAIN */
-  .main { margin-left:var(--sidebar-w); flex:1; padding:40px 48px; }
-  .page-header { display:flex; align-items:flex-start; justify-content:space-between; gap:20px; margin-bottom:32px; flex-wrap:wrap; }
-  .header-left {}
-  .page-title { font-family:'Syne',sans-serif; font-weight:800; font-size:2rem; letter-spacing:-0.03em; }
-  .page-title span { background:linear-gradient(135deg,var(--purple-glow),var(--accent)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
-  .page-sub { color:var(--text-muted); font-size:0.92rem; margin-top:6px; }
+/* FILTERS */
+.filters-row{display:flex;gap:10px;margin-bottom:24px;flex-wrap:wrap;align-items:center;}
+.search-wrap{position:relative;flex:1;min-width:200px;}
+.search-icon-abs{position:absolute;left:12px;top:50%;transform:translateY(-50%);opacity:.3;pointer-events:none;}
+.search-icon-abs svg{width:14px;height:14px;}
+.search-input{width:100%;background:var(--bg-card);border:1px solid var(--border);border-radius:11px;padding:10px 14px 10px 36px;color:#fff;font-family:'DM Sans',sans-serif;font-size:.875rem;outline:none;transition:border-color .2s;}
+.search-input::placeholder{color:var(--text-muted);}
+.search-input:focus{border-color:rgba(139,92,246,0.45);}
+.filter-btn{background:var(--bg-card);border:1px solid var(--border);color:rgba(255,255,255,0.38);padding:9px 14px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.82rem;cursor:none;transition:all .2s;}
+.filter-btn:hover{border-color:rgba(255,255,255,0.14);color:rgba(255,255,255,0.7);}
+.filter-btn.active{border-color:rgba(139,92,246,0.4);color:#fff;background:rgba(139,92,246,0.08);}
 
-  /* HOST BUTTON */
-  .btn-primary {
-    background:linear-gradient(135deg,var(--purple-bright),#a855f7); color:white; padding:12px 22px;
-    border-radius:12px; font-family:'DM Sans',sans-serif; font-size:0.9rem; font-weight:500;
-    border:none; cursor:none; transition:all 0.2s; box-shadow:0 5px 20px rgba(124,58,237,0.3);
-    display:inline-flex; align-items:center; gap:8px; white-space:nowrap;
-  }
-  .btn-primary:hover { transform:translateY(-1px); box-shadow:0 8px 28px rgba(124,58,237,0.45); }
-  .btn-primary:disabled { opacity:0.5; transform:none; cursor:default; }
+/* SECTION LABEL */
+.section-label{font-family:'Syne',sans-serif;font-weight:700;font-size:.88rem;margin-bottom:14px;display:flex;align-items:center;gap:8px;color:rgba(255,255,255,0.7);}
+.live-badge{background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.25);color:#fca5a5;font-size:.68rem;padding:2px 8px;border-radius:100px;font-weight:400;display:flex;align-items:center;gap:4px;font-family:'DM Sans',sans-serif;}
+.live-dot{width:5px;height:5px;background:#ef4444;border-radius:50%;animation:blink 1s infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
 
-  /* FILTERS */
-  .filters-row { display:flex; gap:10px; margin-bottom:28px; flex-wrap:wrap; align-items:center; }
-  .search-wrap { position:relative; flex:1; min-width:200px; }
-  .search-icon { position:absolute; left:13px; top:50%; transform:translateY(-50%); font-size:0.9rem; pointer-events:none; }
-  .search-input { width:100%; background:rgba(124,58,237,0.06); border:1px solid var(--border); border-radius:10px; padding:10px 14px 10px 38px; color:var(--white); font-family:'DM Sans',sans-serif; font-size:0.88rem; outline:none; transition:border-color 0.2s; }
-  .search-input::placeholder { color:var(--text-muted); }
-  .search-input:focus { border-color:var(--purple-bright); }
-  .filter-btn { background:rgba(124,58,237,0.06); border:1px solid var(--border); color:var(--text-muted); padding:9px 16px; border-radius:10px; font-family:'DM Sans',sans-serif; font-size:0.82rem; cursor:none; transition:all 0.2s; }
-  .filter-btn:hover, .filter-btn.active { background:rgba(124,58,237,0.15); border-color:var(--purple-bright); color:var(--white); }
+/* WEBINAR GRID */
+.webinar-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px;margin-bottom:32px;}
 
-  /* SECTION HEADER */
-  .section-label { font-family:'Syne',sans-serif; font-weight:700; font-size:0.95rem; margin-bottom:16px; display:flex; align-items:center; gap:8px; }
-  .live-badge { background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); color:#fca5a5; font-size:0.68rem; padding:3px 9px; border-radius:100px; font-weight:400; display:flex; align-items:center; gap:5px; }
-  .live-dot { width:6px; height:6px; background:#ef4444; border-radius:50%; animation:blink 1s infinite; }
-  @keyframes blink { 0%,100%{opacity:1;}50%{opacity:0.3;} }
+/* WEBINAR CARD */
+.webinar-card{background:var(--bg-card);border:1px solid var(--border);border-radius:18px;overflow:hidden;transition:border-color .25s,transform .25s;backdrop-filter:blur(12px);animation:fadeUp .4s ease both;position:relative;}
+.webinar-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(139,92,246,0),transparent);transition:background .3s;z-index:1;}
+.webinar-card:hover{border-color:var(--border-hover);transform:translateY(-3px);}
+.webinar-card:hover::before{background:linear-gradient(90deg,transparent,rgba(139,92,246,0.6),transparent);}
+.webinar-cover{height:110px;display:flex;align-items:center;justify-content:center;font-size:2.6rem;position:relative;overflow:hidden;}
+.webinar-status-badge{position:absolute;top:10px;right:10px;font-size:.68rem;padding:3px 9px;border-radius:100px;font-weight:500;}
+.status-live{background:rgba(239,68,68,0.85);color:#fff;}
+.status-upcoming{background:rgba(139,92,246,0.8);color:#fff;}
+.status-recorded{background:rgba(100,100,100,0.6);color:rgba(255,255,255,0.8);}
+.webinar-body{padding:16px 18px;}
+.webinar-cat{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:rgba(167,139,250,0.6);margin-bottom:7px;}
+.webinar-title{font-family:'Syne',sans-serif;font-weight:700;font-size:.9rem;line-height:1.3;margin-bottom:7px;}
+.webinar-desc{font-size:.8rem;color:var(--text-muted);line-height:1.5;margin-bottom:12px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.webinar-meta{display:flex;align-items:center;gap:10px;margin-bottom:12px;font-size:.75rem;color:var(--text-muted);}
+.meta-item{display:flex;align-items:center;gap:4px;}
+.meta-item svg{width:11px;height:11px;}
+.webinar-host{display:flex;align-items:center;gap:7px;margin-bottom:14px;}
+.host-av{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.72rem;background:rgba(139,92,246,0.12);border:1px solid rgba(139,92,246,0.2);flex-shrink:0;overflow:hidden;}
+.host-name{font-size:.76rem;color:var(--text-muted);}
+.host-name strong{color:rgba(255,255,255,0.75);}
+.webinar-footer{display:flex;gap:7px;align-items:center;}
+.btn-attend{flex:1;background:#fff;color:#080808;padding:9px;border-radius:9px;font-family:'Syne',sans-serif;font-size:.8rem;font-weight:700;border:none;cursor:none;transition:opacity .2s;}
+.btn-attend:hover{opacity:.88;}
+.btn-attend.registered{background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.25);color:#86efac;font-family:'DM Sans',sans-serif;font-weight:500;}
+.btn-remind{background:var(--bg-card);border:1px solid var(--border);color:rgba(255,255,255,0.38);padding:9px 11px;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:.8rem;cursor:none;transition:all .2s;display:flex;align-items:center;gap:4px;}
+.btn-remind:hover{border-color:rgba(255,255,255,0.14);color:rgba(255,255,255,0.7);}
+.btn-remind svg{width:12px;height:12px;}
 
-  /* WEBINAR CARDS */
-  .webinar-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:20px; margin-bottom:36px; }
+/* EMPTY */
+.empty-state{grid-column:1/-1;text-align:center;padding:48px 20px;color:var(--text-muted);}
+.empty-state h3{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;color:rgba(255,255,255,.6);margin-bottom:8px;}
+.empty-state p{font-size:.85rem;}
 
-  .webinar-card {
-    background:var(--purple-deep); border:1px solid var(--border); border-radius:18px;
-    overflow:hidden; transition:border-color 0.2s, transform 0.2s, box-shadow 0.2s;
-    animation:fadeUp 0.4s ease both;
-  }
-  .webinar-card:hover { border-color:rgba(124,58,237,0.4); transform:translateY(-3px); box-shadow:0 12px 36px rgba(124,58,237,0.12); }
+/* SKELETON */
+.skel{background:linear-gradient(90deg,rgba(255,255,255,0.04) 25%,rgba(255,255,255,0.07) 50%,rgba(255,255,255,0.04) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:8px;}
+@keyframes shimmer{to{background-position:-200% 0;}}
 
-  .webinar-cover {
-    height:130px; display:flex; align-items:center; justify-content:center; font-size:3rem;
-    position:relative; overflow:hidden;
-  }
-  .webinar-status-badge {
-    position:absolute; top:12px; right:12px; font-size:0.7rem; padding:4px 10px; border-radius:100px; font-weight:500;
-  }
-  .status-live { background:rgba(239,68,68,0.9); color:white; }
-  .status-upcoming { background:rgba(124,58,237,0.85); color:white; }
-  .status-recorded { background:rgba(100,100,100,0.7); color:var(--white); }
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:300;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px);}
+.modal-overlay.open{display:flex;}
+.modal{background:#0e0e0e;border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:28px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;animation:fadeUp .3s ease;}
+.modal-title{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;margin-bottom:22px;display:flex;align-items:center;justify-content:space-between;}
+.modal-close{background:none;border:none;color:var(--text-muted);cursor:none;padding:0;font-size:1.2rem;transition:color .2s;line-height:1;}
+.modal-close:hover{color:#fff;}
+.field{margin-bottom:14px;}
+.field label{display:block;font-size:.76rem;color:rgba(255,255,255,0.38);margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em;}
+.field input,.field textarea,.field select{width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.09);border-radius:10px;padding:11px 13px;color:#fff;font-family:'DM Sans',sans-serif;font-size:.875rem;outline:none;transition:border-color .2s;resize:none;}
+.field input::placeholder,.field textarea::placeholder{color:var(--text-muted);}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:rgba(139,92,246,0.45);}
+.field select option{background:#111;}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.creator-lock{background:rgba(139,92,246,0.05);border:1px solid rgba(139,92,246,0.2);border-radius:12px;padding:18px;text-align:center;margin-bottom:14px;}
+.creator-lock h4{font-family:'Syne',sans-serif;font-weight:700;font-size:.9rem;margin-bottom:6px;}
+.creator-lock p{font-size:.8rem;color:var(--text-muted);margin-bottom:14px;}
+.btn-upgrade{background:#fff;color:#080808;padding:9px 18px;border-radius:9px;font-family:'Syne',sans-serif;font-size:.8rem;font-weight:700;text-decoration:none;display:inline-block;transition:opacity .2s;}
+.btn-upgrade:hover{opacity:.88;}
+.modal-submit{width:100%;background:#fff;color:#080808;border:none;border-radius:11px;padding:12px;font-family:'Syne',sans-serif;font-size:.88rem;font-weight:700;cursor:none;transition:opacity .2s;margin-top:8px;}
+.modal-submit:hover{opacity:.88;}
+.modal-submit:disabled{opacity:.5;}
+.modal-alert{padding:11px 15px;border-radius:10px;font-size:.84rem;margin-bottom:12px;display:none;}
+.modal-alert.error{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.28);color:#fca5a5;display:block;}
+.modal-alert.success{background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.28);color:#86efac;display:block;}
 
-  .webinar-body { padding:18px 20px; }
-  .webinar-category { font-size:0.72rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--purple-soft); margin-bottom:8px; }
-  .webinar-title { font-family:'Syne',sans-serif; font-weight:700; font-size:0.98rem; line-height:1.3; margin-bottom:8px; }
-  .webinar-desc { font-size:0.82rem; color:var(--text-muted); line-height:1.5; margin-bottom:14px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
-  .webinar-meta { display:flex; align-items:center; gap:12px; margin-bottom:14px; font-size:0.78rem; color:var(--text-muted); }
-  .meta-item { display:flex; align-items:center; gap:4px; }
-  .webinar-host { display:flex; align-items:center; gap:8px; margin-bottom:16px; }
-  .host-avatar { width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.8rem; background:rgba(124,58,237,0.2); border:1px solid var(--border); flex-shrink:0; }
-  .host-name { font-size:0.78rem; color:var(--text-muted); }
-  .host-name strong { color:var(--white); }
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);color:#fff;padding:12px 20px;border-radius:12px;font-size:.85rem;z-index:9000;animation:fadeUp .3s ease;backdrop-filter:blur(12px);}
 
-  .webinar-footer { display:flex; gap:8px; align-items:center; }
-  .btn-attend { flex:1; background:linear-gradient(135deg,var(--purple-bright),#a855f7); color:white; padding:9px; border-radius:10px; font-family:'DM Sans',sans-serif; font-size:0.82rem; font-weight:500; border:none; cursor:none; transition:all 0.2s; box-shadow:0 3px 12px rgba(124,58,237,0.25); }
-  .btn-attend:hover { transform:translateY(-1px); box-shadow:0 5px 18px rgba(124,58,237,0.4); }
-  .btn-attend.joined { background:rgba(34,197,94,0.15); border:1px solid rgba(34,197,94,0.3); color:#86efac; box-shadow:none; }
-  .btn-remind { background:rgba(124,58,237,0.1); border:1px solid var(--border); color:var(--purple-soft); padding:9px 13px; border-radius:10px; font-family:'DM Sans',sans-serif; font-size:0.82rem; cursor:none; transition:all 0.2s; }
-  .btn-remind:hover { background:rgba(124,58,237,0.2); color:var(--white); }
-  .attendee-count { font-size:0.75rem; color:var(--text-muted); display:flex; align-items:center; gap:4px; }
-
-  /* HOST MODAL */
-  .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:300; display:none; align-items:center; justify-content:center; padding:20px; backdrop-filter:blur(4px); }
-  .modal-overlay.open { display:flex; }
-  .modal { background:var(--purple-deep); border:1px solid var(--border); border-radius:20px; padding:32px; width:100%; max-width:520px; max-height:90vh; overflow-y:auto; animation:fadeUp 0.3s ease; }
-  .modal-title { font-family:'Syne',sans-serif; font-weight:700; font-size:1.2rem; margin-bottom:24px; display:flex; align-items:center; justify-content:space-between; }
-  .modal-close { background:none; border:none; color:var(--text-muted); cursor:none; font-size:1.3rem; padding:0; transition:color 0.2s; }
-  .modal-close:hover { color:var(--white); }
-  .field { margin-bottom:16px; }
-  .field label { display:block; font-size:0.82rem; color:var(--text-muted); margin-bottom:7px; }
-  .field input, .field textarea, .field select { width:100%; background:rgba(124,58,237,0.06); border:1px solid var(--border); border-radius:10px; padding:11px 14px; color:var(--white); font-family:'DM Sans',sans-serif; font-size:0.88rem; outline:none; transition:border-color 0.2s; resize:none; }
-  .field input::placeholder, .field textarea::placeholder { color:var(--text-muted); }
-  .field input:focus, .field textarea:focus, .field select:focus { border-color:var(--purple-bright); }
-  .field select option { background:var(--purple-mid); }
-  .field-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
-  .alert { padding:12px 16px; border-radius:10px; font-size:0.85rem; margin-bottom:14px; display:none; }
-  .alert.error { background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); color:#fca5a5; display:block; }
-  .alert.success { background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.3); color:#86efac; display:block; }
-  .creator-lock { background:rgba(255,107,255,0.08); border:1px solid rgba(255,107,255,0.2); border-radius:12px; padding:16px 20px; text-align:center; margin-bottom:16px; }
-  .creator-lock h4 { font-family:'Syne',sans-serif; font-weight:700; margin-bottom:6px; font-size:0.95rem; }
-  .creator-lock p { font-size:0.82rem; color:var(--text-muted); margin-bottom:14px; }
-  .btn-upgrade { background:linear-gradient(135deg,#9333ea,var(--accent)); color:white; padding:10px 22px; border-radius:10px; font-family:'DM Sans',sans-serif; font-size:0.85rem; font-weight:500; text-decoration:none; display:inline-block; transition:all 0.2s; }
-  .btn-upgrade:hover { transform:translateY(-1px); }
-
-  /* EMPTY STATE */
-  .empty-state { grid-column:1/-1; text-align:center; padding:60px 20px; color:var(--text-muted); }
-  .empty-icon { font-size:2.5rem; margin-bottom:12px; }
-  .empty-state h3 { font-family:'Syne',sans-serif; font-weight:700; font-size:1.1rem; color:var(--white); margin-bottom:8px; }
-  .empty-state p { font-size:0.88rem; max-width:320px; margin:0 auto; }
-
-  /* SKELETON */
-  .skel { background:linear-gradient(90deg,rgba(124,58,237,0.1) 25%,rgba(124,58,237,0.2) 50%,rgba(124,58,237,0.1) 75%); background-size:200% 100%; animation:shimmer 1.5s infinite; border-radius:8px; }
-  @keyframes shimmer { to{background-position:-200% 0;} }
-  @keyframes fadeUp { from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);} }
-
-  .hamburger { display:none; }
-  @media (max-width:900px) {
-    .sidebar { transform:translateX(-100%); transition:transform 0.3s; }
-    .sidebar.open { transform:translateX(0); }
-    .main { margin-left:0; padding:24px 20px; padding-top:70px; }
-    .hamburger { display:flex; position:fixed; top:16px; left:16px; z-index:200; background:var(--purple-deep); border:1px solid var(--border); border-radius:10px; padding:8px; cursor:none; color:var(--white); font-size:1.2rem; }
-    .field-row { grid-template-columns:1fr; }
-  }
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+@media(max-width:900px){.sidebar{transform:translateX(-100%);transition:transform .3s;}.sidebar.open{transform:translateX(0);}.main{margin-left:0;padding:24px 20px;padding-top:56px;}.hamburger{display:flex;}.page-header{flex-direction:column;}.field-row{grid-template-columns:1fr;}}
 </style>
 </head>
 <body>
-
-<div class="cursor" id="cursor"></div>
-<div class="cursor-ring" id="cursorRing"></div>
-<button class="hamburger" onclick="toggleSidebar()">☰</button>
+<div id="ss-cursor"></div><div id="ss-ring"></div>
+<button class="hamburger" id="hamburger" onclick="toggleSidebar()"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
 
 <!-- HOST MODAL -->
 <div class="modal-overlay" id="hostModal">
   <div class="modal">
     <div class="modal-title">
       Host a Webinar
-      <button class="modal-close" onclick="closeModal()">✕</button>
+      <button class="modal-close" onclick="closeModal()">x</button>
     </div>
     <div class="creator-lock" id="creatorLock" style="display:none;">
-      <h4>✨ Creator plan required</h4>
+      <h4>Creator plan required</h4>
       <p>Hosting webinars is a Creator feature. Upgrade to share your knowledge at scale.</p>
-      <a href="pricing.html" class="btn-upgrade">Upgrade to Creator →</a>
+      <a href="pricing.html" class="btn-upgrade">Upgrade to Creator</a>
     </div>
     <div id="hostForm">
-      <div class="alert" id="hostAlert"></div>
-      <div class="field">
-        <label>Title</label>
-        <input type="text" id="wTitle" placeholder="e.g. Python for Beginners" maxlength="100" />
-      </div>
-      <div class="field">
-        <label>Description</label>
-        <textarea id="wDesc" rows="3" placeholder="What will attendees learn?" maxlength="400"></textarea>
-      </div>
+      <div class="modal-alert" id="hostAlert"></div>
+      <div class="field"><label>Title</label><input type="text" id="wTitle" placeholder="e.g. Python for Beginners" maxlength="100"></div>
+      <div class="field"><label>Description</label><textarea id="wDesc" rows="3" placeholder="What will attendees learn?" maxlength="400"></textarea></div>
       <div class="field-row">
-        <div class="field">
-          <label>Category</label>
+        <div class="field"><label>Category</label>
           <select id="wCategory">
-            <option value="">Select…</option>
+            <option value="">Select...</option>
             <option>Technology</option><option>Design</option><option>Language</option>
-            <option>Music</option><option>Business</option><option>Health</option>
-            <option>Photography</option><option>Writing</option><option>Other</option>
+            <option>Music</option><option>Business</option><option>Photography</option><option>Writing</option><option>Other</option>
           </select>
         </div>
-        <div class="field">
-          <label>Cover emoji</label>
-          <input type="text" id="wEmoji" placeholder="🎓" maxlength="4" />
-        </div>
+        <div class="field"><label>Date &amp; Time</label><input type="datetime-local" id="wDate"></div>
       </div>
       <div class="field-row">
-        <div class="field">
-          <label>Date & Time</label>
-          <input type="datetime-local" id="wDate" />
+        <div class="field"><label>Duration</label>
+          <select id="wDuration"><option value="30">30 min</option><option value="60" selected>1 hour</option><option value="90">1.5 hours</option><option value="120">2 hours</option></select>
         </div>
-        <div class="field">
-          <label>Duration</label>
-          <select id="wDuration">
-            <option value="30">30 min</option>
-            <option value="60" selected>1 hour</option>
-            <option value="90">1.5 hours</option>
-            <option value="120">2 hours</option>
-          </select>
+        <div class="field"><label>Max attendees</label>
+          <select id="wMax"><option value="10">Up to 10</option><option value="25" selected>Up to 25</option><option value="50">Up to 50</option><option value="100">Up to 100</option><option value="0">Unlimited</option></select>
         </div>
       </div>
-      <div class="field">
-        <label>Max attendees</label>
-        <select id="wMax">
-          <option value="10">Up to 10</option>
-          <option value="25" selected>Up to 25</option>
-          <option value="50">Up to 50</option>
-          <option value="100">Up to 100</option>
-          <option value="0">Unlimited</option>
-        </select>
+      <div class="field"><label>Free or Paid?</label>
+        <select id="wPaid" onchange="togglePriceField()"><option value="free">Free</option><option value="paid">Paid</option></select>
       </div>
-      <button class="btn-primary" style="width:100%;justify-content:center;margin-top:8px;" onclick="createWebinar()" id="createBtn">
-        <span>Create Webinar →</span>
-      </button>
+      <div class="field" id="priceField" style="display:none;"><label>Price ($)</label><input type="number" id="wPrice" placeholder="9.99" min="1" step="0.01"></div>
+      <button class="modal-submit" id="createBtn" onclick="createWebinar()">Create Webinar</button>
     </div>
   </div>
 </div>
 
-<!-- SIDEBAR -->
 <aside class="sidebar" id="sidebar">
-  <a href="index.html" class="sidebar-logo"><div class="logo-dot"></div>SkillSwap</a>
+  <a href="index.html" class="sidebar-logo"><div class="logo-sq"></div>SkillSwap</a>
   <span class="nav-section">Main</span>
-  <a href="dashboard.html" class="nav-link"><span class="nav-icon">⚡</span> Dashboard</a>
-  <a href="profile.html" class="nav-link"><span class="nav-icon">👤</span> My Profile</a>
-  <a href="discover.html" class="nav-link"><span class="nav-icon">🔍</span> Discover</a>
+  <a href="dashboard.html" class="nav-link"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard</a>
+  <a href="profile.html" class="nav-link"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>My Profile</a>
+  <a href="discover.html" class="nav-link"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>Discover</a>
   <span class="nav-section">Social</span>
-  <a href="matches.html" class="nav-link"><span class="nav-icon">🤝</span> Matches</a>
-  <a href="messages.html" class="nav-link"><span class="nav-icon">💬</span> Messages</a>
-  <a href="videocall.html" class="nav-link"><span class="nav-icon">🎥</span> Video Call</a>
+  <a href="matches.html" class="nav-link"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Matches</a>
+  <a href="messages.html" class="nav-link"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Messages</a>
+  <a href="videocall.html" class="nav-link"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>Video Call</a>
   <span class="nav-section">More</span>
-  <a href="webinars.html" class="nav-link active"><span class="nav-icon">🎓</span> Webinars</a>
-  <a href="pricing.html" class="nav-link"><span class="nav-icon">✨</span> Upgrade</a>
+  <a href="webinars.html" class="nav-link active"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>Webinars</a>
+  <a href="analytics.html" class="nav-link" id="analyticsNavLink" style="display:none;"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Analytics</a>
+  <a href="pricing.html" class="nav-link"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>Upgrade</a>
   <div class="sidebar-bottom">
-    <div class="user-pill">
-      <div class="user-avatar-sm" id="sidebarAvatar">?</div>
-      <span class="user-name-sm" id="sidebarName">Loading...</span>
-      <button class="logout-btn" onclick="handleLogout()">↪</button>
-    </div>
+    <div class="user-pill"><div class="user-avatar-sm" id="sidebarAvatar"></div><span class="user-name-sm" id="sidebarName">Loading...</span></div>
+    <button class="sidebar-logout-full" onclick="handleLogout()"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Sign out</button>
   </div>
 </aside>
 
-<!-- MAIN -->
 <main class="main">
-
   <div class="page-header">
-    <div class="header-left">
-      <h1 class="page-title">Live <span>Webinars</span></h1>
+    <div>
+      <h1 class="page-title">Webinars</h1>
       <p class="page-sub">Learn from experts in the community. Join live or catch the replay.</p>
     </div>
-    <button class="btn-primary" onclick="openHostModal()">🎓 Host a Webinar</button>
+    <button class="btn-host" onclick="openHostModal()">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
+      Host a Webinar
+    </button>
   </div>
 
-  <!-- FILTERS -->
   <div class="filters-row">
     <div class="search-wrap">
-      <span class="search-icon">🔍</span>
-      <input class="search-input" id="searchInput" type="text" placeholder="Search webinars…" oninput="onSearch()" />
+      <span class="search-icon-abs"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg></span>
+      <input class="search-input" id="searchInput" type="text" placeholder="Search webinars..." oninput="onSearch()">
     </div>
     <button class="filter-btn active" id="filter-all" onclick="setFilter('all')">All</button>
-    <button class="filter-btn" id="filter-live" onclick="setFilter('live')">🔴 Live</button>
-    <button class="filter-btn" id="filter-upcoming" onclick="setFilter('upcoming')">📅 Upcoming</button>
-    <button class="filter-btn" id="filter-recorded" onclick="setFilter('recorded')">▶️ Recorded</button>
+    <button class="filter-btn" id="filter-live" onclick="setFilter('live')">Live</button>
+    <button class="filter-btn" id="filter-upcoming" onclick="setFilter('upcoming')">Upcoming</button>
+    <button class="filter-btn" id="filter-recorded" onclick="setFilter('recorded')">Recorded</button>
   </div>
 
-  <!-- CONTENT -->
   <div id="webinarsContent">
-    <!-- Skeleton -->
     <div class="webinar-grid">
-      <div class="webinar-card">
-        <div class="skel" style="height:130px;border-radius:0;"></div>
-        <div style="padding:18px 20px;">
-          <div class="skel" style="height:11px;width:40%;margin-bottom:8px;"></div>
-          <div class="skel" style="height:16px;width:80%;margin-bottom:8px;"></div>
-          <div class="skel" style="height:11px;width:100%;margin-bottom:4px;"></div>
-          <div class="skel" style="height:11px;width:70%;margin-bottom:16px;"></div>
-          <div class="skel" style="height:36px;width:100%;border-radius:10px;"></div>
-        </div>
-      </div>
-      <div class="webinar-card">
-        <div class="skel" style="height:130px;border-radius:0;"></div>
-        <div style="padding:18px 20px;">
-          <div class="skel" style="height:11px;width:35%;margin-bottom:8px;"></div>
-          <div class="skel" style="height:16px;width:75%;margin-bottom:8px;"></div>
-          <div class="skel" style="height:11px;width:100%;margin-bottom:4px;"></div>
-          <div class="skel" style="height:11px;width:65%;margin-bottom:16px;"></div>
-          <div class="skel" style="height:36px;width:100%;border-radius:10px;"></div>
-        </div>
-      </div>
-      <div class="webinar-card">
-        <div class="skel" style="height:130px;border-radius:0;"></div>
-        <div style="padding:18px 20px;">
-          <div class="skel" style="height:11px;width:45%;margin-bottom:8px;"></div>
-          <div class="skel" style="height:16px;width:85%;margin-bottom:8px;"></div>
-          <div class="skel" style="height:11px;width:100%;margin-bottom:4px;"></div>
-          <div class="skel" style="height:11px;width:60%;margin-bottom:16px;"></div>
-          <div class="skel" style="height:36px;width:100%;border-radius:10px;"></div>
-        </div>
-      </div>
+      <div class="webinar-card"><div class="skel" style="height:110px;border-radius:0;"></div><div style="padding:16px 18px;"><div class="skel" style="height:10px;width:40%;margin-bottom:7px;"></div><div class="skel" style="height:14px;width:80%;margin-bottom:7px;"></div><div class="skel" style="height:10px;width:100%;margin-bottom:3px;"></div><div class="skel" style="height:10px;width:65%;margin-bottom:14px;"></div><div class="skel" style="height:34px;border-radius:9px;"></div></div></div>
+      <div class="webinar-card"><div class="skel" style="height:110px;border-radius:0;"></div><div style="padding:16px 18px;"><div class="skel" style="height:10px;width:35%;margin-bottom:7px;"></div><div class="skel" style="height:14px;width:75%;margin-bottom:7px;"></div><div class="skel" style="height:10px;width:100%;margin-bottom:3px;"></div><div class="skel" style="height:10px;width:60%;margin-bottom:14px;"></div><div class="skel" style="height:34px;border-radius:9px;"></div></div></div>
+      <div class="webinar-card"><div class="skel" style="height:110px;border-radius:0;"></div><div style="padding:16px 18px;"><div class="skel" style="height:10px;width:45%;margin-bottom:7px;"></div><div class="skel" style="height:14px;width:85%;margin-bottom:7px;"></div><div class="skel" style="height:10px;width:100%;margin-bottom:3px;"></div><div class="skel" style="height:10px;width:70%;margin-bottom:14px;"></div><div class="skel" style="height:34px;border-radius:9px;"></div></div></div>
     </div>
   </div>
-
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const { createClient } = supabase;
-const sb = createClient(
-  'https://vgndpvkywvcnezvjuueq.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZnbmRwdmt5d3ZjbmV6dmp1dWVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MDk5OTEsImV4cCI6MjA5MDA4NTk5MX0.GGwx_-W7pu485h3d6dgkhqSwiqxT3Hx02Ck9HW8nyE0'
-);
+const{createClient}=supabase;
+const sb=createClient('https://vgndpvkywvcnezvjuueq.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZnbmRwdmt5d3ZjbmV6dmp1dWVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MDk5OTEsImV4cCI6MjA5MDA4NTk5MX0.GGwx_-W7pu485h3d6dgkhqSwiqxT3Hx02Ck9HW8nyE0');
 
-// Cursor
-const cursor = document.getElementById('cursor');
-const ring = document.getElementById('cursorRing');
-let mouseX = 0, mouseY = 0, ringX = 0, ringY = 0;
-document.addEventListener('mousemove', e => {
-  mouseX = e.clientX; mouseY = e.clientY;
-  cursor.style.left = mouseX + 'px'; cursor.style.top = mouseY + 'px';
-});
-function animateRing() {
-  ringX += (mouseX - ringX) * 0.12; ringY += (mouseY - ringY) * 0.12;
-  ring.style.left = ringX + 'px'; ring.style.top = ringY + 'px';
-  requestAnimationFrame(animateRing);
-}
-animateRing();
-function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+const cur=document.getElementById('ss-cursor'),ring=document.getElementById('ss-ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px';});
+document.querySelectorAll('a,button').forEach(el=>{el.addEventListener('mouseenter',()=>{ring.style.borderColor='rgba(139,92,246,0.6)';ring.style.width='44px';ring.style.height='44px';});el.addEventListener('mouseleave',()=>{ring.style.borderColor='rgba(255,255,255,0.5)';ring.style.width='34px';ring.style.height='34px';});});
+(function anim(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(anim);})();
 
-let currentUserId = null;
-let userPlan = 'free';
-let allWebinars = [];
-let activeFilter = 'all';
-let registeredIds = new Set();
-let searchQ = '';
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');}
+async function handleLogout(){await sb.auth.signOut();window.location.href='index.html';}
 
-const COVER_COLORS = [
-  'linear-gradient(135deg,#1a1035,#3b1070)',
-  'linear-gradient(135deg,#0a1628,#1a3a6e)',
-  'linear-gradient(135deg,#1a1028,#6b1060)',
-  'linear-gradient(135deg,#0d1a0a,#1a5c2a)',
-  'linear-gradient(135deg,#1a0a0a,#6c1a1a)'
-];
+let currentUserId=null,userPlan='free',allWebinars=[],activeFilter='all',registeredIds=new Set(),searchQ='';
 
-function getWebinarStatus(w) {
-  const now = new Date();
-  const start = new Date(w.scheduled_at);
-  const end = new Date(start.getTime() + (w.duration_minutes || 60) * 60000);
-  if (w.is_live) return 'live';
-  if (now >= start && now <= end) return 'live';
-  if (now < start) return 'upcoming';
-  return 'recorded';
+const COVER_COLORS=['linear-gradient(135deg,rgba(139,92,246,0.15),rgba(8,8,8,1))','linear-gradient(135deg,rgba(34,211,238,0.12),rgba(8,8,8,1))','linear-gradient(135deg,rgba(167,139,250,0.12),rgba(8,8,8,1))','linear-gradient(135deg,rgba(103,232,249,0.1),rgba(8,8,8,1))','linear-gradient(135deg,rgba(196,181,253,0.1),rgba(8,8,8,1))'];
+
+function getStatus(w){
+  const now=new Date(),start=new Date(w.scheduled_at),end=new Date(start.getTime()+(w.duration_minutes||60)*60000);
+  if(w.is_live)return'live';
+  if(now>=start&&now<=end)return'live';
+  if(now<start)return'upcoming';
+  return'recorded';
 }
 
-function formatWebinarDate(iso) {
-  const d = new Date(iso);
-  const today = new Date();
-  const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1);
-  const timeStr = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-  if (d.toDateString() === today.toDateString()) return `Today, ${timeStr}`;
-  if (d.toDateString() === tomorrow.toDateString()) return `Tomorrow, ${timeStr}`;
-  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + `, ${timeStr}`;
+function fmtDate(iso){
+  const d=new Date(iso);
+  const today=new Date(),tomorrow=new Date(today);tomorrow.setDate(tomorrow.getDate()+1);
+  const t=d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+  if(d.toDateString()===today.toDateString())return`Today, ${t}`;
+  if(d.toDateString()===tomorrow.toDateString())return`Tomorrow, ${t}`;
+  return d.toLocaleDateString('en-US',{month:'short',day:'numeric'})+`, ${t}`;
 }
 
-function renderWebinarCard(w, idx) {
-  const status = getWebinarStatus(w);
-  const coverColor = COVER_COLORS[idx % COVER_COLORS.length];
-  const emoji = w.cover_emoji || '🎓';
-  const hostName = w.host?.full_name || w.host?.username || 'SkillSwapper';
-  const hostAvatar = w.host?.avatar_emoji || '👤';
-  const isRegistered = registeredIds.has(w.id);
-  const delay = (idx % 12) * 0.05;
-
-  const statusBadges = {
-    live: '<span class="webinar-status-badge status-live">🔴 Live</span>',
-    upcoming: '<span class="webinar-status-badge status-upcoming">📅 Upcoming</span>',
-    recorded: '<span class="webinar-status-badge status-recorded">▶️ Recorded</span>'
-  };
-
-  const btnText = status === 'live' ? 'Join Live' : status === 'recorded' ? 'Watch Replay' : (isRegistered ? '✓ Registered' : 'Register');
-
-  return `
-    <div class="webinar-card" style="animation-delay:${delay}s">
-      <div class="webinar-cover" style="background:${coverColor}">
-        <span>${emoji}</span>
-        ${statusBadges[status]}
+function renderCard(w,idx){
+  const status=getStatus(w);
+  const coverColor=COVER_COLORS[idx%COVER_COLORS.length];
+  const hostName=w.host?.full_name||w.host?.username||'SkillSwapper';
+  const hostAv=w.host?.avatar_url?`<img src="${w.host.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`:w.host?.avatar_emoji||'?';
+  const isReg=registeredIds.has(w.id);
+  const delay=(idx%12)*0.05;
+  const statusBadge=status==='live'?'<span class="webinar-status-badge status-live">Live</span>':status==='upcoming'?'<span class="webinar-status-badge status-upcoming">Upcoming</span>':'<span class="webinar-status-badge status-recorded">Recorded</span>';
+  const btnText=status==='live'?'Join Live':status==='recorded'?'Watch Replay':(isReg?'Registered':'Register');
+  const btnClass=isReg&&status!=='live'?'btn-attend registered':'btn-attend';
+  return`<div class="webinar-card" style="animation-delay:${delay}s">
+    <div class="webinar-cover" style="background:${coverColor}">
+      <svg width="32" height="32" fill="none" stroke="rgba(139,92,246,0.4)" stroke-width="1.5" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+      ${statusBadge}
+    </div>
+    <div class="webinar-body">
+      ${w.category?`<div class="webinar-cat">${w.category}</div>`:''}
+      <div class="webinar-title">${w.title||'Untitled Webinar'}</div>
+      <div class="webinar-desc">${w.description||'No description provided.'}</div>
+      <div class="webinar-meta">
+        <span class="meta-item"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>${w.scheduled_at?fmtDate(w.scheduled_at):'TBD'}</span>
+        <span class="meta-item"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>${w.duration_minutes||60} min</span>
       </div>
-      <div class="webinar-body">
-        ${w.category ? `<div class="webinar-category">${w.category}</div>` : ''}
-        <div class="webinar-title">${w.title}</div>
-        <div class="webinar-desc">${w.description || 'No description.'}</div>
-        <div class="webinar-meta">
-          <span class="meta-item">🕐 ${formatWebinarDate(w.scheduled_at)}</span>
-          <span class="meta-item">⏱ ${w.duration_minutes || 60} min</span>
-        </div>
-        <div class="webinar-host">
-          <div class="host-avatar">${hostAvatar}</div>
-          <div class="host-name">Hosted by <strong>${hostName}</strong></div>
-        </div>
-        <div class="webinar-footer">
-          <button class="btn-attend${isRegistered && status === 'upcoming' ? ' joined' : ''}"
-            id="wbtn-${w.id}"
-            onclick="${status === 'live' || status === 'recorded' ? `joinWebinar('${w.id}','${w.jitsi_room || ''}')` : `registerWebinar('${w.id}')`}">
-            ${btnText}
-          </button>
-          ${status === 'upcoming' && !isRegistered ? `<button class="btn-remind" onclick="remindWebinar('${w.id}')">🔔</button>` : ''}
-          <span class="attendee-count">👥 ${w.attendee_count || 0}</span>
-        </div>
+      <div class="webinar-host">
+        <div class="host-av">${hostAv}</div>
+        <div class="host-name">by <strong>${hostName}</strong></div>
+      </div>
+      <div class="webinar-footer">
+        <button class="${btnClass}" onclick="attendWebinar('${w.id}','${status}',this)">${btnText}</button>
+        ${status==='upcoming'&&!isReg?`<button class="btn-remind" onclick="remindMe('${w.id}',this)" title="Remind me"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></button>`:''}
       </div>
     </div>
-  `;
+  </div>`;
 }
 
-function getFiltered() {
-  return allWebinars.filter(w => {
-    if (activeFilter !== 'all' && getWebinarStatus(w) !== activeFilter) return false;
-    if (searchQ) {
-      const haystack = [w.title, w.description, w.category, w.host?.full_name].filter(Boolean).join(' ').toLowerCase();
-      if (!haystack.includes(searchQ)) return false;
+function renderWebinars(webinars){
+  const content=document.getElementById('webinarsContent');
+  if(!webinars.length){
+    content.innerHTML=`<div class="webinar-grid"><div class="empty-state"><h3>No webinars found</h3><p>Check back soon or host your own if you have a Creator plan.</p></div></div>`;
+    return;
+  }
+  content.innerHTML=`<div class="webinar-grid">${webinars.map((w,i)=>renderCard(w,i)).join('')}</div>`;
+}
+
+function applyFilter(){
+  let list=allWebinars.filter(w=>{
+    const s=getStatus(w);
+    if(activeFilter!=='all'&&s!==activeFilter)return false;
+    if(searchQ){
+      const title=(w.title||'').toLowerCase();
+      const desc=(w.description||'').toLowerCase();
+      const host=(w.host?.full_name||'').toLowerCase();
+      if(![title,desc,host].some(t=>t.includes(searchQ)))return false;
     }
     return true;
   });
+  renderWebinars(list);
 }
 
-function renderContent() {
-  const filtered = getFiltered();
-  const content = document.getElementById('webinarsContent');
+function setFilter(f){
+  activeFilter=f;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('filter-'+f).classList.add('active');
+  applyFilter();
+}
 
-  if (filtered.length === 0) {
-    content.innerHTML = `
-      <div class="webinar-grid">
-        <div class="empty-state">
-          <div class="empty-icon">🎓</div>
-          <h3>No webinars found</h3>
-          <p>${allWebinars.length === 0 ? 'Be the first to host a webinar!' : 'Try a different filter or search.'}</p>
-        </div>
-      </div>`;
+let searchTimer;
+function onSearch(){clearTimeout(searchTimer);searchTimer=setTimeout(()=>{searchQ=document.getElementById('searchInput').value.toLowerCase();applyFilter();},200);}
+
+async function attendWebinar(id,status,btn){
+  if(status==='live'){
+    const w=allWebinars.find(x=>x.id===id);
+    const room=w?.jitsi_room||('webinar-'+id.slice(0,8));
+    window.open('https://meet.jit.si/'+room,'_blank');
     return;
   }
-
-  // Group by status
-  const live = filtered.filter(w => getWebinarStatus(w) === 'live');
-  const upcoming = filtered.filter(w => getWebinarStatus(w) === 'upcoming');
-  const recorded = filtered.filter(w => getWebinarStatus(w) === 'recorded');
-
-  let html = '';
-  let cardIdx = 0;
-
-  if (live.length > 0) {
-    html += `<div class="section-label">🔴 Live Now <span class="live-badge"><span class="live-dot"></span> Live</span></div>`;
-    html += `<div class="webinar-grid" style="margin-bottom:36px;">` + live.map(w => renderWebinarCard(w, cardIdx++)).join('') + `</div>`;
-  }
-  if (upcoming.length > 0) {
-    html += `<div class="section-label">📅 Upcoming</div>`;
-    html += `<div class="webinar-grid" style="margin-bottom:36px;">` + upcoming.map(w => renderWebinarCard(w, cardIdx++)).join('') + `</div>`;
-  }
-  if (recorded.length > 0) {
-    html += `<div class="section-label">▶️ Recorded Sessions</div>`;
-    html += `<div class="webinar-grid" style="margin-bottom:36px;">` + recorded.map(w => renderWebinarCard(w, cardIdx++)).join('') + `</div>`;
-  }
-
-  content.innerHTML = html;
-}
-
-function setFilter(f) {
-  activeFilter = f;
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('filter-' + f).classList.add('active');
-  renderContent();
-}
-
-let searchTimeout;
-function onSearch() {
-  clearTimeout(searchTimeout);
-  searchTimeout = setTimeout(() => {
-    searchQ = document.getElementById('searchInput').value.toLowerCase().trim();
-    renderContent();
-  }, 200);
-}
-
-// MODAL
-function openHostModal() {
-  document.getElementById('hostModal').classList.add('open');
-  if (userPlan !== 'creator') {
-    document.getElementById('creatorLock').style.display = 'block';
-    document.getElementById('hostForm').style.display = 'none';
-  } else {
-    document.getElementById('creatorLock').style.display = 'none';
-    document.getElementById('hostForm').style.display = 'block';
-  }
-}
-function closeModal() {
-  document.getElementById('hostModal').classList.remove('open');
-}
-document.getElementById('hostModal').addEventListener('click', e => {
-  if (e.target === document.getElementById('hostModal')) closeModal();
-});
-
-async function createWebinar() {
-  const title = document.getElementById('wTitle').value.trim();
-  const desc = document.getElementById('wDesc').value.trim();
-  const category = document.getElementById('wCategory').value;
-  const emoji = document.getElementById('wEmoji').value.trim() || '🎓';
-  const dateVal = document.getElementById('wDate').value;
-  const duration = parseInt(document.getElementById('wDuration').value);
-  const maxAttendees = parseInt(document.getElementById('wMax').value);
-
-  const alertEl = document.getElementById('hostAlert');
-  alertEl.className = 'alert';
-
-  if (!title || !dateVal) {
-    alertEl.className = 'alert error';
-    alertEl.textContent = 'Title and date are required.';
-    return;
-  }
-
-  const btn = document.getElementById('createBtn');
-  btn.disabled = true;
-
-  // Generate a Jitsi room name for this webinar
-  const jitsiRoom = `skillswap-webinar-${title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '').substring(0, 30)}-${Date.now()}`;
-
-  const { error } = await sb.from('webinars').insert({
-    host_id: currentUserId,
-    title,
-    description: desc || null,
-    category: category || null,
-    cover_emoji: emoji,
-    scheduled_at: new Date(dateVal).toISOString(),
-    duration_minutes: duration,
-    max_attendees: maxAttendees || null,
-    jitsi_room: jitsiRoom,
-    is_live: false,
-    attendee_count: 0,
-    created_at: new Date().toISOString()
-  });
-
-  btn.disabled = false;
-
-  if (error) {
-    alertEl.className = 'alert error';
-    alertEl.textContent = error.message;
-    return;
-  }
-
-  alertEl.className = 'alert success';
-  alertEl.textContent = '✓ Webinar created!';
-  setTimeout(() => { closeModal(); loadWebinars(); }, 1200);
-}
-
-async function registerWebinar(id) {
-  if (registeredIds.has(id)) return;
+  if(status==='recorded'){showToast('Replay feature coming soon.');return;}
+  if(registeredIds.has(id))return;
+  const{error}=await sb.from('webinar_attendees').insert({webinar_id:id,user_id:currentUserId});
+  if(error){console.error('Register error:',error);showToast('Error: '+error.message);return;}
+  // Increment attendee_count
+  await sb.from('webinars').update({attendee_count:allWebinars.find(x=>x.id===id)?.attendee_count+1||1}).eq('id',id);
   registeredIds.add(id);
+  btn.textContent='Registered';
+  btn.className='btn-attend registered';
+  showToast('You are registered for this webinar.');
+}
 
-  // Increment attendee count
-  const w = allWebinars.find(x => x.id === id);
-  if (w) {
-    await sb.from('webinars').update({ attendee_count: (w.attendee_count || 0) + 1 }).eq('id', id);
-    w.attendee_count = (w.attendee_count || 0) + 1;
+async function remindMe(id,btn){
+  registeredIds.add(id);
+  btn.style.display='none';
+  showToast('Reminder set — we will notify you before it starts.');
+}
+
+function openHostModal(){
+  document.getElementById('hostModal').classList.add('open');
+  if(userPlan!=='creator'){
+    document.getElementById('creatorLock').style.display='block';
+    document.getElementById('hostForm').style.display='none';
+  } else {
+    document.getElementById('creatorLock').style.display='none';
+    document.getElementById('hostForm').style.display='block';
   }
-
-  const btn = document.getElementById('wbtn-' + id);
-  if (btn) { btn.textContent = '✓ Registered'; btn.classList.add('joined'); }
-
-  // Show toast
-  const t = document.createElement('div');
-  t.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:500;background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);color:#86efac;padding:12px 20px;border-radius:12px;font-size:0.88rem;';
-  t.textContent = '✓ You\'re registered!';
-  document.body.appendChild(t);
-  setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 3000);
 }
 
-function remindWebinar(id) {
-  const t = document.createElement('div');
-  t.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:500;background:rgba(124,58,237,0.15);border:1px solid var(--border);color:var(--purple-soft);padding:12px 20px;border-radius:12px;font-size:0.88rem;';
-  t.textContent = '🔔 Reminder set!';
-  document.body.appendChild(t);
-  setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 3000);
+function closeModal(){document.getElementById('hostModal').classList.remove('open');}
+
+function togglePriceField(){
+  document.getElementById('priceField').style.display=document.getElementById('wPaid').value==='paid'?'block':'none';
 }
 
-function joinWebinar(id, room) {
-  if (!room) {
-    const w = allWebinars.find(x => x.id === id);
-    room = w?.jitsi_room || `skillswap-webinar-${id}`;
-  }
-  const url = `https://meet.jit.si/${encodeURIComponent(room)}`;
-  window.open(url, '_blank');
+async function createWebinar(){
+  const title=document.getElementById('wTitle').value.trim();
+  const desc=document.getElementById('wDesc').value.trim();
+  const category=document.getElementById('wCategory').value;
+  const dateVal=document.getElementById('wDate').value;
+  const duration=parseInt(document.getElementById('wDuration').value)||60;
+  const maxAtt=parseInt(document.getElementById('wMax').value)||25;
+  const isPaid=document.getElementById('wPaid').value==='paid';
+  const price=isPaid?parseFloat(document.getElementById('wPrice').value)||0:0;
+  const alertEl=document.getElementById('hostAlert');
+  if(!title){alertEl.className='modal-alert error';alertEl.textContent='Please enter a title.';return;}
+  if(!dateVal){alertEl.className='modal-alert error';alertEl.textContent='Please set a date and time.';return;}
+  alertEl.className='modal-alert';
+  const btn=document.getElementById('createBtn');
+  btn.disabled=true;btn.textContent='Creating...';
+  const jitsiRoom='webinar-'+Math.random().toString(36).slice(2,10);
+  const{error}=await sb.from('webinars').insert({
+    host_id:currentUserId,title,description:desc||null,category:category||null,
+    scheduled_at:new Date(dateVal).toISOString(),duration_minutes:duration,
+    max_attendees:maxAtt,is_free:!isPaid,price,jitsi_room:jitsiRoom,status:'upcoming'
+  });
+  btn.disabled=false;btn.textContent='Create Webinar';
+  if(error){console.error('Create webinar error:',error);alertEl.className='modal-alert error';alertEl.textContent=error.message;return;}
+  closeModal();showToast('Webinar created successfully.');
+  await loadWebinars();
 }
 
-async function loadWebinars() {
-  const { data, error } = await sb.from('webinars')
-    .select('*, profiles!webinars_host_id_fkey(full_name, username, avatar_emoji)')
-    .order('scheduled_at', { ascending: true });
-
-  if (!error && data) {
-    allWebinars = data.map(w => ({ ...w, host: w.profiles }));
-  }
-
-  // If no webinars, seed with demo data for a better first impression
-  if (allWebinars.length === 0) {
-    allWebinars = getDemoWebinars();
-  }
-
-  renderContent();
+async function loadWebinars(){
+  const{data,error}=await sb.from('webinars')
+    .select('*,host:profiles!webinars_host_id_fkey(full_name,username,avatar_url,avatar_emoji)')
+    .order('scheduled_at',{ascending:true});
+  if(error){console.error('Webinars load error:',error);}
+  allWebinars=data||[];
+  applyFilter();
 }
 
-function getDemoWebinars() {
-  const now = new Date();
-  const soon = new Date(now.getTime() + 2 * 3600000); // 2h from now
-  const tomorrow = new Date(now.getTime() + 26 * 3600000);
-  const yesterday = new Date(now.getTime() - 24 * 3600000);
+function showToast(msg){const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>{t.style.opacity='0';setTimeout(()=>t.remove(),300);},3000);}
 
-  return [
-    { id: 'demo1', title: 'Intro to Python', description: 'Learn the basics of Python — variables, loops, and functions. Perfect for complete beginners.', category: 'Technology', cover_emoji: '🐍', scheduled_at: soon.toISOString(), duration_minutes: 60, host: { full_name: 'Alex Chen', avatar_emoji: '💻' }, attendee_count: 12, jitsi_room: 'skillswap-demo-python', is_live: true },
-    { id: 'demo2', title: 'Spanish Conversation Practice', description: 'Join a relaxed Spanish conversation session for intermediate learners. Bring your questions!', category: 'Language', cover_emoji: '🇪🇸', scheduled_at: tomorrow.toISOString(), duration_minutes: 45, host: { full_name: 'Sofia R.', avatar_emoji: '🌍' }, attendee_count: 8, jitsi_room: '', is_live: false },
-    { id: 'demo3', title: 'UI Design Principles', description: 'Core design principles every developer should know — spacing, contrast, typography, and colour.', category: 'Design', cover_emoji: '🎨', scheduled_at: yesterday.toISOString(), duration_minutes: 90, host: { full_name: 'Maya P.', avatar_emoji: '🎨' }, attendee_count: 34, jitsi_room: '', is_live: false },
-  ];
-}
-
-async function handleLogout() {
-  await sb.auth.signOut();
-  window.location.href = 'login.html';
-}
-
-async function init() {
-  const { data: { session } } = await sb.auth.getSession();
-  if (!session) { window.location.href = 'login.html'; return; }
-  currentUserId = session.user.id;
-
-  const { data: profile } = await sb.from('profiles').select('full_name, username, avatar_emoji, plan').eq('id', currentUserId).single();
-  if (profile) {
-    const name = profile.full_name || profile.username || session.user.email.split('@')[0];
-    document.getElementById('sidebarName').textContent = name;
-    document.getElementById('sidebarAvatar').textContent = profile.avatar_emoji || '👤';
-    userPlan = profile.plan || 'free';
-  }
-
+async function init(){
+  const{data:{session}}=await sb.auth.getSession();
+  if(!session){window.location.href='login.html';return;}
+  currentUserId=session.user.id;
+  const{data:profile,error}=await sb.from('profiles').select('full_name,username,avatar_url,avatar_emoji,plan').eq('id',currentUserId).single();
+  if(error)console.error('Profile error:',error);
+  const name=profile?.full_name||profile?.username||session.user.email.split('@')[0];
+  document.getElementById('sidebarName').textContent=name;
+  const avatarEl=document.getElementById('sidebarAvatar');
+  if(profile?.avatar_url){avatarEl.innerHTML=`<img src="${profile.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;}
+  else if(profile?.avatar_emoji){avatarEl.textContent=profile.avatar_emoji;}
+  else{avatarEl.textContent=name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);}
+  userPlan=profile?.plan||'free';
+  if(userPlan==='pro'||userPlan==='creator'){document.getElementById('analyticsNavLink').style.display='flex';}
+  // Load registrations
+  const{data:regs}=await sb.from('webinar_attendees').select('webinar_id').eq('user_id',currentUserId);
+  (regs||[]).forEach(r=>registeredIds.add(r.webinar_id));
   await loadWebinars();
 }
 

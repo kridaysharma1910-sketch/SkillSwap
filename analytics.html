@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SkillSwap — Analytics</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#080808;--bg-card:rgba(255,255,255,0.03);--border:rgba(255,255,255,0.08);--border-hover:rgba(139,92,246,0.3);--text-muted:rgba(255,255,255,0.32);--sidebar-w:240px;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;overflow-x:hidden;cursor:none;}
+#ss-cursor{position:fixed;width:10px;height:10px;background:#fff;border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);mix-blend-mode:difference;}
+#ss-ring{position:fixed;width:34px;height:34px;border:1px solid rgba(255,255,255,0.5);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:all .2s;}
+.sidebar{width:var(--sidebar-w);height:100vh;background:rgba(255,255,255,0.015);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:24px 14px;position:fixed;left:0;top:0;z-index:100;overflow-y:auto;}
+.sidebar-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.15rem;color:#fff;text-decoration:none;display:flex;align-items:center;gap:8px;margin-bottom:32px;padding-left:8px;}
+.logo-sq{width:9px;height:9px;background:#fff;border-radius:2px;flex-shrink:0;}
+.nav-section{font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,0.2);margin:18px 0 5px;padding-left:10px;}
+.nav-link{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;color:rgba(255,255,255,0.42);text-decoration:none;font-size:.875rem;transition:all .15s;margin-bottom:1px;border:1px solid transparent;}
+.nav-link:hover{color:#fff;background:rgba(255,255,255,0.04);}
+.nav-link.active{color:#fff;background:rgba(255,255,255,0.06);border-color:var(--border);}
+.nav-link svg{width:15px;height:15px;flex-shrink:0;opacity:.7;}
+.nav-link.active svg,.nav-link:hover svg{opacity:1;}
+.sidebar-bottom{margin-top:auto;border-top:1px solid var(--border);padding-top:14px;}
+.user-pill{display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px;margin-bottom:8px;}
+.user-avatar-sm{width:30px;height:30px;border-radius:50%;background:rgba(139,92,246,0.18);border:1px solid rgba(139,92,246,0.3);display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;flex-shrink:0;overflow:hidden;color:rgba(167,139,250,0.9);}
+.user-name-sm{font-size:.82rem;font-weight:500;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:rgba(255,255,255,0.65);}
+.sidebar-logout-full{width:100%;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.14);border-radius:10px;color:rgba(239,68,68,0.7);font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:500;padding:9px 12px;cursor:none;display:flex;align-items:center;gap:8px;transition:all .2s;}
+.sidebar-logout-full:hover{background:rgba(239,68,68,0.12);border-color:rgba(239,68,68,0.28);color:#f87171;}
+.sidebar-logout-full svg{width:14px;height:14px;}
+.hamburger{display:none;position:fixed;top:14px;left:14px;z-index:200;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:10px;padding:8px;cursor:none;color:#fff;}
+.main{margin-left:var(--sidebar-w);flex:1;padding:40px 48px;min-height:100vh;}
+.page-header{margin-bottom:28px;}
+.page-title{font-family:'Syne',sans-serif;font-weight:800;font-size:1.9rem;letter-spacing:-.03em;}
+.page-sub{color:var(--text-muted);font-size:.9rem;margin-top:5px;}
+
+/* UPGRADE GATE */
+.upgrade-gate{background:rgba(139,92,246,0.04);border:1px solid rgba(139,92,246,0.2);border-radius:18px;padding:40px;text-align:center;max-width:500px;margin:40px auto;}
+.upgrade-gate h2{font-family:'Syne',sans-serif;font-weight:700;font-size:1.3rem;margin-bottom:10px;}
+.upgrade-gate p{color:var(--text-muted);font-size:.9rem;margin-bottom:22px;line-height:1.6;}
+.btn-upgrade{background:#fff;color:#080808;padding:12px 24px;border-radius:11px;font-family:'Syne',sans-serif;font-size:.88rem;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:7px;transition:opacity .2s;}
+.btn-upgrade:hover{opacity:.88;}
+.btn-upgrade svg{width:14px;height:14px;}
+
+/* STATS GRID */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px;}
+.stat-card{background:var(--bg-card);border:1px solid var(--border);border-radius:18px;padding:22px;backdrop-filter:blur(12px);position:relative;overflow:hidden;transition:border-color .25s,transform .25s;}
+.stat-card:hover{border-color:var(--border-hover);transform:translateY(-3px);}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(139,92,246,0),transparent);transition:background .3s;}
+.stat-card:hover::before{background:linear-gradient(90deg,transparent,rgba(139,92,246,0.6),transparent);}
+.stat-icon{width:32px;height:32px;border-radius:8px;background:rgba(255,255,255,0.04);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;margin-bottom:14px;}
+.stat-icon svg{width:15px;height:15px;color:rgba(167,139,250,0.7);}
+.stat-value{font-family:'Syne',sans-serif;font-weight:700;font-size:2rem;letter-spacing:-.02em;margin-bottom:3px;}
+.stat-label{font-size:.76rem;color:var(--text-muted);}
+
+/* CARD */
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:18px;padding:24px;backdrop-filter:blur(12px);margin-bottom:20px;}
+.card-title{font-family:'Syne',sans-serif;font-weight:700;font-size:.9rem;margin-bottom:20px;color:rgba(255,255,255,.8);}
+
+/* RANK CARD */
+.rank-display{display:flex;align-items:center;gap:20px;}
+.rank-circle{width:80px;height:80px;border-radius:50%;background:rgba(139,92,246,0.1);border:2px solid rgba(139,92,246,0.3);display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;}
+.rank-hash{font-size:.75rem;color:rgba(167,139,250,0.6);font-weight:600;}
+.rank-num{font-family:'Syne',sans-serif;font-weight:800;font-size:1.8rem;letter-spacing:-.04em;color:rgba(167,139,250,0.9);line-height:1;}
+.rank-info h3{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;margin-bottom:4px;}
+.rank-info p{font-size:.82rem;color:var(--text-muted);line-height:1.5;}
+.rank-bar-wrap{margin-top:14px;}
+.rank-bar-label{display:flex;justify-content:space-between;font-size:.74rem;color:var(--text-muted);margin-bottom:6px;}
+.rank-bar{height:4px;background:rgba(255,255,255,0.06);border-radius:100px;overflow:hidden;}
+.rank-fill{height:100%;background:linear-gradient(90deg,rgba(139,92,246,.8),rgba(103,232,249,.7));border-radius:100px;transition:width .8s ease;}
+
+/* REWARDS */
+.rewards-grid{display:flex;flex-wrap:wrap;gap:10px;}
+.reward-badge{background:rgba(139,92,246,0.08);border:1px solid rgba(139,92,246,0.2);border-radius:12px;padding:10px 14px;display:flex;align-items:center;gap:9px;font-size:.82rem;}
+.reward-icon{color:rgba(167,139,250,0.7);}
+.reward-icon svg{width:16px;height:16px;}
+.reward-name{font-weight:500;color:rgba(255,255,255,.75);}
+.reward-desc{font-size:.72rem;color:var(--text-muted);margin-top:1px;}
+
+/* CREATOR SECTION */
+.creator-stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+.creator-stat{background:rgba(34,211,238,0.03);border:1px solid rgba(34,211,238,0.1);border-radius:14px;padding:18px;text-align:center;}
+.creator-val{font-family:'Syne',sans-serif;font-weight:700;font-size:1.6rem;color:rgba(103,232,249,.75);letter-spacing:-.02em;}
+.creator-lbl{font-size:.74rem;color:var(--text-muted);margin-top:4px;}
+
+/* SKELETON */
+.skel{background:linear-gradient(90deg,rgba(255,255,255,0.04) 25%,rgba(255,255,255,0.07) 50%,rgba(255,255,255,0.04) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:8px;}
+@keyframes shimmer{to{background-position:-200% 0;}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+@media(max-width:900px){.sidebar{transform:translateX(-100%);transition:transform .3s;}.sidebar.open{transform:translateX(0);}.main{margin-left:0;padding:24px 20px;padding-top:56px;}.hamburger{display:flex;}.stats-grid{grid-template-columns:1fr 1fr;}.creator-stats-grid{grid-template-columns:1fr 1fr;}}
+@media(max-width:500px){.stats-grid{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+<div id="ss-cursor"></div><div id="ss-ring"></div>
+<button class="hamburger" id="hamburger" onclick="toggleSidebar()"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+
+<aside class="sidebar" id="sidebar">
+  <a href="index.html" class="sidebar-logo"><div class="logo-sq"></div>SkillSwap</a>
+  <span class="nav-section">Main</span>
+  <a href="dashboard.html" class="nav-link"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard</a>
+  <a href="profile.html" class="nav-link"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>My Profile</a>
+  <a href="discover.html" class="nav-link"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>Discover</a>
+  <span class="nav-section">Social</span>
+  <a href="matches.html" class="nav-link"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Matches</a>
+  <a href="messages.html" class="nav-link"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Messages</a>
+  <a href="videocall.html" class="nav-link"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>Video Call</a>
+  <span class="nav-section">More</span>
+  <a href="webinars.html" class="nav-link"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>Webinars</a>
+  <a href="analytics.html" class="nav-link active"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Analytics</a>
+  <a href="pricing.html" class="nav-link"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>Upgrade</a>
+  <div class="sidebar-bottom">
+    <div class="user-pill"><div class="user-avatar-sm" id="sidebarAvatar"></div><span class="user-name-sm" id="sidebarName">Loading...</span></div>
+    <button class="sidebar-logout-full" onclick="handleLogout()"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Sign out</button>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="page-header">
+    <h1 class="page-title">Analytics</h1>
+    <p class="page-sub">Your personal learning stats, global ranking, and rewards.</p>
+  </div>
+
+  <!-- GATE: shown for free users -->
+  <div class="upgrade-gate" id="upgradeGate" style="display:none;">
+    <svg width="40" height="40" fill="none" stroke="rgba(139,92,246,0.5)" stroke-width="1.5" viewBox="0 0 24 24" style="margin-bottom:14px;"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+    <h2>Analytics is a Pro feature</h2>
+    <p>Upgrade to Pro or Creator to unlock your personal analytics dashboard — see skills taught, skills learned, video hours, global ranking, and rewards.</p>
+    <a href="pricing.html" class="btn-upgrade"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>Upgrade to Pro</a>
+  </div>
+
+  <!-- ANALYTICS CONTENT (pro + creator) -->
+  <div id="analyticsContent" style="display:none;">
+
+    <!-- STAT CARDS -->
+    <div class="stats-grid" id="statsGrid">
+      <div class="stat-card">
+        <div class="stat-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></div>
+        <div class="stat-value" id="aSkillsTaught">—</div>
+        <div class="stat-label">Skills Taught</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>
+        <div class="stat-value" id="aSkillsLearned">—</div>
+        <div class="stat-label">Skills Learned</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></div>
+        <div class="stat-value" id="aVideoHours">—</div>
+        <div class="stat-label">Video Hours</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>
+        <div class="stat-value" id="aWebinars">—</div>
+        <div class="stat-label">Webinars Watched</div>
+      </div>
+    </div>
+
+    <!-- GLOBAL RANK -->
+    <div class="card">
+      <div class="card-title">Global Ranking</div>
+      <div class="rank-display">
+        <div class="rank-circle"><span class="rank-hash">#</span><span class="rank-num" id="rankNum">—</span></div>
+        <div class="rank-info" style="flex:1;">
+          <h3 id="rankTitle">Skill Swapper</h3>
+          <p id="rankDesc">Keep swapping to climb the global leaderboard.</p>
+          <div class="rank-bar-wrap">
+            <div class="rank-bar-label"><span id="rankBarLabel">Progress</span><span id="rankBarPct">0%</span></div>
+            <div class="rank-bar"><div class="rank-fill" id="rankFill" style="width:0%;"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- REWARDS -->
+    <div class="card">
+      <div class="card-title">Rewards</div>
+      <div class="rewards-grid" id="rewardsGrid">
+        <div style="color:var(--text-muted);font-size:.85rem;">No rewards earned yet. Keep swapping to unlock badges.</div>
+      </div>
+    </div>
+
+    <!-- CREATOR SECTION (creator plan only) -->
+    <div id="creatorSection" style="display:none;">
+      <div class="card">
+        <div class="card-title">Creator Stats</div>
+        <div class="creator-stats-grid">
+          <div class="creator-stat"><div class="creator-val" id="cWebinarsHosted">0</div><div class="creator-lbl">Webinars Hosted</div></div>
+          <div class="creator-stat"><div class="creator-val" id="cTotalAttendees">0</div><div class="creator-lbl">Total Attendees</div></div>
+          <div class="creator-stat"><div class="creator-val" id="cTotalEarnings">$0</div><div class="creator-lbl">Total Earnings</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const{createClient}=supabase;
+const sb=createClient('https://vgndpvkywvcnezvjuueq.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZnbmRwdmt5d3ZjbmV6dmp1dWVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MDk5OTEsImV4cCI6MjA5MDA4NTk5MX0.GGwx_-W7pu485h3d6dgkhqSwiqxT3Hx02Ck9HW8nyE0');
+
+const cur=document.getElementById('ss-cursor'),ring=document.getElementById('ss-ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px';});
+document.querySelectorAll('a,button').forEach(el=>{el.addEventListener('mouseenter',()=>{ring.style.borderColor='rgba(139,92,246,0.6)';ring.style.width='44px';ring.style.height='44px';});el.addEventListener('mouseleave',()=>{ring.style.borderColor='rgba(255,255,255,0.5)';ring.style.width='34px';ring.style.height='34px';});});
+(function anim(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(anim);})();
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');}
+async function handleLogout(){await sb.auth.signOut();window.location.href='index.html';}
+
+const RANK_TITLES=['Beginner','Explorer','Learner','Contributor','Achiever','Expert','Master','Legend'];
+const REWARDS_DEFS=[
+  {key:'first_swap',name:'First Swap',desc:'Completed your first skill swap',threshold:1,field:'skills_taught_count'},
+  {key:'five_sessions',name:'Active Learner',desc:'Completed 5 sessions',threshold:5,field:'skills_learned_count'},
+  {key:'ten_hours',name:'Dedicated',desc:'Logged 10+ video hours',threshold:10,field:'total_video_minutes',divisor:60},
+  {key:'top_100',name:'Top 100',desc:'Reached global rank #100',threshold:100,field:'global_rank',invert:true},
+];
+
+function computeRewards(analytics){
+  return REWARDS_DEFS.filter(r=>{
+    const val=analytics[r.field]||0;
+    const effective=r.divisor?val/r.divisor:val;
+    return r.invert?(effective>0&&effective<=r.threshold):effective>=r.threshold;
+  });
+}
+
+async function loadCreatorStats(userId){
+  const{data:webinars,error}=await sb.from('webinars').select('id,attendee_count,earnings').eq('host_id',userId);
+  if(error){console.error('Creator stats error:',error);return;}
+  const total=webinars||[];
+  document.getElementById('cWebinarsHosted').textContent=total.length;
+  document.getElementById('cTotalAttendees').textContent=total.reduce((s,w)=>s+(w.attendee_count||0),0);
+  const earnings=total.reduce((s,w)=>s+(w.earnings||0),0);
+  document.getElementById('cTotalEarnings').textContent='$'+earnings.toFixed(2);
+}
+
+async function init(){
+  const{data:{session}}=await sb.auth.getSession();
+  if(!session){window.location.href='login.html';return;}
+  const userId=session.user.id;
+  const{data:profile,error:pErr}=await sb.from('profiles').select('*').eq('id',userId).single();
+  if(pErr)console.error('Profile error:',pErr);
+  const name=profile?.full_name||profile?.username||session.user.email.split('@')[0];
+  document.getElementById('sidebarName').textContent=name;
+  const avatarEl=document.getElementById('sidebarAvatar');
+  if(profile?.avatar_url){avatarEl.innerHTML=`<img src="${profile.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;}
+  else if(profile?.avatar_emoji){avatarEl.textContent=profile.avatar_emoji;}
+  else{avatarEl.textContent=name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);}
+
+  const plan=profile?.plan||'free';
+  if(plan==='free'){
+    document.getElementById('upgradeGate').style.display='block';
+    return;
+  }
+  document.getElementById('analyticsContent').style.display='block';
+
+  // Load from analytics table
+  const{data:analytics,error:aErr}=await sb.from('analytics').select('*').eq('user_id',userId).single();
+  if(aErr&&aErr.code!=='PGRST116')console.error('Analytics error:',aErr);
+
+  // Also compute from sessions for fallback
+  const{data:sessions}=await sb.from('sessions').select('duration_minutes,skill_taught,skill_learned').eq('user_id',userId);
+  const sessionArr=sessions||[];
+  const skillsTaught=analytics?.skills_taught_count||new Set(sessionArr.map(s=>s.skill_taught).filter(Boolean)).size;
+  const skillsLearned=analytics?.skills_learned_count||new Set(sessionArr.map(s=>s.skill_learned).filter(Boolean)).size;
+  const videoMins=analytics?.total_video_minutes||sessionArr.reduce((s,x)=>s+(x.duration_minutes||0),0);
+  const videoHours=(videoMins/60).toFixed(1);
+
+  // Webinars watched
+  const{count:webinarsWatched}=await sb.from('webinar_attendees').select('*',{count:'exact',head:true}).eq('user_id',userId);
+
+  document.getElementById('aSkillsTaught').textContent=skillsTaught||0;
+  document.getElementById('aSkillsLearned').textContent=skillsLearned||0;
+  document.getElementById('aVideoHours').textContent=videoHours;
+  document.getElementById('aWebinars').textContent=analytics?.webinars_watched||webinarsWatched||0;
+
+  // Global rank
+  const rank=analytics?.global_rank||profile?.rank||null;
+  if(rank){
+    document.getElementById('rankNum').textContent=rank;
+    const titleIdx=Math.min(Math.floor((1000-rank)/125),RANK_TITLES.length-1);
+    document.getElementById('rankTitle').textContent=RANK_TITLES[Math.max(0,titleIdx)];
+    document.getElementById('rankDesc').textContent=`You are in the top ${rank} globally on SkillSwap.`;
+    const pct=Math.max(5,Math.min(95,Math.round((1-(rank/1000))*100)));
+    document.getElementById('rankFill').style.width=pct+'%';
+    document.getElementById('rankBarPct').textContent=pct+'%';
+    document.getElementById('rankBarLabel').textContent='Global percentile';
+  } else {
+    document.getElementById('rankNum').textContent='—';
+    document.getElementById('rankTitle').textContent='Unranked';
+    document.getElementById('rankDesc').textContent='Complete more swaps to earn a global rank.';
+  }
+
+  // Rewards
+  const fakeAnalytics={
+    skills_taught_count:skillsTaught,
+    skills_learned_count:skillsLearned,
+    total_video_minutes:videoMins,
+    global_rank:rank
+  };
+  const earned=computeRewards(fakeAnalytics);
+  const rewardsGrid=document.getElementById('rewardsGrid');
+  if(earned.length){
+    rewardsGrid.innerHTML=earned.map(r=>`<div class="reward-badge">
+      <div class="reward-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+      <div><div class="reward-name">${r.name}</div><div class="reward-desc">${r.desc}</div></div>
+    </div>`).join('');
+  }
+
+  // Creator section
+  if(plan==='creator'){
+    document.getElementById('creatorSection').style.display='block';
+    await loadCreatorStats(userId);
+  }
+}
+
+init();
+</script>
+</body>
+</html>
