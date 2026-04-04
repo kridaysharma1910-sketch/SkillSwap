@@ -93,6 +93,15 @@ A skill-exchange web platform where users list skills they offer and skills they
 - Added `data.session` guard before `window.location.href = 'dashboard.html'` — Supabase v2 can return `{ session: null, error: null }` when email is unconfirmed; previously this caused a silent redirect loop back to login
 - All fixes committed and pushed to main (Vercel auto-deployed)
 
+### [Session 4 — 2026-04-04]
+- Redesigned `profile.html` to black/glass system: SVG sidebar icons, avatar photo upload (Supabase storage) + emoji picker, mobile-friendly "Add" button for skill tag inputs, saves to both `skills_offering`/`skills_wanting` and legacy `skills_offered`/`skills_wanted` columns, logout goes to index.html
+- Redesigned `pricing.html` to black/glass system: updated plan features (Free 7days/Pro unlimited+analytics/Creator+webinar hosting+earnings), Supabase plan update on click, billing toggle (20% off), FAQ accordion, plan button states reflect current plan
+- Redesigned `webinars.html` to black/glass system: real Supabase data, filter by live/upcoming/recorded, creator-gated host modal (free/paid toggle), attendee registration in webinar_attendees table, Jitsi join for live sessions
+- Redesigned `videocall.html` to black/glass system: session logging to `sessions` table on `endCall()` and `beforeunload`, live call timer, auto-start from URL `?match=` param, fixed match queries to use `sender_id`/`receiver_id`
+- Created `analytics.html`: new page gated to pro/creator, stats pulled from `sessions` + `analytics` tables, global rank with progress bar, rewards system (4 badges), creator section with webinar earnings
+- Updated all pages: SVG-only icons (no emojis in UI), consistent sidebar with analytics link shown/hidden by plan, logout goes to index.html
+- CLAUDE.md updated: pages status, known issues, session log
+
 ### [Session 3 — 2026-04-03]
 - Redesigned `login.html` UI: sticky navbar (Syne logo + white square), 2-column grid layout (social proof left / form right), cyan+violet orbs, animated badge, "Welcome back." solid + "Keep swapping." outline heading, 3 glass stat cards with hover glow, recent activity card (3 rows with avatars + colored tags), rotating globe canvas (R=125, bottom-right, opacity 0.5), white submit button (no purple), violet-glow input focus, custom "Remember me" checkbox, custom cursor (`#ss-cursor` / `#ss-ring`), all Supabase logic preserved unchanged
 - Fixed `dashboard.html` logout button: old button was a tiny `↪` icon in near-invisible muted color — replaced with full-width "↪ Sign out" button (red tint, border, always visible at bottom of sidebar); also fixed sidebar `height: 100vh` + `overflow-y: auto` so bottom of sidebar is never clipped
@@ -148,16 +157,18 @@ A skill-exchange web platform where users list skills they offer and skills they
 - index.html ✅ — full redesign done (hero, globe, marquee, skills tags, step cards, feature cards, CTA, footer)
 - signup.html ✅ — full redesign done (split layout, globe, glass cards, form inputs, skill tags, plan cards)
 - login.html ✅ — full redesign done (navbar, 2-col grid, social proof left panel, globe bottom-right, white button, custom cursor)
+- dashboard.html ✅ — real Supabase data, stats, matches, skills, analytics section, plan gating
+- discover.html ✅ — real Supabase users, match scoring, send match requests, filters
+- matches.html ✅ — pending/sent/active/completed tabs, accept/decline/complete, message + call buttons
+- messages.html ✅ — real-time chat, conversation list, Supabase subscriptions
+- profile.html ✅ — black/glass redesign, avatar photo upload + emoji picker, mobile Add button, save to skills_offering/wanting
+- pricing.html ✅ — black/glass redesign, updated Free/Pro/Creator features, Supabase plan update on selection
+- webinars.html ✅ — black/glass redesign, real Supabase data, filter by status, creator gating, attendee registration
+- videocall.html ✅ — black/glass redesign, session logging to sessions table, live call timer, auto-start from URL param
+- analytics.html ✅ — new page, pro/creator gate, stats from sessions + analytics tables, global rank, rewards, creator section
 
 ### Pages pending UI update
-- dashboard.html
-- profile.html
-- discover.html
-- matches.html
-- messages.html
-- video-call.html
-- pricing.html
-- webinars.html
+(none — all pages now use black/glass design system)
 
 ### Input Style (all pages)
 - background: rgba(255,255,255,0.04)
@@ -177,13 +188,13 @@ A skill-exchange web platform where users list skills they offer and skills they
 ---
 
 ## Known Issues / Next Steps
-- Payment integration (Lemon Squeezy / Paddle) not yet wired into `pricing.html` — `selectPlan()` shows a placeholder alert
-- `profiles` table may need `plan`, `location`, `website`, `hours_per_week`, `session_format`, `avatar_emoji`, `skills_offered`, `skills_wanted` columns confirmed in Supabase — verify schema matches what the pages expect
-- `webinars` table needs: `host_id`, `title`, `description`, `category`, `cover_emoji`, `scheduled_at`, `duration_minutes`, `max_attendees`, `jitsi_room`, `is_live`, `attendee_count`, `created_at`
-- `messages` table needs: `match_id`, `sender_id`, `content`, `created_at`
-- `matches` table needs: `user_a`, `user_b`, `status` (pending/accepted/declined/completed), `created_at`
+- Payment integration (Lemon Squeezy / Paddle) not yet wired — `selectPlan()` updates Supabase directly (no payment flow yet)
+- Run the SQL schema from session 4 task prompt in Supabase SQL editor to create all required tables and enable RLS
+- Storage bucket `avatars` must be created in Supabase dashboard for avatar uploads to work
 - Realtime must be enabled in Supabase dashboard for `messages` table (for live chat to work)
-- **Email confirmation must be DISABLED** in Supabase (Authentication → Providers → Email → "Confirm email" OFF) for signup→login flow to work without email verification step
+- **Email confirmation must be DISABLED** in Supabase (Authentication → Providers → Email → "Confirm email" OFF)
+- `profiles` uses both `skills_offering`/`skills_wanting` (new) and `skills_offered`/`skills_wanted` (legacy) — profile.html saves to both for backwards compatibility
+- videocall.html logs sessions on `endCall()` + `beforeunload`; `sendBeacon` to `/api/session-log` will 404 (expected) but sb.from insert still runs
 ```
 
 ---
