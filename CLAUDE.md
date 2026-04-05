@@ -124,6 +124,12 @@ A skill-exchange web platform where users list skills they offer and skills they
 - Updated matches.html (Issue 3): "Call" button replaced with "Start Call" button that creates Daily.co room via API POST, inserts `CALL_INVITE::{url}` message to partner, then redirects caller to `videocall.html?room={url}`
 - Daily.co API key stored in DAILY_API_KEY constant in matches.html and messages.html
 
+### [Session 7 — 2026-04-06]
+- Added Google OAuth sign-in to login.html and signup.html (both pages already had the button, divider, CSS, and `signInWithGoogle()` wired to `supabase.auth.signInWithOAuth`)
+- Fixed dashboard.html to auto-create a profile row for new Google OAuth users on first login: detects `PGRST116` (no row), upserts with `plan: 'free'`, empty skills arrays, and pulls `full_name` + `avatar_url` from Google user metadata
+- Google OAuth setup required in Supabase: Authentication → Providers → Google → enable + paste Client ID & Secret
+- Google Cloud Console redirect URI required: `https://vgndpvkywvcnezvjuueq.supabase.co/auth/v1/callback`
+
 ### [Session 6 — 2026-04-05]
 - Replaced Daily.co with custom WebRTC + Supabase Realtime signaling in videocall.html — zero third-party services, fully free
 - Signaling flow: Supabase channel `call-{roomId}` used for offer/answer/ICE candidate exchange via broadcast events; caller retries `ready` ping every 2s until callee responds
@@ -222,6 +228,7 @@ All 9 sidebar pages (dashboard, discover, matches, messages, profile, pricing, w
 - Storage bucket `avatars` must be created in Supabase dashboard for avatar uploads to work
 - Realtime must be enabled in Supabase dashboard for `messages` table (for live chat to work)
 - **Email confirmation must be DISABLED** in Supabase (Authentication → Providers → Email → "Confirm email" OFF)
+- ✅ Google OAuth enabled (session 7) — Supabase Google provider configured, dashboard.html auto-creates profile on first OAuth login
 - `profiles` uses both `skills_offering`/`skills_wanting` (new) and `skills_offered`/`skills_wanted` (legacy) — profile.html saves to both for backwards compatibility
 - videocall.html logs sessions on `endCall()` + `beforeunload` via Supabase insert (no sendBeacon)
 - WebRTC calls require Supabase Realtime broadcast to be enabled (it's on by default — no extra config needed)
