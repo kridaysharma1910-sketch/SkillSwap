@@ -2,16 +2,18 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>SkillSwap — Video Call</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#080808;--bg-card:rgba(255,255,255,0.03);--border:rgba(255,255,255,0.08);--border-hover:rgba(139,92,246,0.3);--text-muted:rgba(255,255,255,0.32);--sidebar-w:240px;}
 *{margin:0;padding:0;box-sizing:border-box;}
-body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;overflow:hidden;cursor:none;}
+body{background:#000;color:#fff;font-family:'DM Sans',sans-serif;height:100vh;display:flex;overflow:hidden;cursor:none;}
 #ss-cursor{position:fixed;width:10px;height:10px;background:#fff;border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);mix-blend-mode:difference;}
 #ss-ring{position:fixed;width:34px;height:34px;border:1px solid rgba(255,255,255,0.5);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:all .2s;}
-.sidebar{width:var(--sidebar-w);height:100vh;background:rgba(255,255,255,0.015);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:24px 14px;position:fixed;left:0;top:0;z-index:100;overflow-y:auto;}
+
+/* SIDEBAR */
+.sidebar{width:var(--sidebar-w);height:100vh;background:rgba(8,8,8,0.96);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:24px 14px;position:fixed;left:0;top:0;z-index:100;overflow-y:auto;}
 .sidebar-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.15rem;color:#fff;text-decoration:none;display:flex;align-items:center;gap:8px;margin-bottom:32px;padding-left:8px;}
 .logo-sq{width:9px;height:9px;background:#fff;border-radius:2px;flex-shrink:0;}
 .nav-section{font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,0.2);margin:18px 0 5px;padding-left:10px;}
@@ -27,29 +29,48 @@ body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;min-height
 .sidebar-logout-full{width:100%;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.14);border-radius:10px;color:rgba(239,68,68,0.7);font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:500;padding:9px 12px;cursor:none;display:flex;align-items:center;gap:8px;transition:all .2s;}
 .sidebar-logout-full:hover{background:rgba(239,68,68,0.12);border-color:rgba(239,68,68,0.28);color:#f87171;}
 .sidebar-logout-full svg{width:14px;height:14px;}
-.hamburger{display:none;position:fixed;top:14px;left:14px;z-index:200;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:10px;padding:8px;cursor:none;color:#fff;}
+.hamburger{display:none;position:fixed;top:14px;left:14px;z-index:201;background:rgba(0,0,0,0.7);border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:8px;cursor:none;color:#fff;backdrop-filter:blur(8px);}
 .sidebar-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);backdrop-filter:blur(4px);z-index:98;}
 .sidebar-overlay.show{display:block;}
 
-/* CALL AREA */
-.call-wrap{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden;}
+/* ── CALL STAGE ── */
+.call-stage{margin-left:var(--sidebar-w);flex:1;position:relative;background:#111;height:100vh;overflow:hidden;display:none;}
 
-/* TOP BAR */
-.call-bar{display:flex;align-items:center;gap:14px;padding:12px 20px;background:rgba(8,8,8,0.96);border-bottom:1px solid var(--border);flex-shrink:0;backdrop-filter:blur(12px);z-index:10;}
-.call-live-dot{width:7px;height:7px;background:#22c55e;border-radius:50%;flex-shrink:0;animation:blink 1s infinite;}
+/* Videos */
+#remoteVideo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#111;z-index:1;}
+#localVideo{position:absolute;bottom:88px;right:18px;width:130px;height:176px;object-fit:cover;border-radius:14px;border:2px solid rgba(255,255,255,0.18);z-index:5;background:#1a1a1a;cursor:none;}
+
+/* Waiting avatar (shown when remote stream not yet connected) */
+.waiting-bg{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:radial-gradient(ellipse at center,rgba(139,92,246,0.08) 0%,#000 70%);}
+.waiting-avatar{width:80px;height:80px;border-radius:50%;background:rgba(139,92,246,0.12);border:2px solid rgba(139,92,246,0.3);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:700;color:rgba(167,139,250,0.8);}
+.waiting-name{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;color:rgba(255,255,255,0.7);}
+.waiting-sub{font-size:.8rem;color:var(--text-muted);}
+
+/* Top HUD */
+.call-hud{position:absolute;top:0;left:0;right:0;z-index:10;padding:16px 20px;display:flex;align-items:center;gap:12px;background:linear-gradient(to bottom,rgba(0,0,0,0.55) 0%,transparent 100%);}
+.live-dot{width:7px;height:7px;background:#22c55e;border-radius:50%;flex-shrink:0;animation:blink 1s infinite;}
 @keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
-.call-room-label{font-family:'Syne',sans-serif;font-weight:700;font-size:.85rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:260px;}
-.call-status-text{font-size:.75rem;color:rgba(134,239,172,0.8);}
-.call-timer{font-size:.78rem;color:var(--text-muted);margin-left:2px;}
-.btn-end{margin-left:auto;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:#f87171;padding:8px 18px;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:500;cursor:none;transition:all .2s;display:flex;align-items:center;gap:6px;flex-shrink:0;}
-.btn-end:hover{background:rgba(239,68,68,0.28);color:#fff;}
-.btn-end svg{width:12px;height:12px;}
+.hud-room{font-family:'Syne',sans-serif;font-weight:700;font-size:.82rem;color:rgba(255,255,255,0.75);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.hud-timer{font-size:.78rem;color:rgba(255,255,255,0.45);margin-left:auto;}
 
-/* IFRAME */
-#call-frame{flex:1;width:100%;border:none;background:#000;}
+/* Status pill */
+.status-overlay{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9;pointer-events:none;transition:opacity .4s;}
+.status-overlay.hidden{opacity:0;}
+.status-pill{background:rgba(8,8,8,0.82);border:1px solid rgba(255,255,255,0.12);color:rgba(255,255,255,0.82);padding:9px 20px;border-radius:100px;font-size:.85rem;backdrop-filter:blur(16px);white-space:nowrap;}
 
-/* NO ROOM STATE */
-.no-room{margin-left:var(--sidebar-w);flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;padding:40px;}
+/* Controls */
+.call-controls{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);z-index:10;display:flex;gap:10px;background:rgba(0,0,0,0.55);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.1);border-radius:100px;padding:10px 14px;}
+.ctrl-btn{width:46px;height:46px;border-radius:50%;border:1px solid rgba(255,255,255,0.14);background:rgba(255,255,255,0.08);color:#fff;cursor:none;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;}
+.ctrl-btn:hover{background:rgba(255,255,255,0.18);border-color:rgba(255,255,255,0.25);}
+.ctrl-btn.muted{background:rgba(255,255,255,0.04);border-color:rgba(255,255,255,0.06);}
+.ctrl-btn.muted svg{opacity:.3;}
+.ctrl-end{background:rgba(239,68,68,0.2) !important;border-color:rgba(239,68,68,0.4) !important;width:52px !important;height:52px !important;}
+.ctrl-end:hover{background:rgba(239,68,68,0.45) !important;}
+.ctrl-btn svg{width:18px;height:18px;flex-shrink:0;}
+.ctrl-end svg{width:20px;height:20px;}
+
+/* ── NO ROOM STATE ── */
+.no-room{margin-left:var(--sidebar-w);flex:1;display:none;align-items:center;justify-content:center;flex-direction:column;gap:16px;padding:40px;background:var(--bg);}
 .no-room-icon{width:56px;height:56px;background:rgba(139,92,246,0.08);border:1px solid rgba(139,92,246,0.2);border-radius:16px;display:flex;align-items:center;justify-content:center;}
 .no-room-icon svg{width:24px;height:24px;color:rgba(167,139,250,0.6);}
 .no-room h2{font-family:'Syne',sans-serif;font-weight:700;font-size:1.2rem;text-align:center;}
@@ -61,10 +82,12 @@ body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;min-height
   .sidebar{transform:translateX(-100%);transition:transform .3s;background:#0e0e0e !important;border-right:1px solid rgba(255,255,255,0.1) !important;}
   .sidebar.open{transform:translateX(0);}
   .sidebar .nav-link{color:#fff;opacity:1;}
-  .call-wrap,.no-room{margin-left:0;}
+  .call-stage,.no-room{margin-left:0;}
   .hamburger{display:flex;}
-  .call-bar{padding:10px 14px;padding-left:56px;}
-  .call-room-label{max-width:120px;}
+  #localVideo{width:100px;height:136px;bottom:80px;right:12px;}
+  .call-controls{padding:8px 12px;gap:8px;bottom:16px;}
+  .ctrl-btn{width:42px;height:42px;}
+  .ctrl-end{width:48px !important;height:48px !important;}
 }
 </style>
 </head>
@@ -93,107 +116,364 @@ body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;min-height
   </div>
 </aside>
 
-<!-- CALL VIEW (shown when ?room= param exists) -->
-<div class="call-wrap" id="callWrap" style="display:none;flex-direction:column;">
-  <div class="call-bar">
-    <div class="call-live-dot"></div>
-    <div class="call-room-label" id="callRoomLabel">Live</div>
-    <div class="call-status-text">Live</div>
-    <span class="call-timer" id="callTimer">0:00</span>
-    <button class="btn-end" onclick="endCall()"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>End Call</button>
+<!-- ── CALL STAGE ── -->
+<div class="call-stage" id="callStage">
+  <!-- Remote video (fullscreen bg) -->
+  <video id="remoteVideo" autoplay playsinline></video>
+
+  <!-- Waiting / avatar shown before remote stream arrives -->
+  <div class="waiting-bg" id="waitingBg">
+    <div class="waiting-avatar" id="waitingAvatar">?</div>
+    <div class="waiting-name" id="waitingName">Waiting...</div>
+    <div class="waiting-sub" id="waitingSub">Connecting to your partner</div>
   </div>
-  <iframe id="call-frame" src="" allow="camera;microphone;fullscreen;display-capture;autoplay" allowfullscreen></iframe>
+
+  <!-- Local video (PiP bottom-right) -->
+  <video id="localVideo" autoplay playsinline muted></video>
+
+  <!-- Top HUD -->
+  <div class="call-hud">
+    <div class="live-dot" id="liveDot" style="background:#888;animation:none;"></div>
+    <span class="hud-room" id="hudRoom">Connecting...</span>
+    <span class="hud-timer" id="callTimer">0:00</span>
+  </div>
+
+  <!-- Status pill (centre overlay) -->
+  <div class="status-overlay" id="statusOverlay">
+    <div class="status-pill" id="statusPill">Waiting for partner...</div>
+  </div>
+
+  <!-- Controls -->
+  <div class="call-controls">
+    <button class="ctrl-btn" id="btnMic" onclick="toggleMic()" title="Mute mic">
+      <svg id="micIcon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+    </button>
+    <button class="ctrl-btn" id="btnCam" onclick="toggleCam()" title="Toggle camera">
+      <svg id="camIcon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+    </button>
+    <button class="ctrl-btn ctrl-end" onclick="endCall(true)" title="End call">
+      <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45c.98.37 2.05.58 3.14.58a2 2 0 0 1 2 2v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.42 19.42 0 0 1 3.59 12a19.79 19.79 0 0 1-3.07-8.68A2 2 0 0 1 2.5 1.17h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L6.5 9.07a16 16 0 0 0 4.18 4.24z" transform="rotate(135 12 12)"/></svg>
+    </button>
+  </div>
 </div>
 
-<!-- NO ROOM STATE (shown when no ?room= param) -->
+<!-- ── NO ROOM STATE ── -->
 <div class="no-room" id="noRoomState">
   <div class="no-room-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></div>
   <h2>No call in progress</h2>
-  <p>Start a call from a match or join a call via the invite link your partner sent you in Messages.</p>
+  <p>Start a call from a match or click the "Join Call" button your partner sent you in Messages.</p>
   <a href="matches.html" class="btn-white"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Go to Matches</a>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const{createClient}=supabase;
-const sb=createClient('https://vgndpvkywvcnezvjuueq.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZnbmRwdmt5d3ZjbmV6dmp1dWVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MDk5OTEsImV4cCI6MjA5MDA4NTk5MX0.GGwx_-W7pu485h3d6dgkhqSwiqxT3Hx02Ck9HW8nyE0');
+const {createClient} = supabase;
+const sb = createClient(
+  'https://vgndpvkywvcnezvjuueq.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZnbmRwdmt5d3ZjbmV6dmp1dWVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MDk5OTEsImV4cCI6MjA5MDA4NTk5MX0.GGwx_-W7pu485h3d6dgkhqSwiqxT3Hx02Ck9HW8nyE0'
+);
 
-const cur=document.getElementById('ss-cursor'),ring=document.getElementById('ss-ring');
+// ── cursor ──
+const cur = document.getElementById('ss-cursor'), ring = document.getElementById('ss-ring');
 let mx=0,my=0,rx=0,ry=0;
-document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px';});
-document.querySelectorAll('a,button').forEach(el=>{el.addEventListener('mouseenter',()=>{ring.style.borderColor='rgba(139,92,246,0.6)';ring.style.width='44px';ring.style.height='44px';});el.addEventListener('mouseleave',()=>{ring.style.borderColor='rgba(255,255,255,0.5)';ring.style.width='34px';ring.style.height='34px';});});
+document.addEventListener('mousemove', e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px';});
+document.querySelectorAll('a,button').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{ring.style.borderColor='rgba(139,92,246,0.6)';ring.style.width='44px';ring.style.height='44px';});
+  el.addEventListener('mouseleave',()=>{ring.style.borderColor='rgba(255,255,255,0.5)';ring.style.width='34px';ring.style.height='34px';});
+});
 (function anim(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(anim);})();
 function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebar-overlay').classList.toggle('show');}
 async function handleLogout(){await sb.auth.signOut();window.location.href='index.html';}
 
-let currentUserId=null,callStartTime=null,callTimerInterval=null;
+// ── WebRTC config ──
+const ICE_SERVERS = [
+  {urls:'stun:stun.l.google.com:19302'},
+  {urls:'stun:stun1.l.google.com:19302'}
+];
 
-async function endCall(){
+// ── State ──
+let currentUserId = null;
+let roomId = null, matchId = null, isCaller = false;
+let pc = null, localStream = null, signalChannel = null;
+let iceCandidateQueue = [];
+let remoteDescSet = false;
+let offerSent = false;
+let readyInterval = null;
+let micMuted = false, camOff = false;
+let callStartTime = null, callTimerInterval = null;
+let callActive = false;
+
+// ── Helpers ──
+function setStatus(text, autohide) {
+  const overlay = document.getElementById('statusOverlay');
+  document.getElementById('statusPill').textContent = text;
+  overlay.classList.remove('hidden');
+  if (autohide) setTimeout(() => overlay.classList.add('hidden'), autohide);
+}
+function hideStatus() { document.getElementById('statusOverlay').classList.add('hidden'); }
+
+function startTimer() {
+  callStartTime = Date.now();
   clearInterval(callTimerInterval);
-  const durationMinutes=callStartTime?Math.max(1,Math.floor((Date.now()-callStartTime)/60000)):1;
-  document.getElementById('call-frame').src='';
-  // Log session
-  if(currentUserId){
-    const{error}=await sb.from('sessions').insert({user_id:currentUserId,duration_minutes:durationMinutes});
-    if(error)console.error('Session log error:',error);
-  }
-  callStartTime=null;
-  window.location.href='matches.html';
+  callTimerInterval = setInterval(() => {
+    const sec = Math.floor((Date.now() - callStartTime) / 1000);
+    const m = Math.floor(sec/60), s = sec%60;
+    document.getElementById('callTimer').textContent = m + ':' + (s<10?'0':'') + s;
+  }, 1000);
 }
 
-window.addEventListener('beforeunload',()=>{
-  if(callStartTime&&currentUserId){
-    const durationMinutes=Math.max(1,Math.floor((Date.now()-callStartTime)/60000));
-    sb.from('sessions').insert({user_id:currentUserId,duration_minutes:durationMinutes});
+async function drainIceCandidates() {
+  for (const c of iceCandidateQueue) {
+    try { await pc.addIceCandidate(c); } catch(e) { console.error('ICE drain error:', e); }
+  }
+  iceCandidateQueue = [];
+}
+
+// ── Controls ──
+function toggleMic() {
+  micMuted = !micMuted;
+  if (localStream) localStream.getAudioTracks().forEach(t => { t.enabled = !micMuted; });
+  document.getElementById('btnMic').classList.toggle('muted', micMuted);
+}
+
+function toggleCam() {
+  camOff = !camOff;
+  if (localStream) localStream.getVideoTracks().forEach(t => { t.enabled = !camOff; });
+  document.getElementById('btnCam').classList.toggle('muted', camOff);
+}
+
+// ── End Call ──
+async function endCall(sendHangup) {
+  callActive = false;
+  clearInterval(callTimerInterval);
+  clearInterval(readyInterval);
+
+  if (sendHangup && signalChannel) {
+    try { signalChannel.send({type:'broadcast', event:'hangup', payload:{}}); } catch(e) {}
+  }
+  if (signalChannel) { try { sb.removeChannel(signalChannel); } catch(e) {} signalChannel = null; }
+  if (pc) { try { pc.close(); } catch(e) {} pc = null; }
+  if (localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; }
+
+  // Log session to Supabase
+  if (currentUserId && callStartTime) {
+    const durationMinutes = Math.max(1, Math.floor((Date.now() - callStartTime) / 60000));
+    const data = {user_id: currentUserId, duration_minutes: durationMinutes};
+    if (matchId) data.match_id = matchId;
+    const {error} = await sb.from('sessions').insert(data);
+    if (error) console.error('Session log error:', error);
+  }
+  callStartTime = null;
+  window.location.href = 'matches.html';
+}
+
+window.addEventListener('beforeunload', () => {
+  if (callActive && callStartTime && currentUserId) {
+    const d = Math.max(1, Math.floor((Date.now()-callStartTime)/60000));
+    const data = {user_id: currentUserId, duration_minutes: d};
+    if (matchId) data.match_id = matchId;
+    sb.from('sessions').insert(data);
+  }
+  if (signalChannel && callActive) {
+    try { signalChannel.send({type:'broadcast', event:'hangup', payload:{}}); } catch(e) {}
   }
 });
 
-async function init(){
-  const{data:{session}}=await sb.auth.getSession();
-  if(!session){window.location.href='login.html';return;}
-  currentUserId=session.user.id;
-  const{data:profile,error:pErr}=await sb.from('profiles').select('full_name,username,avatar_url,avatar_emoji,plan').eq('id',currentUserId).single();
-  if(pErr)console.error('Profile error:',pErr);
-  const name=profile?.full_name||profile?.username||session.user.email.split('@')[0];
-  document.getElementById('sidebarName').textContent=name;
-  const avatarEl=document.getElementById('sidebarAvatar');
-  if(profile?.avatar_url){avatarEl.innerHTML=`<img src="${profile.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;}
-  else if(profile?.avatar_emoji){avatarEl.textContent=profile.avatar_emoji;}
-  else{avatarEl.textContent=name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);}
-  if(profile?.plan==='pro'||profile?.plan==='creator'){document.getElementById('analyticsNavLink').style.display='flex';}
+// ── WebRTC ──
+async function initWebRTC() {
+  // Get local media
+  try {
+    localStream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
+  } catch(e) {
+    console.error('getUserMedia error:', e);
+    try {
+      localStream = await navigator.mediaDevices.getUserMedia({video: false, audio: true});
+      setStatus('Camera unavailable — audio only');
+    } catch(e2) {
+      console.error('Audio-only getUserMedia error:', e2);
+      setStatus('Camera & mic access denied. Check browser permissions.');
+      return;
+    }
+  }
+  document.getElementById('localVideo').srcObject = localStream;
 
-  // Read ?room= param
-  const params=new URLSearchParams(window.location.search);
-  const roomUrl=params.get('room');
+  // Create peer connection
+  pc = new RTCPeerConnection({iceServers: ICE_SERVERS});
+  localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
 
-  if(!roomUrl){
-    document.getElementById('noRoomState').style.display='flex';
+  // Remote track → show video, hide waiting bg
+  pc.ontrack = (e) => {
+    const remoteVid = document.getElementById('remoteVideo');
+    if (!remoteVid.srcObject) {
+      remoteVid.srcObject = e.streams[0];
+      document.getElementById('waitingBg').style.display = 'none';
+      const dot = document.getElementById('liveDot');
+      dot.style.background = '#22c55e';
+      dot.style.animation = 'blink 1s infinite';
+      document.getElementById('hudRoom').textContent = roomId;
+      setStatus('Connected!', 2500);
+      if (!callStartTime) startTimer();
+    }
+  };
+
+  // ICE candidate to send
+  pc.onicecandidate = ({candidate}) => {
+    if (candidate && signalChannel) {
+      signalChannel.send({type:'broadcast', event:'ice', payload:{candidate: candidate.toJSON()}});
+    }
+  };
+
+  // Connection state
+  pc.onconnectionstatechange = () => {
+    console.log('PC state:', pc.connectionState);
+    if (pc.connectionState === 'connected') {
+      document.getElementById('waitingBg').style.display = 'none';
+      setStatus('Connected!', 2000);
+      if (!callStartTime) startTimer();
+    }
+    if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed') {
+      setStatus('Partner disconnected');
+    }
+  };
+
+  // ── Supabase Realtime signaling ──
+  signalChannel = sb.channel(`call-${roomId}`, {config: {broadcast: {self: false}}});
+
+  // Offer (callee receives)
+  signalChannel.on('broadcast', {event:'offer'}, async ({payload}) => {
+    if (isCaller) return;
+    try {
+      await pc.setRemoteDescription(new RTCSessionDescription(payload.sdp));
+      remoteDescSet = true;
+      await drainIceCandidates();
+      const answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
+      signalChannel.send({type:'broadcast', event:'answer', payload:{sdp: answer}});
+      setStatus('Connecting...', 0);
+    } catch(e) { console.error('Handle offer error:', e); }
+  });
+
+  // Answer (caller receives)
+  signalChannel.on('broadcast', {event:'answer'}, async ({payload}) => {
+    if (!isCaller) return;
+    try {
+      await pc.setRemoteDescription(new RTCSessionDescription(payload.sdp));
+      remoteDescSet = true;
+      await drainIceCandidates();
+    } catch(e) { console.error('Handle answer error:', e); }
+  });
+
+  // ICE candidates
+  signalChannel.on('broadcast', {event:'ice'}, async ({payload}) => {
+    if (!payload.candidate) return;
+    const candidate = new RTCIceCandidate(payload.candidate);
+    if (remoteDescSet && pc) {
+      try { await pc.addIceCandidate(candidate); } catch(e) { console.error('Add ICE error:', e); }
+    } else {
+      iceCandidateQueue.push(candidate);
+    }
+  });
+
+  // Ready — callee tells caller it joined → caller creates offer
+  signalChannel.on('broadcast', {event:'ready'}, async ({payload}) => {
+    if (isCaller && !offerSent) {
+      offerSent = true;
+      clearInterval(readyInterval);
+      setStatus('Partner joined. Connecting...', 0);
+      try {
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+        signalChannel.send({type:'broadcast', event:'offer', payload:{sdp: offer}});
+      } catch(e) { console.error('Create offer error:', e); offerSent = false; }
+    }
+    // Callee: echo ready back so caller can react even if order was reversed
+    if (!isCaller && payload && payload.role === 'caller') {
+      signalChannel.send({type:'broadcast', event:'ready', payload:{role:'callee'}});
+    }
+  });
+
+  // Hangup
+  signalChannel.on('broadcast', {event:'hangup'}, () => {
+    setStatus('Partner ended the call');
+    setTimeout(() => endCall(false), 1800);
+  });
+
+  // Subscribe → then broadcast presence
+  signalChannel.subscribe((status) => {
+    console.log('Signal channel status:', status);
+    if (status !== 'SUBSCRIBED') return;
+
+    if (isCaller) {
+      // Send ready signal to callee, retry every 2s until offer is sent
+      signalChannel.send({type:'broadcast', event:'ready', payload:{role:'caller'}});
+      readyInterval = setInterval(() => {
+        if (!offerSent && signalChannel) {
+          signalChannel.send({type:'broadcast', event:'ready', payload:{role:'caller'}});
+        } else {
+          clearInterval(readyInterval);
+        }
+      }, 2000);
+    } else {
+      // Callee: announce presence (triggers caller to create offer)
+      signalChannel.send({type:'broadcast', event:'ready', payload:{role:'callee'}});
+    }
+  });
+}
+
+// ── Init ──
+async function init() {
+  const {data:{session}} = await sb.auth.getSession();
+  if (!session) {window.location.href='login.html'; return;}
+  currentUserId = session.user.id;
+
+  const {data:profile, error:pErr} = await sb.from('profiles')
+    .select('full_name,username,avatar_url,avatar_emoji,plan').eq('id', currentUserId).single();
+  if (pErr) console.error('Profile error:', pErr);
+  const myName = profile?.full_name || profile?.username || session.user.email.split('@')[0];
+  document.getElementById('sidebarName').textContent = myName;
+  const avatarEl = document.getElementById('sidebarAvatar');
+  if (profile?.avatar_url) avatarEl.innerHTML = `<img src="${profile.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+  else if (profile?.avatar_emoji) avatarEl.textContent = profile.avatar_emoji;
+  else avatarEl.textContent = myName.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+  if (profile?.plan==='pro'||profile?.plan==='creator') document.getElementById('analyticsNavLink').style.display='flex';
+
+  const params = new URLSearchParams(window.location.search);
+  roomId = params.get('room');
+  matchId = params.get('match') || null;
+  isCaller = params.get('caller') === '1';
+
+  if (!roomId) {
+    document.getElementById('noRoomState').style.display = 'flex';
     return;
   }
 
-  // Load call view
-  document.getElementById('noRoomState').style.display='none';
-  const callWrap=document.getElementById('callWrap');
-  callWrap.style.display='flex';
+  // Show call stage
+  document.getElementById('callStage').style.display = 'block';
+  callActive = true;
 
-  // Set room label to domain/room-name portion only
-  try{
-    const u=new URL(roomUrl);
-    document.getElementById('callRoomLabel').textContent=u.hostname+u.pathname;
-  }catch{
-    document.getElementById('callRoomLabel').textContent='Live Call';
+  // Show partner name if match param exists
+  if (matchId) {
+    const {data:matchData} = await sb.from('matches')
+      .select(`sender:profiles!matches_sender_id_fkey(full_name,username,avatar_url,avatar_emoji), receiver:profiles!matches_receiver_id_fkey(full_name,username,avatar_url,avatar_emoji)`)
+      .eq('id', matchId).single();
+    if (matchData) {
+      const peer = matchData.sender?.id === currentUserId ? matchData.receiver : (
+        // figure out which side is the peer
+        matchData.sender
+      );
+      // Safer: use the one that isn't us
+      const senderIsMe = isCaller; // caller is sender
+      const peerData = senderIsMe ? matchData.receiver : matchData.sender;
+      if (peerData) {
+        const peerName = peerData.full_name || peerData.username || 'Partner';
+        document.getElementById('waitingName').textContent = peerName;
+        document.getElementById('waitingAvatar').textContent = peerName.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+        document.getElementById('waitingSub').textContent = isCaller ? 'Waiting for them to join...' : 'Connecting...';
+      }
+    }
   }
 
-  // Load Daily prebuilt iframe
-  document.getElementById('call-frame').src=roomUrl;
-
-  // Start timer
-  callStartTime=Date.now();
-  callTimerInterval=setInterval(()=>{
-    const sec=Math.floor((Date.now()-callStartTime)/1000);
-    const m=Math.floor(sec/60),s=sec%60;
-    document.getElementById('callTimer').textContent=m+':'+(s<10?'0':'')+s;
-  },1000);
+  await initWebRTC();
 }
 
 init();

@@ -122,7 +122,16 @@ A skill-exchange web platform where users list skills they offer and skills they
 - Fixed messages.html (Issue 2): added 3-second polling fallback (`setInterval` every 3s calls `loadMessages`), re-fetch after `sendMessage` insert, `console.error` on every Supabase error, never crashes on null data, CALL_INVITE:: messages render as "Join Call" button linking to `videocall.html?room=`, video call button now creates a Daily.co room and sends CALL_INVITE message
 - Replaced Jitsi with Daily.co on videocall.html (Issue 3): complete rewrite — reads `?room=` URL param, loads Daily Prebuilt iframe fullscreen, shows "No call in progress" state if no room param, keeps call timer + session logging to `sessions` table on end/unload, sidebar fixed mobile
 - Updated matches.html (Issue 3): "Call" button replaced with "Start Call" button that creates Daily.co room via API POST, inserts `CALL_INVITE::{url}` message to partner, then redirects caller to `videocall.html?room={url}`
-- Daily.co domain: skillswaphq.daily.co, API key stored in DAILY_API_KEY constant in matches.html and messages.html
+- Daily.co API key stored in DAILY_API_KEY constant in matches.html and messages.html
+
+### [Session 6 — 2026-04-05]
+- Replaced Daily.co with custom WebRTC + Supabase Realtime signaling in videocall.html — zero third-party services, fully free
+- Signaling flow: Supabase channel `call-{roomId}` used for offer/answer/ICE candidate exchange via broadcast events; caller retries `ready` ping every 2s until callee responds
+- Room ID is a random alphanumeric string (genRoomId); stored in messages table as `CALL_INVITE::{roomId}`, callee joins via `?room={roomId}&match={matchId}`, caller passes `&caller=1`
+- STUN servers: stun.l.google.com:19302 + stun1.l.google.com:19302 (free, no auth)
+- videocall.html UI: remote video fullscreen bg, local video PiP bottom-right, glass control bar (mute/cam/end), live dot + timer in top HUD, waiting avatar while connecting, status pill overlay, partner disconnected detection
+- Updated matches.html: `startDailyCall` → `startWebRTCCall` (generates roomId, inserts CALL_INVITE message, redirects with caller=1)
+- Updated messages.html: `startCallFromMessages` uses genRoomId, `bubbleContent` passes matchId + caller param to join links
 
 ## UI Design System (Updated)
 
@@ -208,8 +217,8 @@ A skill-exchange web platform where users list skills they offer and skills they
 - **Email confirmation must be DISABLED** in Supabase (Authentication → Providers → Email → "Confirm email" OFF)
 - `profiles` uses both `skills_offering`/`skills_wanting` (new) and `skills_offered`/`skills_wanted` (legacy) — profile.html saves to both for backwards compatibility
 - videocall.html logs sessions on `endCall()` + `beforeunload` via Supabase insert (no sendBeacon)
-- Daily.co rooms expire after 1 hour (exp: +3600) — callers get a fresh room each time "Start Call" is clicked
-- Daily.co API key is hardcoded in matches.html and messages.html — move to env var if the project ever gets a backend
+- WebRTC calls require Supabase Realtime broadcast to be enabled (it's on by default — no extra config needed)
+- STUN servers are Google's free public servers; for NAT traversal behind strict firewalls, a TURN server would be needed (not implemented — free TURN servers are unreliable)
 
 ---
 

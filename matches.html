@@ -145,27 +145,15 @@ document.querySelectorAll('a,button').forEach(el=>{el.addEventListener('mouseent
 function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebar-overlay').classList.toggle('show');}
 async function handleLogout(){await sb.auth.signOut();window.location.href='index.html';}
 
-const DAILY_API_KEY='27c0e540bd0a75fd0ba2127860ce4d3c7a05170563725ce4eb606c0655ca225b';
+function genRoomId(){return Math.random().toString(36).slice(2,9)+Math.random().toString(36).slice(2,9);}
 
-async function startDailyCall(matchId,partnerId){
+async function startWebRTCCall(matchId,partnerId){
   const btn=document.getElementById('call-btn-'+matchId);
-  if(btn){btn.textContent='Creating...';btn.disabled=true;}
-  try{
-    const res=await fetch('https://api.daily.co/v1/rooms',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+DAILY_API_KEY},
-      body:JSON.stringify({properties:{exp:Math.round(Date.now()/1000)+3600}})
-    });
-    const room=await res.json();
-    if(!room.url)throw new Error('No room URL returned: '+JSON.stringify(room));
-    const{error}=await sb.from('messages').insert({match_id:matchId,sender_id:currentUserId,content:'CALL_INVITE::'+room.url});
-    if(error)console.error('CALL_INVITE insert error:',error);
-    window.location.href='videocall.html?room='+encodeURIComponent(room.url);
-  }catch(e){
-    console.error('Start call error:',e);
-    showToast('Failed to start call: '+e.message);
-    if(btn){btn.textContent='Start Call';btn.disabled=false;}
-  }
+  if(btn){btn.textContent='Starting...';btn.disabled=true;}
+  const roomId=genRoomId();
+  const{error}=await sb.from('messages').insert({match_id:matchId,sender_id:currentUserId,content:'CALL_INVITE::'+roomId});
+  if(error){console.error('CALL_INVITE insert error:',error);showToast('Error sending call invite');if(btn){btn.textContent='Start Call';btn.disabled=false;}return;}
+  window.location.href='videocall.html?room='+encodeURIComponent(roomId)+'&match='+matchId+'&caller=1';
 }
 
 function showToast(msg){const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>{t.style.opacity='0';setTimeout(()=>t.remove(),300);},3000);}
@@ -210,7 +198,7 @@ function renderTab(tab){
       actionsHtml=`<button class="btn-accept" onclick="respond('${m.id}','accepted')">Accept</button><button class="btn-decline" onclick="respond('${m.id}','rejected')">Decline</button>`;
     } else if(tab==='active'){
       const peerId=m.sender_id===currentUserId?m.receiver_id:m.sender_id;
-      actionsHtml=`<a href="messages.html?match=${m.id}" class="btn-action"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Message</a><button class="btn-action" id="call-btn-${m.id}" onclick="startDailyCall('${m.id}','${peerId}')"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>Start Call</button><button class="btn-action" onclick="complete('${m.id}')">Mark Done</button>`;
+      actionsHtml=`<a href="messages.html?match=${m.id}" class="btn-action"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Message</a><button class="btn-action" id="call-btn-${m.id}" onclick="startWebRTCCall('${m.id}','${peerId}')"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>Start Call</button><button class="btn-action" onclick="complete('${m.id}')">Mark Done</button>`;
     }
     return`<div class="match-card" style="animation-delay:${i*.04}s">
       <div class="match-avatar">${avatarHtml(peer)}</div>

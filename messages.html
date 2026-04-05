@@ -176,7 +176,7 @@ document.querySelectorAll('a,button').forEach(el=>{el.addEventListener('mouseent
 function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebar-overlay').classList.toggle('show');}
 async function handleLogout(){await sb.auth.signOut();window.location.href='index.html';}
 
-const DAILY_API_KEY='27c0e540bd0a75fd0ba2127860ce4d3c7a05170563725ce4eb606c0655ca225b';
+function genRoomId(){return Math.random().toString(36).slice(2,9)+Math.random().toString(36).slice(2,9);}
 let currentUserId=null,currentMatchId=null,conversations=[],realtimeSub=null,pollInterval=null;
 
 function avatarHtml(p){
@@ -253,13 +253,17 @@ async function loadMessages(matchId){
   renderMessages(data||[]);
 }
 
-function bubbleContent(content,isMine){
+function bubbleContent(content,isMine,matchId){
   if(content&&content.startsWith('CALL_INVITE::')){
-    const url=content.replace('CALL_INVITE::','');
+    const roomId=content.replace('CALL_INVITE::','');
     const label=isMine?'You started a video call':'Video call invite';
+    // Sender (isMine) rejoins as caller=1; receiver joins as callee (no param)
+    const roleParam=isMine?'&caller=1':'';
+    const matchParam=matchId?'&match='+matchId:'';
+    const href=`videocall.html?room=${encodeURIComponent(roomId)}${matchParam}${roleParam}`;
     return`<div style="display:flex;flex-direction:column;gap:8px;">
       <span style="font-size:.8rem;opacity:.7;">${label}</span>
-      <a href="videocall.html?room=${encodeURIComponent(url)}" style="display:inline-flex;align-items:center;gap:6px;background:#fff;color:#080808;padding:8px 14px;border-radius:9px;font-family:'Syne',sans-serif;font-size:.8rem;font-weight:700;text-decoration:none;width:fit-content;">
+      <a href="${href}" style="display:inline-flex;align-items:center;gap:6px;background:#fff;color:#080808;padding:8px 14px;border-radius:9px;font-family:'Syne',sans-serif;font-size:.8rem;font-weight:700;text-decoration:none;width:fit-content;">
         <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
         Join Call
       </a>
@@ -284,7 +288,7 @@ function renderMessages(msgs){
     html+=`<div class="msg-row${isMine?' mine':''}">
       <div class="msg-av">${av}</div>
       <div>
-        <div class="msg-bubble">${bubbleContent(msg.content,isMine)}</div>
+        <div class="msg-bubble">${bubbleContent(msg.content,isMine,currentMatchId)}</div>
         <div class="msg-time">${t}</div>
       </div>
     </div>`;
@@ -301,7 +305,7 @@ function appendMessage(msg){
   const div=document.createElement('div');
   div.className=`msg-row${isMine?' mine':''}`;
   div.style.animation='fadeUp .25s ease';
-  div.innerHTML=`<div class="msg-av">${av}</div><div><div class="msg-bubble">${bubbleContent(msg.content,isMine)}</div><div class="msg-time">${t}</div></div>`;
+  div.innerHTML=`<div class="msg-av">${av}</div><div><div class="msg-bubble">${bubbleContent(msg.content,isMine,currentMatchId)}</div><div class="msg-time">${t}</div></div>`;
   area.appendChild(div);
   area.scrollTop=area.scrollHeight;
 }
@@ -345,25 +349,13 @@ async function sendMessage(){
 }
 
 async function startCallFromMessages(){
-  if(!currentMatchId){return;}
+  if(!currentMatchId)return;
   const btn=document.getElementById('callBtn');
   if(btn){btn.style.opacity='.5';btn.style.pointerEvents='none';}
-  try{
-    const res=await fetch('https://api.daily.co/v1/rooms',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+DAILY_API_KEY},
-      body:JSON.stringify({properties:{exp:Math.round(Date.now()/1000)+3600}})
-    });
-    const room=await res.json();
-    if(!room.url)throw new Error('No room URL: '+JSON.stringify(room));
-    const{error}=await sb.from('messages').insert({match_id:currentMatchId,sender_id:currentUserId,content:'CALL_INVITE::'+room.url});
-    if(error)console.error('CALL_INVITE insert error:',error);
-    window.location.href='videocall.html?room='+encodeURIComponent(room.url);
-  }catch(e){
-    console.error('Start call from messages error:',e);
-    if(btn){btn.style.opacity='';btn.style.pointerEvents='';}
-    alert('Failed to start call: '+e.message);
-  }
+  const roomId=genRoomId();
+  const{error}=await sb.from('messages').insert({match_id:currentMatchId,sender_id:currentUserId,content:'CALL_INVITE::'+roomId});
+  if(error){console.error('CALL_INVITE insert error:',error);if(btn){btn.style.opacity='';btn.style.pointerEvents='';}return;}
+  window.location.href='videocall.html?room='+encodeURIComponent(roomId)+'&match='+currentMatchId+'&caller=1';
 }
 
 function onMsgKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();}}
