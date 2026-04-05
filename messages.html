@@ -29,6 +29,8 @@ body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;display:fl
 .sidebar-logout-full:hover{background:rgba(239,68,68,0.12);border-color:rgba(239,68,68,0.28);color:#f87171;}
 .sidebar-logout-full svg{width:14px;height:14px;}
 .hamburger{display:none;position:fixed;top:14px;left:14px;z-index:200;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:10px;padding:8px;cursor:none;color:#fff;}
+.sidebar-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);backdrop-filter:blur(4px);z-index:98;}
+.sidebar-overlay.show{display:block;}
 
 /* CHAT LAYOUT */
 .chat-layout{margin-left:var(--sidebar-w);flex:1;display:flex;height:100vh;overflow:hidden;}
@@ -95,12 +97,13 @@ body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;display:fl
 .no-chat p{font-size:.9rem;}
 
 @keyframes fadeUp{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
-@media(max-width:900px){.sidebar{transform:translateX(-100%);transition:transform .3s;}.sidebar.open{transform:translateX(0);}.chat-layout{margin-left:0;}.hamburger{display:flex;}}
+@media(max-width:900px){.sidebar{transform:translateX(-100%);transition:transform .3s;background:#0e0e0e !important;border-right:1px solid rgba(255,255,255,0.1) !important;}.sidebar.open{transform:translateX(0);}.sidebar .nav-link{color:#fff;opacity:1;}.chat-layout{margin-left:0;}.hamburger{display:flex;}}
 @media(max-width:660px){.convos-panel{width:100%;position:absolute;left:0;top:0;bottom:0;z-index:50;background:var(--bg);}.convos-panel.hidden{display:none;}.chat-panel{width:100%;}}
 </style>
 </head>
 <body>
 <div id="ss-cursor"></div><div id="ss-ring"></div>
+<div id="sidebar-overlay" onclick="toggleSidebar()"></div>
 <button class="hamburger" id="hamburger" onclick="toggleSidebar()"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
 
 <aside class="sidebar" id="sidebar">
@@ -148,7 +151,7 @@ body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;display:fl
           <div class="chat-peer-sub" id="chatPeerSub"></div>
         </div>
         <div class="chat-header-actions">
-          <a href="#" class="icon-btn" id="callBtn" title="Video call"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></a>
+          <button class="icon-btn" id="callBtn" title="Start video call" onclick="startCallFromMessages()"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></button>
         </div>
       </div>
       <div class="messages-area" id="messagesArea"></div>
@@ -170,12 +173,13 @@ let mx=0,my=0,rx=0,ry=0;
 document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px';});
 document.querySelectorAll('a,button').forEach(el=>{el.addEventListener('mouseenter',()=>{ring.style.borderColor='rgba(139,92,246,0.6)';ring.style.width='44px';ring.style.height='44px';});el.addEventListener('mouseleave',()=>{ring.style.borderColor='rgba(255,255,255,0.5)';ring.style.width='34px';ring.style.height='34px';});});
 (function anim(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(anim);})();
-function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');}
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebar-overlay').classList.toggle('show');}
 async function handleLogout(){await sb.auth.signOut();window.location.href='index.html';}
 
-let currentUserId=null,currentMatchId=null,conversations=[],realtimeSub=null;
+const DAILY_API_KEY='27c0e540bd0a75fd0ba2127860ce4d3c7a05170563725ce4eb606c0655ca225b';
+let currentUserId=null,currentMatchId=null,conversations=[],realtimeSub=null,pollInterval=null;
 
-function avatarHtml(p,size=40){
+function avatarHtml(p){
   if(p?.avatar_url)return`<img src="${p.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
   const n=p?.full_name||p?.username||'?';
   return n.split(' ').map(x=>x[0]).join('').toUpperCase().slice(0,2);
@@ -207,7 +211,10 @@ function renderConvosList(convos){
     const peer=c.sender_id===currentUserId?c.receiver:c.sender;
     const av=avatarHtml(peer);
     const name=peer?.full_name||peer?.username||'Skill Swapper';
-    const preview=c.last_msg?c.last_msg.slice(0,36)+(c.last_msg.length>36?'...':''):'No messages yet';
+    const lastMsg=c.last_msg||'';
+    const preview=lastMsg.startsWith('CALL_INVITE::')
+      ? '📹 Video call invite'
+      : lastMsg.slice(0,36)+(lastMsg.length>36?'...':'') || 'No messages yet';
     const t=c.last_ts?timeAgo(c.last_ts):'';
     const isActive=c.id===currentMatchId;
     return`<div class="convo-item${isActive?' active':''}" onclick="openConvo('${c.id}')">
@@ -227,15 +234,14 @@ async function openConvo(matchId){
   document.getElementById('chatPeerAvatar').innerHTML=avatarHtml(peer);
   document.getElementById('chatPeerName').textContent=name;
   document.getElementById('chatPeerSub').textContent=`${match.skill_offered||'?'} ↔ ${match.skill_wanted||'?'}`;
-  document.getElementById('callBtn').href=`videocall.html?match=${matchId}`;
   document.getElementById('noChatState').style.display='none';
   const chatActive=document.getElementById('chatActive');
   chatActive.style.display='flex';
   renderConvosList(conversations);
   await loadMessages(matchId);
   subscribeToMessages(matchId);
-  // Mark as read
-  await sb.from('messages').update({read:true}).eq('match_id',matchId).neq('sender_id',currentUserId);
+  startPolling(matchId);
+  await sb.from('messages').update({read:true}).eq('match_id',matchId).neq('sender_id',currentUserId).then(({error})=>{if(error)console.error('Mark read error:',error);});
 }
 
 async function loadMessages(matchId){
@@ -245,6 +251,21 @@ async function loadMessages(matchId){
     .order('created_at',{ascending:true});
   if(error){console.error('Load messages error:',error);return;}
   renderMessages(data||[]);
+}
+
+function bubbleContent(content,isMine){
+  if(content&&content.startsWith('CALL_INVITE::')){
+    const url=content.replace('CALL_INVITE::','');
+    const label=isMine?'You started a video call':'Video call invite';
+    return`<div style="display:flex;flex-direction:column;gap:8px;">
+      <span style="font-size:.8rem;opacity:.7;">${label}</span>
+      <a href="videocall.html?room=${encodeURIComponent(url)}" style="display:inline-flex;align-items:center;gap:6px;background:#fff;color:#080808;padding:8px 14px;border-radius:9px;font-family:'Syne',sans-serif;font-size:.8rem;font-weight:700;text-decoration:none;width:fit-content;">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+        Join Call
+      </a>
+    </div>`;
+  }
+  return content||'';
 }
 
 function renderMessages(msgs){
@@ -263,7 +284,7 @@ function renderMessages(msgs){
     html+=`<div class="msg-row${isMine?' mine':''}">
       <div class="msg-av">${av}</div>
       <div>
-        <div class="msg-bubble">${msg.content}</div>
+        <div class="msg-bubble">${bubbleContent(msg.content,isMine)}</div>
         <div class="msg-time">${t}</div>
       </div>
     </div>`;
@@ -280,7 +301,7 @@ function appendMessage(msg){
   const div=document.createElement('div');
   div.className=`msg-row${isMine?' mine':''}`;
   div.style.animation='fadeUp .25s ease';
-  div.innerHTML=`<div class="msg-av">${av}</div><div><div class="msg-bubble">${msg.content}</div><div class="msg-time">${t}</div></div>`;
+  div.innerHTML=`<div class="msg-av">${av}</div><div><div class="msg-bubble">${bubbleContent(msg.content,isMine)}</div><div class="msg-time">${t}</div></div>`;
   area.appendChild(div);
   area.scrollTop=area.scrollHeight;
 }
@@ -289,16 +310,27 @@ function subscribeToMessages(matchId){
   if(realtimeSub){sb.removeChannel(realtimeSub);}
   realtimeSub=sb.channel('messages-'+matchId)
     .on('postgres_changes',{event:'INSERT',schema:'public',table:'messages',filter:`match_id=eq.${matchId}`},async payload=>{
-      if(payload.new.match_id===currentMatchId){
-        // Fetch sender profile
-        const{data:sender}=await sb.from('profiles').select('full_name,avatar_url').eq('id',payload.new.sender_id).single();
-        appendMessage({...payload.new,sender});
-        if(payload.new.sender_id!==currentUserId){
-          await sb.from('messages').update({read:true}).eq('id',payload.new.id);
-        }
+      if(payload.new.match_id!==currentMatchId)return;
+      const{data:sender,error:sErr}=await sb.from('profiles').select('full_name,avatar_url').eq('id',payload.new.sender_id).single();
+      if(sErr)console.error('Fetch sender error:',sErr);
+      appendMessage({...payload.new,sender});
+      if(payload.new.sender_id!==currentUserId){
+        const{error}=await sb.from('messages').update({read:true}).eq('id',payload.new.id);
+        if(error)console.error('Mark read error:',error);
       }
     })
-    .subscribe();
+    .subscribe((status)=>{
+      if(status==='SUBSCRIBED')console.log('Realtime connected for match',matchId);
+      if(status==='CLOSED'||status==='CHANNEL_ERROR')console.error('Realtime issue:',status);
+    });
+}
+
+// 3-second polling fallback in case realtime isn't enabled
+function startPolling(matchId){
+  if(pollInterval)clearInterval(pollInterval);
+  pollInterval=setInterval(async()=>{
+    if(currentMatchId===matchId)await loadMessages(matchId);
+  },3000);
 }
 
 async function sendMessage(){
@@ -307,7 +339,31 @@ async function sendMessage(){
   if(!content||!currentMatchId)return;
   input.value='';input.style.height='auto';
   const{error}=await sb.from('messages').insert({match_id:currentMatchId,sender_id:currentUserId,content});
-  if(error)console.error('Send message error:',error);
+  if(error){console.error('Send message error:',error);return;}
+  // Re-fetch immediately as fallback (realtime may be delayed)
+  await loadMessages(currentMatchId);
+}
+
+async function startCallFromMessages(){
+  if(!currentMatchId){return;}
+  const btn=document.getElementById('callBtn');
+  if(btn){btn.style.opacity='.5';btn.style.pointerEvents='none';}
+  try{
+    const res=await fetch('https://api.daily.co/v1/rooms',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+DAILY_API_KEY},
+      body:JSON.stringify({properties:{exp:Math.round(Date.now()/1000)+3600}})
+    });
+    const room=await res.json();
+    if(!room.url)throw new Error('No room URL: '+JSON.stringify(room));
+    const{error}=await sb.from('messages').insert({match_id:currentMatchId,sender_id:currentUserId,content:'CALL_INVITE::'+room.url});
+    if(error)console.error('CALL_INVITE insert error:',error);
+    window.location.href='videocall.html?room='+encodeURIComponent(room.url);
+  }catch(e){
+    console.error('Start call from messages error:',e);
+    if(btn){btn.style.opacity='';btn.style.pointerEvents='';}
+    alert('Failed to start call: '+e.message);
+  }
 }
 
 function onMsgKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();}}
@@ -317,14 +373,14 @@ async function init(){
   const{data:{session}}=await sb.auth.getSession();
   if(!session){window.location.href='login.html';return;}
   currentUserId=session.user.id;
-  const{data:me}=await sb.from('profiles').select('full_name,username,avatar_url').eq('id',currentUserId).single();
+  const{data:me,error:meErr}=await sb.from('profiles').select('full_name,username,avatar_url').eq('id',currentUserId).single();
+  if(meErr)console.error('Profile load error:',meErr);
   const name=me?.full_name||me?.username||session.user.email.split('@')[0];
   document.getElementById('sidebarName').textContent=name;
   const avatarEl=document.getElementById('sidebarAvatar');
   if(me?.avatar_url){avatarEl.innerHTML=`<img src="${me.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;}
   else{avatarEl.textContent=name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);}
 
-  // Load accepted matches
   const{data:matches,error}=await sb.from('matches')
     .select(`*, sender:profiles!matches_sender_id_fkey(full_name,username,avatar_url), receiver:profiles!matches_receiver_id_fkey(full_name,username,avatar_url)`)
     .or(`sender_id.eq.${currentUserId},receiver_id.eq.${currentUserId}`)
@@ -332,21 +388,22 @@ async function init(){
     .order('updated_at',{ascending:false});
   if(error)console.error('Load convos error:',error);
 
-  // Load last message for each match
   const matchArr=matches||[];
   for(const m of matchArr){
-    const{data:lastMsg}=await sb.from('messages').select('content,created_at').eq('match_id',m.id).order('created_at',{ascending:false}).limit(1).maybeSingle();
+    const{data:lastMsg,error:lErr}=await sb.from('messages').select('content,created_at').eq('match_id',m.id).order('created_at',{ascending:false}).limit(1).maybeSingle();
+    if(lErr)console.error('Last msg error:',lErr);
     m.last_msg=lastMsg?.content||'';
     m.last_ts=lastMsg?.created_at||m.created_at;
   }
   conversations=matchArr;
   renderConvosList(conversations);
 
-  // Auto-open if match param in URL
   const params=new URLSearchParams(window.location.search);
   const matchParam=params.get('match');
-  if(matchParam&&conversations.find(c=>c.id===matchParam)){
-    openConvo(matchParam);
+  if(matchParam){
+    const found=conversations.find(c=>c.id===matchParam);
+    if(found)openConvo(matchParam);
+    else console.error('Match param not found in accepted matches:',matchParam);
   }
 }
 

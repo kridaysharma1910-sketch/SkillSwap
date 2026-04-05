@@ -19,11 +19,15 @@ A skill-exchange web platform where users list skills they offer and skills they
 
 ---
 
-## Supabase DB Tables
-- `profiles` — user profile data (skills offered, skills wanted, bio, etc.)
-- `matches` — match records between two users
-- `messages` — chat messages between matched users
-- `webinars` — webinar/session listings
+## Supabase DB Tables (all created and live as of session 4)
+- `profiles` — id, full_name, username, bio, location, website, avatar_url, avatar_emoji, plan, rating, rank, rewards[], skills_offering[], skills_wanting[], skills_offered[], skills_wanted[], hours_per_week, session_format, updated_at
+- `matches` — id, sender_id → profiles, receiver_id → profiles, status (pending/accepted/rejected/completed), skill_offered, skill_wanted, created_at, updated_at
+- `messages` — id, match_id → matches, sender_id → profiles, content, read, created_at
+- `sessions` — id, match_id → matches, user_id → profiles, partner_id → profiles, duration_minutes, skill_taught, skill_learned, completed_at
+- `webinars` — id, host_id → profiles, title, description, category, cover_emoji, jitsi_room, is_free, price, scheduled_at, duration_minutes, max_attendees, attendee_count, earnings, is_live, status, created_at
+- `webinar_attendees` — id, webinar_id → webinars, user_id → profiles, paid, amount_paid, joined_at
+- `analytics` — id, user_id → profiles (unique), skills_taught_count, skills_learned_count, total_video_minutes, webinars_watched, webinars_hosted, total_earnings, global_rank, updated_at
+- Storage bucket: `avatars` (public) — stores profile photos at `{user_id}/avatar.{ext}`
 
 ---
 
@@ -38,17 +42,18 @@ A skill-exchange web platform where users list skills they offer and skills they
 
 | Page | File | Status |
 |------|------|--------|
-| Landing | index.html | ✅ Frontend done, needs polish |
-| Sign Up | signup.html | ✅ Frontend done, Supabase auth working (creates profile) |
-| Login | login.html | ✅ UI redesigned + auth fixed — white button, globe, social proof panel, upsert fix |
-| Dashboard | dashboard.html | ✅ Frontend done, pulls real Supabase data |
-| Profile | profile.html | ✅ Done — avatar picker, tag input, live preview, Supabase upsert |
-| Discover | discover.html | ✅ Done — search, filters, match scoring, swap request sending |
-| Matches | matches.html | ✅ Done — pending/active/sent/completed tabs, accept/decline/complete |
-| Messages | messages.html | ✅ Done — real-time chat, conversation list, Supabase subscriptions |
-| Video Call | videocall.html | ✅ Done — Jitsi integration, match calling, room generator |
-| Pricing | pricing.html | ✅ Done — 3-tier plans, billing toggle, FAQ accordion |
-| Webinars | webinars.html | ✅ Done — live/upcoming/recorded, host modal, Jitsi join |
+| Landing | index.html | ✅ Done — hero, globe, marquee, full black/glass redesign |
+| Sign Up | signup.html | ✅ Done — Supabase auth, upsert profile, black/glass redesign |
+| Login | login.html | ✅ Done — auth fixed, social proof panel, globe, black/glass redesign |
+| Dashboard | dashboard.html | ✅ Done — real Supabase data, stats, plan gating, analytics section |
+| Profile | profile.html | ✅ Done — avatar upload + emoji, tag input, live preview, upsert |
+| Discover | discover.html | ✅ Done — real users, match scoring, send requests, filters |
+| Matches | matches.html | ✅ Done — 4 tabs, accept/decline/complete, message + call links |
+| Messages | messages.html | ✅ Done — real-time chat, Supabase subscriptions, URL auto-open |
+| Video Call | videocall.html | ✅ Done — Jitsi, session logging, call timer, URL ?match= param |
+| Pricing | pricing.html | ✅ Done — Free/Pro/Creator features, Supabase plan update, toggle |
+| Webinars | webinars.html | ✅ Done — real Supabase data, host modal, creator gating, register |
+| Analytics | analytics.html | ✅ Done — pro/creator gate, stats, rank, rewards, creator earnings |
 
 ---
 
@@ -93,15 +98,6 @@ A skill-exchange web platform where users list skills they offer and skills they
 - Added `data.session` guard before `window.location.href = 'dashboard.html'` — Supabase v2 can return `{ session: null, error: null }` when email is unconfirmed; previously this caused a silent redirect loop back to login
 - All fixes committed and pushed to main (Vercel auto-deployed)
 
-### [Session 4 — 2026-04-04]
-- Redesigned `profile.html` to black/glass system: SVG sidebar icons, avatar photo upload (Supabase storage) + emoji picker, mobile-friendly "Add" button for skill tag inputs, saves to both `skills_offering`/`skills_wanting` and legacy `skills_offered`/`skills_wanted` columns, logout goes to index.html
-- Redesigned `pricing.html` to black/glass system: updated plan features (Free 7days/Pro unlimited+analytics/Creator+webinar hosting+earnings), Supabase plan update on click, billing toggle (20% off), FAQ accordion, plan button states reflect current plan
-- Redesigned `webinars.html` to black/glass system: real Supabase data, filter by live/upcoming/recorded, creator-gated host modal (free/paid toggle), attendee registration in webinar_attendees table, Jitsi join for live sessions
-- Redesigned `videocall.html` to black/glass system: session logging to `sessions` table on `endCall()` and `beforeunload`, live call timer, auto-start from URL `?match=` param, fixed match queries to use `sender_id`/`receiver_id`
-- Created `analytics.html`: new page gated to pro/creator, stats pulled from `sessions` + `analytics` tables, global rank with progress bar, rewards system (4 badges), creator section with webinar earnings
-- Updated all pages: SVG-only icons (no emojis in UI), consistent sidebar with analytics link shown/hidden by plan, logout goes to index.html
-- CLAUDE.md updated: pages status, known issues, session log
-
 ### [Session 3 — 2026-04-03]
 - Redesigned `login.html` UI: sticky navbar (Syne logo + white square), 2-column grid layout (social proof left / form right), cyan+violet orbs, animated badge, "Welcome back." solid + "Keep swapping." outline heading, 3 glass stat cards with hover glow, recent activity card (3 rows with avatars + colored tags), rotating globe canvas (R=125, bottom-right, opacity 0.5), white submit button (no purple), violet-glow input focus, custom "Remember me" checkbox, custom cursor (`#ss-cursor` / `#ss-ring`), all Supabase logic preserved unchanged
 - Fixed `dashboard.html` logout button: old button was a tiny `↪` icon in near-invisible muted color — replaced with full-width "↪ Sign out" button (red tint, border, always visible at bottom of sidebar); also fixed sidebar `height: 100vh` + `overflow-y: auto` so bottom of sidebar is never clipped
@@ -110,6 +106,23 @@ A skill-exchange web platform where users list skills they offer and skills they
 - Fixed `login.html` auth bug: removed `if (!data.session)` block that was incorrectly blocking valid logins — replaced with `if (data.user)` redirect per Supabase v2 pattern
 - Added `console.log` on signup error, profile upsert error, and login error for easier debugging
 - Diagnosed persistent "Invalid login credentials" 400 error — root cause is Supabase **email confirmation enabled**: users sign up but cannot log in until they confirm their email. Fix: Supabase Dashboard → Authentication → Providers → Email → toggle "Confirm email" OFF
+
+### [Session 4 — 2026-04-04]
+- Redesigned `profile.html` to black/glass system: SVG sidebar icons, avatar photo upload (Supabase storage) + emoji picker, mobile-friendly "Add" button for skill tag inputs, saves to both `skills_offering`/`skills_wanting` and legacy `skills_offered`/`skills_wanted` columns, logout goes to index.html
+- Redesigned `pricing.html` to black/glass system: updated plan features (Free 7days/Pro unlimited+analytics/Creator+webinar hosting+earnings), Supabase plan update on click, billing toggle (20% off), FAQ accordion, plan button states reflect current plan
+- Redesigned `webinars.html` to black/glass system: real Supabase data, filter by live/upcoming/recorded, creator-gated host modal (free/paid toggle), attendee registration in webinar_attendees table, Jitsi join for live sessions
+- Redesigned `videocall.html` to black/glass system: session logging to `sessions` table on `endCall()` and `beforeunload`, live call timer, auto-start from URL `?match=` param, fixed match queries to use `sender_id`/`receiver_id`
+- Created `analytics.html`: new page gated to pro/creator, stats pulled from `sessions` + `analytics` tables, global rank with progress bar, rewards system (4 badges), creator section with webinar earnings
+- Updated all pages: SVG-only icons (no emojis in UI), consistent sidebar with analytics link shown/hidden by plan, logout goes to index.html
+- Ran full SQL schema in Supabase SQL editor — all tables created, RLS policies enabled, all tables live
+- CLAUDE.md updated: pages status, known issues, session log
+
+### [Session 5 — 2026-04-05]
+- Fixed mobile sidebar on ALL 9 pages (dashboard, discover, matches, messages, profile, pricing, webinars, videocall, analytics): added `#sidebar-overlay` div (rgba(0,0,0,0.85) + backdrop-filter:blur(4px), z-index:98), forced sidebar `background:#0e0e0e` on mobile, `.nav-link` color:#fff/opacity:1 in mobile media query, overlay toggles with sidebar open/close
+- Fixed messages.html (Issue 2): added 3-second polling fallback (`setInterval` every 3s calls `loadMessages`), re-fetch after `sendMessage` insert, `console.error` on every Supabase error, never crashes on null data, CALL_INVITE:: messages render as "Join Call" button linking to `videocall.html?room=`, video call button now creates a Daily.co room and sends CALL_INVITE message
+- Replaced Jitsi with Daily.co on videocall.html (Issue 3): complete rewrite — reads `?room=` URL param, loads Daily Prebuilt iframe fullscreen, shows "No call in progress" state if no room param, keeps call timer + session logging to `sessions` table on end/unload, sidebar fixed mobile
+- Updated matches.html (Issue 3): "Call" button replaced with "Start Call" button that creates Daily.co room via API POST, inserts `CALL_INVITE::{url}` message to partner, then redirects caller to `videocall.html?room={url}`
+- Daily.co domain: skillswaphq.daily.co, API key stored in DAILY_API_KEY constant in matches.html and messages.html
 
 ## UI Design System (Updated)
 
@@ -189,13 +202,14 @@ A skill-exchange web platform where users list skills they offer and skills they
 
 ## Known Issues / Next Steps
 - Payment integration (Lemon Squeezy / Paddle) not yet wired — `selectPlan()` updates Supabase directly (no payment flow yet)
-- Run the SQL schema from session 4 task prompt in Supabase SQL editor to create all required tables and enable RLS
+- ✅ SQL schema run in Supabase — all tables created, RLS enabled (done session 4)
 - Storage bucket `avatars` must be created in Supabase dashboard for avatar uploads to work
 - Realtime must be enabled in Supabase dashboard for `messages` table (for live chat to work)
 - **Email confirmation must be DISABLED** in Supabase (Authentication → Providers → Email → "Confirm email" OFF)
 - `profiles` uses both `skills_offering`/`skills_wanting` (new) and `skills_offered`/`skills_wanted` (legacy) — profile.html saves to both for backwards compatibility
-- videocall.html logs sessions on `endCall()` + `beforeunload`; `sendBeacon` to `/api/session-log` will 404 (expected) but sb.from insert still runs
-```
+- videocall.html logs sessions on `endCall()` + `beforeunload` via Supabase insert (no sendBeacon)
+- Daily.co rooms expire after 1 hour (exp: +3600) — callers get a fresh room each time "Start Call" is clicked
+- Daily.co API key is hardcoded in matches.html and messages.html — move to env var if the project ever gets a backend
 
 ---
 

@@ -28,6 +28,8 @@ body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;min-height
 .sidebar-logout-full:hover{background:rgba(239,68,68,0.12);border-color:rgba(239,68,68,0.28);color:#f87171;}
 .sidebar-logout-full svg{width:14px;height:14px;}
 .hamburger{display:none;position:fixed;top:14px;left:14px;z-index:200;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:10px;padding:8px;cursor:none;color:#fff;}
+.sidebar-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);backdrop-filter:blur(4px);z-index:98;}
+.sidebar-overlay.show{display:block;}
 .main{margin-left:var(--sidebar-w);flex:1;padding:40px 48px;min-height:100vh;}
 .page-header{margin-bottom:28px;}
 .page-title{font-family:'Syne',sans-serif;font-weight:800;font-size:1.9rem;letter-spacing:-.03em;}
@@ -76,11 +78,12 @@ body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;min-height
 .btn-white:hover{opacity:.88;}
 .toast{position:fixed;bottom:24px;right:24px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);color:#fff;padding:12px 20px;border-radius:12px;font-size:.85rem;z-index:9000;animation:fadeUp .3s ease;backdrop-filter:blur(12px);}
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
-@media(max-width:900px){.sidebar{transform:translateX(-100%);transition:transform .3s;}.sidebar.open{transform:translateX(0);}.main{margin-left:0;padding:24px 20px;padding-top:56px;}.hamburger{display:flex;}.match-card{flex-wrap:wrap;}.match-meta{width:100%;flex-direction:row;justify-content:space-between;align-items:center;}}
+@media(max-width:900px){.sidebar{transform:translateX(-100%);transition:transform .3s;background:#0e0e0e !important;border-right:1px solid rgba(255,255,255,0.1) !important;}.sidebar.open{transform:translateX(0);}.sidebar .nav-link{color:#fff;opacity:1;}.main{margin-left:0;padding:24px 20px;padding-top:56px;}.hamburger{display:flex;}.match-card{flex-wrap:wrap;}.match-meta{width:100%;flex-direction:row;justify-content:space-between;align-items:center;}}
 </style>
 </head>
 <body>
 <div id="ss-cursor"></div><div id="ss-ring"></div>
+<div id="sidebar-overlay" onclick="toggleSidebar()"></div>
 <button class="hamburger" id="hamburger" onclick="toggleSidebar()"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
 
 <aside class="sidebar" id="sidebar">
@@ -139,8 +142,31 @@ document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.le
 document.querySelectorAll('a,button').forEach(el=>{el.addEventListener('mouseenter',()=>{ring.style.borderColor='rgba(139,92,246,0.6)';ring.style.width='44px';ring.style.height='44px';});el.addEventListener('mouseleave',()=>{ring.style.borderColor='rgba(255,255,255,0.5)';ring.style.width='34px';ring.style.height='34px';});});
 (function anim(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(anim);})();
 
-function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');}
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebar-overlay').classList.toggle('show');}
 async function handleLogout(){await sb.auth.signOut();window.location.href='index.html';}
+
+const DAILY_API_KEY='27c0e540bd0a75fd0ba2127860ce4d3c7a05170563725ce4eb606c0655ca225b';
+
+async function startDailyCall(matchId,partnerId){
+  const btn=document.getElementById('call-btn-'+matchId);
+  if(btn){btn.textContent='Creating...';btn.disabled=true;}
+  try{
+    const res=await fetch('https://api.daily.co/v1/rooms',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+DAILY_API_KEY},
+      body:JSON.stringify({properties:{exp:Math.round(Date.now()/1000)+3600}})
+    });
+    const room=await res.json();
+    if(!room.url)throw new Error('No room URL returned: '+JSON.stringify(room));
+    const{error}=await sb.from('messages').insert({match_id:matchId,sender_id:currentUserId,content:'CALL_INVITE::'+room.url});
+    if(error)console.error('CALL_INVITE insert error:',error);
+    window.location.href='videocall.html?room='+encodeURIComponent(room.url);
+  }catch(e){
+    console.error('Start call error:',e);
+    showToast('Failed to start call: '+e.message);
+    if(btn){btn.textContent='Start Call';btn.disabled=false;}
+  }
+}
 
 function showToast(msg){const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>{t.style.opacity='0';setTimeout(()=>t.remove(),300);},3000);}
 
@@ -183,7 +209,8 @@ function renderTab(tab){
     if(tab==='requests'){
       actionsHtml=`<button class="btn-accept" onclick="respond('${m.id}','accepted')">Accept</button><button class="btn-decline" onclick="respond('${m.id}','rejected')">Decline</button>`;
     } else if(tab==='active'){
-      actionsHtml=`<a href="messages.html?match=${m.id}" class="btn-action"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Message</a><a href="videocall.html?match=${m.id}" class="btn-action"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>Call</a><button class="btn-action" onclick="complete('${m.id}')">Mark Done</button>`;
+      const peerId=m.sender_id===currentUserId?m.receiver_id:m.sender_id;
+      actionsHtml=`<a href="messages.html?match=${m.id}" class="btn-action"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Message</a><button class="btn-action" id="call-btn-${m.id}" onclick="startDailyCall('${m.id}','${peerId}')"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>Start Call</button><button class="btn-action" onclick="complete('${m.id}')">Mark Done</button>`;
     }
     return`<div class="match-card" style="animation-delay:${i*.04}s">
       <div class="match-avatar">${avatarHtml(peer)}</div>

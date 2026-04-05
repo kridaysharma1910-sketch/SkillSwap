@@ -8,7 +8,7 @@
 <style>
 :root{--bg:#080808;--bg-card:rgba(255,255,255,0.03);--border:rgba(255,255,255,0.08);--border-hover:rgba(139,92,246,0.3);--text-muted:rgba(255,255,255,0.32);--sidebar-w:240px;}
 *{margin:0;padding:0;box-sizing:border-box;}
-body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;overflow-x:hidden;cursor:none;}
+body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;overflow:hidden;cursor:none;}
 #ss-cursor{position:fixed;width:10px;height:10px;background:#fff;border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);mix-blend-mode:difference;}
 #ss-ring{position:fixed;width:34px;height:34px;border:1px solid rgba(255,255,255,0.5);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:all .2s;}
 .sidebar{width:var(--sidebar-w);height:100vh;background:rgba(255,255,255,0.015);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:24px 14px;position:fixed;left:0;top:0;z-index:100;overflow-y:auto;}
@@ -28,90 +28,50 @@ body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;min-height
 .sidebar-logout-full:hover{background:rgba(239,68,68,0.12);border-color:rgba(239,68,68,0.28);color:#f87171;}
 .sidebar-logout-full svg{width:14px;height:14px;}
 .hamburger{display:none;position:fixed;top:14px;left:14px;z-index:200;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:10px;padding:8px;cursor:none;color:#fff;}
-.main{margin-left:var(--sidebar-w);flex:1;padding:40px 48px;min-height:100vh;}
-.page-header{margin-bottom:28px;}
-.page-title{font-family:'Syne',sans-serif;font-weight:800;font-size:1.9rem;letter-spacing:-.03em;}
-.page-sub{color:var(--text-muted);font-size:.9rem;margin-top:5px;}
-.lobby{max-width:660px;}
+.sidebar-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);backdrop-filter:blur(4px);z-index:98;}
+.sidebar-overlay.show{display:block;}
 
-/* GLASS CARD */
-.card{background:var(--bg-card);border:1px solid var(--border);border-radius:18px;padding:22px 24px;backdrop-filter:blur(12px);position:relative;overflow:hidden;transition:border-color .25s;margin-bottom:18px;}
-.card:hover{border-color:rgba(255,255,255,0.12);}
-.card-title{font-family:'Syne',sans-serif;font-weight:700;font-size:.88rem;margin-bottom:18px;color:rgba(255,255,255,.75);}
+/* CALL AREA */
+.call-wrap{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden;}
 
-/* ROOM INPUT */
-.room-row{display:flex;gap:10px;align-items:center;}
-.room-input{flex:1;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.09);border-radius:12px;padding:12px 16px;color:#fff;font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;transition:border-color .2s,box-shadow .2s;}
-.room-input::placeholder{color:var(--text-muted);}
-.room-input:focus{border-color:rgba(139,92,246,0.45);box-shadow:0 0 0 3px rgba(139,92,246,0.08);}
-.btn-join{background:#fff;color:#080808;border:none;border-radius:11px;padding:12px 20px;font-family:'Syne',sans-serif;font-size:.82rem;font-weight:700;cursor:none;white-space:nowrap;transition:opacity .2s;}
-.btn-join:hover{opacity:.88;}
-.or-divider{text-align:center;color:var(--text-muted);font-size:.8rem;margin:14px 0;display:flex;align-items:center;gap:10px;}
-.or-divider::before,.or-divider::after{content:'';flex:1;height:1px;background:var(--border);}
-.btn-gen{background:var(--bg-card);border:1px solid var(--border);color:rgba(255,255,255,0.45);padding:11px 18px;border-radius:11px;font-family:'DM Sans',sans-serif;font-size:.84rem;cursor:none;width:100%;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:7px;}
-.btn-gen:hover{border-color:rgba(255,255,255,0.14);color:rgba(255,255,255,.7);}
-.btn-gen svg{width:13px;height:13px;}
-
-/* MATCH CALL ITEMS */
-.match-call-item{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:12px;border:1px solid var(--border);margin-bottom:9px;transition:all .2s;background:rgba(255,255,255,0.02);}
-.match-call-item:hover{border-color:rgba(139,92,246,0.28);background:rgba(139,92,246,0.04);}
-.mc-avatar{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.82rem;font-weight:700;flex-shrink:0;border:1px solid rgba(139,92,246,0.2);background:rgba(139,92,246,0.1);color:rgba(167,139,250,0.8);overflow:hidden;}
-.mc-info{flex:1;min-width:0;}
-.mc-name{font-weight:500;font-size:.875rem;margin-bottom:2px;}
-.mc-swap{font-size:.76rem;color:var(--text-muted);}
-.btn-call{background:#fff;color:#080808;padding:8px 16px;border-radius:9px;font-family:'Syne',sans-serif;font-size:.78rem;font-weight:700;border:none;cursor:none;transition:opacity .2s;display:flex;align-items:center;gap:5px;flex-shrink:0;}
-.btn-call:hover{opacity:.88;}
-.btn-call svg{width:12px;height:12px;}
-
-/* TIPS */
-.tips-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.tip{background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:12px;padding:14px;display:flex;gap:10px;align-items:flex-start;}
-.tip-icon{flex-shrink:0;color:rgba(167,139,250,0.6);}
-.tip-icon svg{width:16px;height:16px;}
-.tip-text h4{font-size:.82rem;font-weight:500;margin-bottom:3px;}
-.tip-text p{font-size:.76rem;color:var(--text-muted);line-height:1.5;}
-
-/* EMPTY */
-.empty-state{text-align:center;padding:28px 16px;color:var(--text-muted);}
-.empty-state p{font-size:.85rem;}
-
-/* SKELETON */
-.skel{background:linear-gradient(90deg,rgba(255,255,255,0.04) 25%,rgba(255,255,255,0.07) 50%,rgba(255,255,255,0.04) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:8px;}
-@keyframes shimmer{to{background-position:-200% 0;}}
-
-/* CALL OVERLAY */
-.call-container{display:none;position:fixed;top:0;left:var(--sidebar-w);right:0;bottom:0;z-index:200;background:#080808;flex-direction:column;}
-.call-container.active{display:flex;}
-.call-top-bar{display:flex;align-items:center;gap:14px;padding:14px 24px;border-bottom:1px solid var(--border);flex-shrink:0;background:rgba(8,8,8,0.96);backdrop-filter:blur(12px);}
-.call-live-dot{width:7px;height:7px;background:#22c55e;border-radius:50%;animation:blink 1s infinite;}
+/* TOP BAR */
+.call-bar{display:flex;align-items:center;gap:14px;padding:12px 20px;background:rgba(8,8,8,0.96);border-bottom:1px solid var(--border);flex-shrink:0;backdrop-filter:blur(12px);z-index:10;}
+.call-live-dot{width:7px;height:7px;background:#22c55e;border-radius:50%;flex-shrink:0;animation:blink 1s infinite;}
 @keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
-.call-room-name{font-family:'Syne',sans-serif;font-weight:700;font-size:.88rem;}
-.call-status{font-size:.75rem;color:rgba(134,239,172,0.8);}
-.call-timer{font-size:.78rem;color:var(--text-muted);margin-left:4px;}
-.call-end-btn{margin-left:auto;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:#f87171;padding:8px 18px;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:500;cursor:none;transition:all .2s;display:flex;align-items:center;gap:6px;}
-.call-end-btn:hover{background:rgba(239,68,68,0.25);color:#fff;}
-.call-end-btn svg{width:12px;height:12px;}
-#jitsiFrame{flex:1;width:100%;border:none;}
+.call-room-label{font-family:'Syne',sans-serif;font-weight:700;font-size:.85rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:260px;}
+.call-status-text{font-size:.75rem;color:rgba(134,239,172,0.8);}
+.call-timer{font-size:.78rem;color:var(--text-muted);margin-left:2px;}
+.btn-end{margin-left:auto;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:#f87171;padding:8px 18px;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:500;cursor:none;transition:all .2s;display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.btn-end:hover{background:rgba(239,68,68,0.28);color:#fff;}
+.btn-end svg{width:12px;height:12px;}
 
-@keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
-@media(max-width:900px){.sidebar{transform:translateX(-100%);transition:transform .3s;}.sidebar.open{transform:translateX(0);}.main{margin-left:0;padding:24px 20px;padding-top:56px;}.call-container{left:0;}.hamburger{display:flex;}.tips-grid{grid-template-columns:1fr;}}
+/* IFRAME */
+#call-frame{flex:1;width:100%;border:none;background:#000;}
+
+/* NO ROOM STATE */
+.no-room{margin-left:var(--sidebar-w);flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;padding:40px;}
+.no-room-icon{width:56px;height:56px;background:rgba(139,92,246,0.08);border:1px solid rgba(139,92,246,0.2);border-radius:16px;display:flex;align-items:center;justify-content:center;}
+.no-room-icon svg{width:24px;height:24px;color:rgba(167,139,250,0.6);}
+.no-room h2{font-family:'Syne',sans-serif;font-weight:700;font-size:1.2rem;text-align:center;}
+.no-room p{color:var(--text-muted);font-size:.9rem;text-align:center;max-width:360px;line-height:1.6;}
+.btn-white{display:inline-flex;align-items:center;gap:7px;background:#fff;color:#080808;padding:11px 22px;border-radius:11px;font-family:'Syne',sans-serif;font-size:.84rem;font-weight:700;text-decoration:none;transition:opacity .2s;}
+.btn-white:hover{opacity:.88;}
+
+@media(max-width:900px){
+  .sidebar{transform:translateX(-100%);transition:transform .3s;background:#0e0e0e !important;border-right:1px solid rgba(255,255,255,0.1) !important;}
+  .sidebar.open{transform:translateX(0);}
+  .sidebar .nav-link{color:#fff;opacity:1;}
+  .call-wrap,.no-room{margin-left:0;}
+  .hamburger{display:flex;}
+  .call-bar{padding:10px 14px;padding-left:56px;}
+  .call-room-label{max-width:120px;}
+}
 </style>
 </head>
 <body>
 <div id="ss-cursor"></div><div id="ss-ring"></div>
+<div id="sidebar-overlay" onclick="toggleSidebar()"></div>
 <button class="hamburger" id="hamburger" onclick="toggleSidebar()"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
-
-<!-- JITSI CALL OVERLAY -->
-<div class="call-container" id="callContainer">
-  <div class="call-top-bar">
-    <div class="call-live-dot"></div>
-    <div class="call-room-name" id="callRoomLabel">Room</div>
-    <div class="call-status">Live</div>
-    <span class="call-timer" id="callTimer">0:00</span>
-    <button class="call-end-btn" onclick="endCall()"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>End Call</button>
-  </div>
-  <iframe id="jitsiFrame" src="" allow="camera; microphone; display-capture; autoplay; fullscreen"></iframe>
-</div>
 
 <aside class="sidebar" id="sidebar">
   <a href="index.html" class="sidebar-logo"><div class="logo-sq"></div>SkillSwap</a>
@@ -133,59 +93,25 @@ body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;min-height
   </div>
 </aside>
 
-<main class="main">
-  <div class="page-header">
-    <h1 class="page-title">Video Call</h1>
-    <p class="page-sub">Start a live session with your swap partner. No account needed.</p>
+<!-- CALL VIEW (shown when ?room= param exists) -->
+<div class="call-wrap" id="callWrap" style="display:none;flex-direction:column;">
+  <div class="call-bar">
+    <div class="call-live-dot"></div>
+    <div class="call-room-label" id="callRoomLabel">Live</div>
+    <div class="call-status-text">Live</div>
+    <span class="call-timer" id="callTimer">0:00</span>
+    <button class="btn-end" onclick="endCall()"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>End Call</button>
   </div>
+  <iframe id="call-frame" src="" allow="camera;microphone;fullscreen;display-capture;autoplay" allowfullscreen></iframe>
+</div>
 
-  <div class="lobby">
-    <!-- QUICK START -->
-    <div class="card">
-      <div class="card-title">Start or Join a Room</div>
-      <div class="room-row">
-        <input class="room-input" id="roomInput" type="text" placeholder="Enter a room name...">
-        <button class="btn-join" onclick="joinRoom()">Join</button>
-      </div>
-      <div class="or-divider">or</div>
-      <button class="btn-gen" onclick="generateRoom()">
-        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
-        Generate a random room
-      </button>
-    </div>
-
-    <!-- ACTIVE MATCHES -->
-    <div class="card">
-      <div class="card-title">Call a Match</div>
-      <div id="matchesList">
-        <div style="display:flex;gap:10px;padding:8px 0;"><div class="skel" style="width:42px;height:42px;border-radius:50%;flex-shrink:0;"></div><div style="flex:1;"><div class="skel" style="height:13px;width:50%;margin-bottom:6px;"></div><div class="skel" style="height:10px;width:65%;"></div></div></div>
-      </div>
-    </div>
-
-    <!-- TIPS -->
-    <div class="card">
-      <div class="card-title">Tips for a great session</div>
-      <div class="tips-grid">
-        <div class="tip">
-          <div class="tip-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
-          <div class="tip-text"><h4>Plan ahead</h4><p>Agree on what to cover before the call. Send a message first.</p></div>
-        </div>
-        <div class="tip">
-          <div class="tip-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
-          <div class="tip-text"><h4>Stay focused</h4><p>30-60 minute sessions work best. Split time evenly between topics.</p></div>
-        </div>
-        <div class="tip">
-          <div class="tip-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></div>
-          <div class="tip-text"><h4>Take notes</h4><p>Jot key takeaways during the session. Review them after.</p></div>
-        </div>
-        <div class="tip">
-          <div class="tip-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></div>
-          <div class="tip-text"><h4>Share the link</h4><p>Send the room link via Messages so your partner can join.</p></div>
-        </div>
-      </div>
-    </div>
-  </div>
-</main>
+<!-- NO ROOM STATE (shown when no ?room= param) -->
+<div class="no-room" id="noRoomState">
+  <div class="no-room-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></div>
+  <h2>No call in progress</h2>
+  <p>Start a call from a match or join a call via the invite link your partner sent you in Messages.</p>
+  <a href="matches.html" class="btn-white"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Go to Matches</a>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -197,87 +123,28 @@ let mx=0,my=0,rx=0,ry=0;
 document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px';});
 document.querySelectorAll('a,button').forEach(el=>{el.addEventListener('mouseenter',()=>{ring.style.borderColor='rgba(139,92,246,0.6)';ring.style.width='44px';ring.style.height='44px';});el.addEventListener('mouseleave',()=>{ring.style.borderColor='rgba(255,255,255,0.5)';ring.style.width='34px';ring.style.height='34px';});});
 (function anim(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(anim);})();
-
-function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');}
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebar-overlay').classList.toggle('show');}
 async function handleLogout(){await sb.auth.signOut();window.location.href='index.html';}
 
-let currentUserId=null,myDisplayName='SkillSwapper';
-let callStartTime=null,callTimerInterval=null;
-let activeMatchId=null,activePartnerId=null,activeSkillTaught=null,activeSkillLearned=null;
-
-function sanitizeRoom(name){return name.trim().replace(/\s+/g,'-').replace(/[^a-zA-Z0-9\-_]/g,'').toLowerCase();}
-
-function generateRoom(){
-  const adj=['bright','swift','cool','smart','bold','sharp','calm','keen'];
-  const noun=['panda','tiger','comet','pixel','storm','wave','spark','oak'];
-  const r=()=>Math.floor(Math.random()*1000);
-  document.getElementById('roomInput').value=`skillswap-${adj[Math.floor(Math.random()*adj.length)]}-${noun[Math.floor(Math.random()*noun.length)]}-${r()}`;
-}
-
-function joinRoom(){
-  const room=sanitizeRoom(document.getElementById('roomInput').value);
-  if(!room)return;
-  startCall(room,null,null,null,null);
-}
-
-function startCallFromMatch(matchId,partnerId,skillTaught,skillLearned,peerName){
-  const myId=(myDisplayName||'user').replace(/\s+/g,'-').toLowerCase();
-  const peerId=(peerName||'peer').replace(/\s+/g,'-').toLowerCase();
-  const room='skillswap-'+[myId,peerId].sort().join('--');
-  document.getElementById('roomInput').value=room;
-  activeMatchId=matchId;activePartnerId=partnerId;activeSkillTaught=skillTaught;activeSkillLearned=skillLearned;
-  startCall(room,matchId,partnerId,skillTaught,skillLearned);
-}
-
-function startCall(room){
-  document.getElementById('callRoomLabel').textContent=room;
-  const url=`https://meet.jit.si/${encodeURIComponent(room)}#userInfo.displayName="${encodeURIComponent(myDisplayName)}"&config.prejoinPageEnabled=false`;
-  document.getElementById('jitsiFrame').src=url;
-  document.getElementById('callContainer').classList.add('active');
-  callStartTime=Date.now();
-  // Timer
-  clearInterval(callTimerInterval);
-  callTimerInterval=setInterval(()=>{
-    const sec=Math.floor((Date.now()-callStartTime)/1000);
-    const m=Math.floor(sec/60),s=sec%60;
-    document.getElementById('callTimer').textContent=m+':'+(s<10?'0':'')+s;
-  },1000);
-}
+let currentUserId=null,callStartTime=null,callTimerInterval=null;
 
 async function endCall(){
   clearInterval(callTimerInterval);
-  const durationMinutes=callStartTime?Math.max(1,Math.floor((Date.now()-callStartTime)/60000)):0;
-  document.getElementById('jitsiFrame').src='';
-  document.getElementById('callContainer').classList.remove('active');
-  document.getElementById('callTimer').textContent='0:00';
-  // Log session to Supabase
-  if(currentUserId&&durationMinutes>0){
-    const sessionData={
-      user_id:currentUserId,
-      duration_minutes:durationMinutes
-    };
-    if(activeMatchId)sessionData.match_id=activeMatchId;
-    if(activePartnerId)sessionData.partner_id=activePartnerId;
-    if(activeSkillTaught)sessionData.skill_taught=activeSkillTaught;
-    if(activeSkillLearned)sessionData.skill_learned=activeSkillLearned;
-    const{error}=await sb.from('sessions').insert(sessionData);
+  const durationMinutes=callStartTime?Math.max(1,Math.floor((Date.now()-callStartTime)/60000)):1;
+  document.getElementById('call-frame').src='';
+  // Log session
+  if(currentUserId){
+    const{error}=await sb.from('sessions').insert({user_id:currentUserId,duration_minutes:durationMinutes});
     if(error)console.error('Session log error:',error);
   }
-  callStartTime=null;activeMatchId=null;activePartnerId=null;
+  callStartTime=null;
+  window.location.href='matches.html';
 }
 
-// Log session on page unload too
 window.addEventListener('beforeunload',()=>{
   if(callStartTime&&currentUserId){
     const durationMinutes=Math.max(1,Math.floor((Date.now()-callStartTime)/60000));
-    const data={user_id:currentUserId,duration_minutes:durationMinutes};
-    if(activeMatchId)data.match_id=activeMatchId;
-    if(activePartnerId)data.partner_id=activePartnerId;
-    // Use sendBeacon for reliability on unload
-    const payload=JSON.stringify(data);
-    navigator.sendBeacon&&navigator.sendBeacon('/api/session-log',payload);
-    // Also try async insert (may not complete)
-    sb.from('sessions').insert(data);
+    sb.from('sessions').insert({user_id:currentUserId,duration_minutes:durationMinutes});
   }
 });
 
@@ -285,64 +152,48 @@ async function init(){
   const{data:{session}}=await sb.auth.getSession();
   if(!session){window.location.href='login.html';return;}
   currentUserId=session.user.id;
-  const{data:profile,error}=await sb.from('profiles').select('full_name,username,avatar_url,avatar_emoji,plan').eq('id',currentUserId).single();
-  if(error)console.error('Profile error:',error);
-  myDisplayName=profile?.full_name||profile?.username||session.user.email.split('@')[0];
-  document.getElementById('sidebarName').textContent=myDisplayName;
+  const{data:profile,error:pErr}=await sb.from('profiles').select('full_name,username,avatar_url,avatar_emoji,plan').eq('id',currentUserId).single();
+  if(pErr)console.error('Profile error:',pErr);
+  const name=profile?.full_name||profile?.username||session.user.email.split('@')[0];
+  document.getElementById('sidebarName').textContent=name;
   const avatarEl=document.getElementById('sidebarAvatar');
   if(profile?.avatar_url){avatarEl.innerHTML=`<img src="${profile.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;}
   else if(profile?.avatar_emoji){avatarEl.textContent=profile.avatar_emoji;}
-  else{avatarEl.textContent=myDisplayName.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);}
+  else{avatarEl.textContent=name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);}
   if(profile?.plan==='pro'||profile?.plan==='creator'){document.getElementById('analyticsNavLink').style.display='flex';}
 
-  // Load active matches using sender_id/receiver_id pattern
-  const{data:matches,error:matchErr}=await sb.from('matches')
-    .select(`*, sender:profiles!matches_sender_id_fkey(full_name,username,avatar_url,avatar_emoji,skills_offering,skills_offered), receiver:profiles!matches_receiver_id_fkey(full_name,username,avatar_url,avatar_emoji,skills_offering,skills_offered)`)
-    .or(`sender_id.eq.${currentUserId},receiver_id.eq.${currentUserId}`)
-    .eq('status','accepted');
-  if(matchErr)console.error('Matches error:',matchErr);
+  // Read ?room= param
+  const params=new URLSearchParams(window.location.search);
+  const roomUrl=params.get('room');
 
-  const list=document.getElementById('matchesList');
-  const matchArr=matches||[];
-  if(!matchArr.length){
-    list.innerHTML=`<div class="empty-state"><p>No active matches yet. Accept a swap request to enable calling.</p></div>`;
+  if(!roomUrl){
+    document.getElementById('noRoomState').style.display='flex';
     return;
   }
 
-  list.innerHTML=matchArr.map(m=>{
-    const isSender=m.sender_id===currentUserId;
-    const peer=isSender?m.receiver:m.sender;
-    const peerId=isSender?m.receiver_id:m.sender_id;
-    const peerName=peer?.full_name||peer?.username||'Skill Swapper';
-    const initials=peerName.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
-    const avHtml=peer?.avatar_url?`<img src="${peer.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`:(peer?.avatar_emoji||initials);
-    const skillTaught=(m.skill_offered||'');
-    const skillLearned=(m.skill_wanted||'');
-    const swap=`${skillTaught||'?'} ↔ ${skillLearned||'?'}`;
-    const peerNameEsc=peerName.replace(/'/g,"\\'");
-    return`<div class="match-call-item">
-      <div class="mc-avatar">${avHtml}</div>
-      <div class="mc-info"><div class="mc-name">${peerName}</div><div class="mc-swap">${swap}</div></div>
-      <button class="btn-call" onclick="startCallFromMatch('${m.id}','${peerId}','${skillTaught}','${skillLearned}','${peerNameEsc}')">
-        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
-        Call
-      </button>
-    </div>`;
-  }).join('');
+  // Load call view
+  document.getElementById('noRoomState').style.display='none';
+  const callWrap=document.getElementById('callWrap');
+  callWrap.style.display='flex';
 
-  // Auto-start if match param in URL
-  const params=new URLSearchParams(window.location.search);
-  const matchParam=params.get('match');
-  if(matchParam){
-    const m=matchArr.find(x=>x.id===matchParam);
-    if(m){
-      const isSender=m.sender_id===currentUserId;
-      const peer=isSender?m.receiver:m.sender;
-      const peerId=isSender?m.receiver_id:m.sender_id;
-      const peerName=peer?.full_name||peer?.username||'peer';
-      startCallFromMatch(m.id,peerId,m.skill_offered||'',m.skill_wanted||'',peerName);
-    }
+  // Set room label to domain/room-name portion only
+  try{
+    const u=new URL(roomUrl);
+    document.getElementById('callRoomLabel').textContent=u.hostname+u.pathname;
+  }catch{
+    document.getElementById('callRoomLabel').textContent='Live Call';
   }
+
+  // Load Daily prebuilt iframe
+  document.getElementById('call-frame').src=roomUrl;
+
+  // Start timer
+  callStartTime=Date.now();
+  callTimerInterval=setInterval(()=>{
+    const sec=Math.floor((Date.now()-callStartTime)/1000);
+    const m=Math.floor(sec/60),s=sec%60;
+    document.getElementById('callTimer').textContent=m+':'+(s<10?'0':'')+s;
+  },1000);
 }
 
 init();

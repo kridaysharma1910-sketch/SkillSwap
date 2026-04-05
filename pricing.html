@@ -28,6 +28,8 @@ body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;min-height
 .sidebar-logout-full:hover{background:rgba(239,68,68,0.12);border-color:rgba(239,68,68,0.28);color:#f87171;}
 .sidebar-logout-full svg{width:14px;height:14px;}
 .hamburger{display:none;position:fixed;top:14px;left:14px;z-index:200;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:10px;padding:8px;cursor:none;color:#fff;}
+.sidebar-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);backdrop-filter:blur(4px);z-index:98;}
+.sidebar-overlay.show{display:block;}
 .main{margin-left:var(--sidebar-w);flex:1;padding:40px 48px;min-height:100vh;}
 
 /* PAGE HEADER */
@@ -96,11 +98,12 @@ body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;min-height
 
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
 @media(max-width:1100px){.plans-grid{grid-template-columns:1fr 1fr;}}
-@media(max-width:900px){.sidebar{transform:translateX(-100%);transition:transform .3s;}.sidebar.open{transform:translateX(0);}.main{margin-left:0;padding:24px 20px;padding-top:56px;}.hamburger{display:flex;}.plans-grid{grid-template-columns:1fr;max-width:420px;margin:0 auto 48px;}}
+@media(max-width:900px){.sidebar{transform:translateX(-100%);transition:transform .3s;background:#0e0e0e !important;border-right:1px solid rgba(255,255,255,0.1) !important;}.sidebar.open{transform:translateX(0);}.sidebar .nav-link{color:#fff;opacity:1;}.main{margin-left:0;padding:24px 20px;padding-top:56px;}.hamburger{display:flex;}.plans-grid{grid-template-columns:1fr;max-width:420px;margin:0 auto 48px;}}
 </style>
 </head>
 <body>
 <div id="ss-cursor"></div><div id="ss-ring"></div>
+<div id="sidebar-overlay" onclick="toggleSidebar()"></div>
 <button class="hamburger" id="hamburger" onclick="toggleSidebar()"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
 
 <aside class="sidebar" id="sidebar">
@@ -242,7 +245,7 @@ document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.le
 document.querySelectorAll('a,button').forEach(el=>{el.addEventListener('mouseenter',()=>{ring.style.borderColor='rgba(139,92,246,0.6)';ring.style.width='44px';ring.style.height='44px';});el.addEventListener('mouseleave',()=>{ring.style.borderColor='rgba(255,255,255,0.5)';ring.style.width='34px';ring.style.height='34px';});});
 (function anim(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(anim);})();
 
-function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');}
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebar-overlay').classList.toggle('show');}
 async function handleLogout(){await sb.auth.signOut();window.location.href='index.html';}
 
 let isAnnual=false;
