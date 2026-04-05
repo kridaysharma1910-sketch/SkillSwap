@@ -50,7 +50,7 @@ A skill-exchange web platform where users list skills they offer and skills they
 | Discover | discover.html | ✅ Done — real users, match scoring, send requests, filters |
 | Matches | matches.html | ✅ Done — 4 tabs, accept/decline/complete, message + call links |
 | Messages | messages.html | ✅ Done — real-time chat, Supabase subscriptions, URL auto-open |
-| Video Call | videocall.html | ✅ Done — Jitsi, session logging, call timer, URL ?match= param |
+| Video Call | videocall.html | ✅ Done — WebRTC P2P, Supabase Realtime signaling, fullscreen UI, session logging |
 | Pricing | pricing.html | ✅ Done — Free/Pro/Creator features, Supabase plan update, toggle |
 | Webinars | webinars.html | ✅ Done — real Supabase data, host modal, creator gating, register |
 | Analytics | analytics.html | ✅ Done — pro/creator gate, stats, rank, rewards, creator earnings |
@@ -181,13 +181,20 @@ A skill-exchange web platform where users list skills they offer and skills they
 - login.html ✅ — full redesign done (navbar, 2-col grid, social proof left panel, globe bottom-right, white button, custom cursor)
 - dashboard.html ✅ — real Supabase data, stats, matches, skills, analytics section, plan gating
 - discover.html ✅ — real Supabase users, match scoring, send match requests, filters
-- matches.html ✅ — pending/sent/active/completed tabs, accept/decline/complete, message + call buttons
-- messages.html ✅ — real-time chat, conversation list, Supabase subscriptions
+- matches.html ✅ — pending/sent/active/completed tabs, accept/decline/complete, message + call buttons; "Start Call" generates roomId, sends CALL_INVITE, redirects caller
+- messages.html ✅ — real-time chat + 3s polling fallback, CALL_INVITE:: renders as "Join Call" button, video call icon starts WebRTC room from chat header
 - profile.html ✅ — black/glass redesign, avatar photo upload + emoji picker, mobile Add button, save to skills_offering/wanting
 - pricing.html ✅ — black/glass redesign, updated Free/Pro/Creator features, Supabase plan update on selection
 - webinars.html ✅ — black/glass redesign, real Supabase data, filter by status, creator gating, attendee registration
-- videocall.html ✅ — black/glass redesign, session logging to sessions table, live call timer, auto-start from URL param
+- videocall.html ✅ — custom WebRTC P2P via Supabase Realtime signaling, remote fullscreen + local PiP, mute/cam/end controls, timer, session logging
 - analytics.html ✅ — new page, pro/creator gate, stats from sessions + analytics tables, global rank, rewards, creator section
+
+### Mobile Sidebar (all pages)
+All 9 sidebar pages (dashboard, discover, matches, messages, profile, pricing, webinars, videocall, analytics) have:
+- `#sidebar-overlay` div: rgba(0,0,0,0.85) + backdrop-filter:blur(4px), z-index:98, closes sidebar on tap
+- Mobile sidebar: background:#0e0e0e (solid, not glassy), border-right:1px solid rgba(255,255,255,0.1)
+- `.sidebar .nav-link` in mobile media query: color:#fff, opacity:1
+- `toggleSidebar()` toggles both `.open` on sidebar and `.show` on overlay
 
 ### Pages pending UI update
 (none — all pages now use black/glass design system)
