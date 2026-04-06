@@ -147,12 +147,32 @@ async function handleLogout(){await sb.auth.signOut();window.location.href='inde
 
 function genRoomId(){return Math.random().toString(36).slice(2,9)+Math.random().toString(36).slice(2,9);}
 
+// Broadcast call invite to callee's personal Realtime channel
+async function broadcastCallInvite(peerId,payload){
+  return new Promise(resolve=>{
+    const ch=sb.channel('incoming-call-'+peerId);
+    let done=false;
+    const timer=setTimeout(()=>{done=true;try{sb.removeChannel(ch);}catch(e){}resolve();},2000);
+    ch.subscribe(status=>{
+      if(status==='SUBSCRIBED'&&!done){
+        clearTimeout(timer);
+        ch.send({type:'broadcast',event:'incoming_call',payload});
+        setTimeout(()=>{try{sb.removeChannel(ch);}catch(e){}done=true;resolve();},400);
+      }
+    });
+  });
+}
+
 async function startWebRTCCall(matchId,partnerId){
   const btn=document.getElementById('call-btn-'+matchId);
   if(btn){btn.textContent='Starting...';btn.disabled=true;}
   const roomId=genRoomId();
   const{error}=await sb.from('messages').insert({match_id:matchId,sender_id:currentUserId,content:'CALL_INVITE::'+roomId});
   if(error){console.error('CALL_INVITE insert error:',error);showToast('Error sending call invite');if(btn){btn.textContent='Start Call';btn.disabled=false;}return;}
+  if(partnerId){
+    const{data:me}=await sb.from('profiles').select('full_name,avatar_url').eq('id',currentUserId).single();
+    await broadcastCallInvite(partnerId,{roomId,matchId,callerName:me?.full_name||'Someone',callerAvatar:me?.avatar_url||null});
+  }
   window.location.href='videocall.html?room='+encodeURIComponent(roomId)+'&match='+matchId+'&caller=1';
 }
 
@@ -261,5 +281,6 @@ async function init(){
 
 init();
 </script>
+<script src="call-notify.js"></script>
 </body>
 </html>

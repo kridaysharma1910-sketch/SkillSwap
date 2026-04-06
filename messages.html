@@ -98,7 +98,16 @@ body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;display:fl
 
 @keyframes fadeUp{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
 @media(max-width:900px){.sidebar{transform:translateX(-100%);transition:transform .3s;background:#0e0e0e !important;border-right:1px solid rgba(255,255,255,0.1) !important;}.sidebar.open{transform:translateX(0);}.sidebar .nav-link{color:#fff;opacity:1;}.chat-layout{margin-left:0;}.hamburger{display:flex;}}
-@media(max-width:660px){.convos-panel{width:100%;position:absolute;left:0;top:0;bottom:0;z-index:50;background:var(--bg);}.convos-panel.hidden{display:none;}.chat-panel{width:100%;}}
+@media(max-width:660px){.convos-panel{width:100%;position:absolute;left:0;top:0;bottom:0;z-index:50;background:var(--bg);}.convos-panel.hidden{display:none;}.chat-panel{width:100%;}.btn-back-mobile{display:flex !important;}.compose-fab{display:flex !important;}.chat-textarea{font-size:16px !important;}}
+.convos-header-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.compose-btn{background:rgba(139,92,246,0.12);border:1px solid rgba(139,92,246,0.25);color:rgba(167,139,250,0.8);width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:none;text-decoration:none;flex-shrink:0;transition:background .15s;}
+.compose-btn:hover{background:rgba(139,92,246,0.22);}
+.compose-btn svg{width:15px;height:15px;}
+.btn-back-mobile{display:none;background:none;border:none;color:rgba(255,255,255,0.55);cursor:none;padding:0;min-width:44px;min-height:44px;align-items:center;justify-content:center;flex-shrink:0;}
+.btn-back-mobile svg{width:18px;height:18px;}
+.compose-fab{display:none;position:fixed;bottom:24px;right:20px;z-index:70;width:52px;height:52px;border-radius:50%;background:#fff;color:#080808;border:none;align-items:center;justify-content:center;box-shadow:0 4px 24px rgba(0,0,0,0.6);cursor:none;text-decoration:none;transition:opacity .2s;}
+.compose-fab:hover{opacity:.85;}
+.compose-fab svg{width:20px;height:20px;}
 </style>
 </head>
 <body>
@@ -129,7 +138,7 @@ body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;display:fl
   <!-- CONVOS LIST -->
   <div class="convos-panel" id="convosPanel">
     <div class="convos-header">
-      <div class="convos-title">Messages</div>
+      <div class="convos-header-row"><div class="convos-title" style="flex:1;">Messages</div><a href="matches.html" class="compose-btn" title="Start new conversation"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></a></div>
       <input class="search-convos" type="text" placeholder="Search conversations..." id="searchConvos" oninput="filterConvos()">
     </div>
     <div class="convos-list" id="convosList">
@@ -145,6 +154,7 @@ body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;display:fl
     </div>
     <div id="chatActive" style="display:none;flex-direction:column;height:100%;">
       <div class="chat-header">
+        <button class="btn-back-mobile" onclick="backToConvosList()" title="Back"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
         <div class="chat-peer-avatar" id="chatPeerAvatar"></div>
         <div class="chat-peer-info">
           <div class="chat-peer-name" id="chatPeerName"></div>
@@ -242,6 +252,8 @@ async function openConvo(matchId){
   subscribeToMessages(matchId);
   startPolling(matchId);
   await sb.from('messages').update({read:true}).eq('match_id',matchId).neq('sender_id',currentUserId).then(({error})=>{if(error)console.error('Mark read error:',error);});
+  // On mobile, slide convos list away to show chat
+  if(window.innerWidth<=660){document.getElementById('convosPanel').classList.add('hidden');}
 }
 
 async function loadMessages(matchId){
@@ -348,13 +360,38 @@ async function sendMessage(){
   await loadMessages(currentMatchId);
 }
 
+function backToConvosList(){document.getElementById('convosPanel').classList.remove('hidden');}
+
+// Broadcast a call invite event to the callee's personal Realtime channel
+async function broadcastCallInvite(peerId,payload){
+  return new Promise(resolve=>{
+    const ch=sb.channel('incoming-call-'+peerId);
+    let done=false;
+    const timer=setTimeout(()=>{done=true;try{sb.removeChannel(ch);}catch(e){}resolve();},2000);
+    ch.subscribe(status=>{
+      if(status==='SUBSCRIBED'&&!done){
+        clearTimeout(timer);
+        ch.send({type:'broadcast',event:'incoming_call',payload});
+        setTimeout(()=>{try{sb.removeChannel(ch);}catch(e){}done=true;resolve();},400);
+      }
+    });
+  });
+}
+
 async function startCallFromMessages(){
   if(!currentMatchId)return;
   const btn=document.getElementById('callBtn');
   if(btn){btn.style.opacity='.5';btn.style.pointerEvents='none';}
   const roomId=genRoomId();
+  const match=conversations.find(c=>c.id===currentMatchId);
+  const peerId=match?(match.sender_id===currentUserId?match.receiver_id:match.sender_id):null;
   const{error}=await sb.from('messages').insert({match_id:currentMatchId,sender_id:currentUserId,content:'CALL_INVITE::'+roomId});
   if(error){console.error('CALL_INVITE insert error:',error);if(btn){btn.style.opacity='';btn.style.pointerEvents='';}return;}
+  // Notify callee via their personal broadcast channel
+  if(peerId){
+    const{data:me}=await sb.from('profiles').select('full_name,avatar_url').eq('id',currentUserId).single();
+    await broadcastCallInvite(peerId,{roomId,matchId:currentMatchId,callerName:me?.full_name||'Someone',callerAvatar:me?.avatar_url||null});
+  }
   window.location.href='videocall.html?room='+encodeURIComponent(roomId)+'&match='+currentMatchId+'&caller=1';
 }
 
@@ -401,5 +438,8 @@ async function init(){
 
 init();
 </script>
+<!-- Floating compose button (mobile) -->
+<a href="matches.html" class="compose-fab" id="composeFab" title="Start new conversation"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></a>
+<script src="call-notify.js"></script>
 </body>
 </html>

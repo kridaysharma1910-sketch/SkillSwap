@@ -88,7 +88,14 @@ body{background:#000;color:#fff;font-family:'DM Sans',sans-serif;height:100vh;di
   .call-controls{padding:8px 12px;gap:8px;bottom:16px;}
   .ctrl-btn{width:42px;height:42px;}
   .ctrl-end{width:48px !important;height:48px !important;}
+  .join-screen{margin-left:0;}
 }
+/* ── JOIN SCREEN (tap-to-join — satisfies getUserMedia user-gesture on iOS) ── */
+.join-screen{position:fixed;inset:0;margin-left:var(--sidebar-w);z-index:300;background:radial-gradient(ellipse at center,rgba(139,92,246,0.1) 0%,#000 70%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:32px;}
+.join-screen.hidden{display:none;}
+.btn-join-call{background:#fff;color:#080808;border:none;border-radius:14px;padding:16px 40px;font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:10px;min-height:52px;min-width:160px;justify-content:center;transition:opacity .2s;}
+.btn-join-call:hover{opacity:.88;}
+.btn-join-call svg{width:18px;height:18px;}
 </style>
 </head>
 <body>
@@ -115,6 +122,17 @@ body{background:#000;color:#fff;font-family:'DM Sans',sans-serif;height:100vh;di
     <button class="sidebar-logout-full" onclick="handleLogout()"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Sign out</button>
   </div>
 </aside>
+
+<!-- ── JOIN SCREEN ── -->
+<div class="join-screen hidden" id="joinScreen">
+  <div class="waiting-avatar" id="joinAvatar">?</div>
+  <div class="waiting-name" id="joinName">Joining call...</div>
+  <div class="waiting-sub" id="joinSub">Tap to enable camera &amp; microphone</div>
+  <button class="btn-join-call" id="joinBtn">
+    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+    Join Call
+  </button>
+</div>
 
 <!-- ── CALL STAGE ── -->
 <div class="call-stage" id="callStage">
@@ -188,7 +206,11 @@ async function handleLogout(){await sb.auth.signOut();window.location.href='inde
 // ── WebRTC config ──
 const ICE_SERVERS = [
   {urls:'stun:stun.l.google.com:19302'},
-  {urls:'stun:stun1.l.google.com:19302'}
+  {urls:'stun:stun1.l.google.com:19302'},
+  // TURN relay — essential for mobile networks with symmetric NAT
+  {urls:'turn:openrelay.metered.ca:80',username:'openrelayproject',credential:'openrelayproject'},
+  {urls:'turn:openrelay.metered.ca:443',username:'openrelayproject',credential:'openrelayproject'},
+  {urls:'turn:openrelay.metered.ca:443?transport=tcp',username:'openrelayproject',credential:'openrelayproject'}
 ];
 
 // ── State ──
@@ -306,6 +328,7 @@ async function initWebRTC() {
     const remoteVid = document.getElementById('remoteVideo');
     if (!remoteVid.srcObject) {
       remoteVid.srcObject = e.streams[0];
+      remoteVid.play().catch(()=>{});
       document.getElementById('waitingBg').style.display = 'none';
       const dot = document.getElementById('liveDot');
       dot.style.background = '#22c55e';
@@ -447,33 +470,39 @@ async function init() {
     return;
   }
 
-  // Show call stage
-  document.getElementById('callStage').style.display = 'block';
-  callActive = true;
-
-  // Show partner name if match param exists
+  // Resolve partner info for the join/waiting screens
+  let peerName = 'Partner', peerInitials = '?';
   if (matchId) {
     const {data:matchData} = await sb.from('matches')
       .select(`sender:profiles!matches_sender_id_fkey(full_name,username,avatar_url,avatar_emoji), receiver:profiles!matches_receiver_id_fkey(full_name,username,avatar_url,avatar_emoji)`)
       .eq('id', matchId).single();
     if (matchData) {
-      const peer = matchData.sender?.id === currentUserId ? matchData.receiver : (
-        // figure out which side is the peer
-        matchData.sender
-      );
-      // Safer: use the one that isn't us
-      const senderIsMe = isCaller; // caller is sender
-      const peerData = senderIsMe ? matchData.receiver : matchData.sender;
+      const peerData = isCaller ? matchData.receiver : matchData.sender;
       if (peerData) {
-        const peerName = peerData.full_name || peerData.username || 'Partner';
+        peerName = peerData.full_name || peerData.username || 'Partner';
+        peerInitials = peerName.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+        // Pre-fill waiting bg (shown after join)
         document.getElementById('waitingName').textContent = peerName;
-        document.getElementById('waitingAvatar').textContent = peerName.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+        document.getElementById('waitingAvatar').textContent = peerInitials;
         document.getElementById('waitingSub').textContent = isCaller ? 'Waiting for them to join...' : 'Connecting...';
       }
     }
   }
 
-  await initWebRTC();
+  // Show join screen — getUserMedia MUST be called inside a direct user gesture
+  // (required on iOS Safari; also ensures mic/cam prompt is expected by user)
+  const joinScreen = document.getElementById('joinScreen');
+  document.getElementById('joinAvatar').textContent = peerInitials;
+  document.getElementById('joinName').textContent = isCaller ? `Calling ${peerName}...` : `${peerName} is calling`;
+  document.getElementById('joinSub').textContent = 'Tap to enable your camera & microphone';
+  joinScreen.classList.remove('hidden');
+
+  document.getElementById('joinBtn').addEventListener('click', async () => {
+    joinScreen.classList.add('hidden');
+    document.getElementById('callStage').style.display = 'block';
+    callActive = true;
+    await initWebRTC();
+  }, {once: true});
 }
 
 init();
