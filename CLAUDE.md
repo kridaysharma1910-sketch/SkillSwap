@@ -124,6 +124,57 @@ A skill-exchange web platform where users list skills they offer and skills they
 - Updated matches.html (Issue 3): "Call" button replaced with "Start Call" button that creates Daily.co room via API POST, inserts `CALL_INVITE::{url}` message to partner, then redirects caller to `videocall.html?room={url}`
 - Daily.co API key stored in DAILY_API_KEY constant in matches.html and messages.html
 
+### [Session 8 — 2026-04-06]
+- Replaced globe canvas code on index.html, login.html, signup.html with premium dot-matrix version: 900+ explicit land coordinates across all continents, animated connection arcs with moving dots, pulsing nodes — ran via `_replace_globe.js` Node script
+- Fixed 3 critical bugs across messages.html, matches.html, videocall.html, and call-notify.js (details below)
+
+**Bug 1 — Mobile message input hidden / FAB blocking send button (messages.html):**
+- Root cause: `.compose-fab` had `display:flex !important` in mobile CSS so JS `style.display='none'` was silently ignored; FAB was fixed at bottom-right directly over the send button
+- Removed `!important` from compose-fab mobile rule so JS can override it
+- `openConvo()` now hides FAB with `style.display='none'` on mobile; `backToConvosList()` restores it
+- `.chat-panel` mobile height changed to `-webkit-fill-available` + `100dvh` (iOS address-bar clipped the input with `height:100vh` + `overflow:hidden`)
+- `.chat-input-wrap` made `position:sticky; bottom:0` with `env(safe-area-inset-bottom)` padding so input stays above iOS home bar
+
+**Bug 2 — WebRTC stuck on "Waiting for partner" / ICE race condition (videocall.html):**
+- Root cause: `iceCandidateQueue`, `remoteDescSet`, `offerSent` were never reset between `initWebRTC()` calls — stale state caused ICE candidates to be applied before `setRemoteDescription()`
+- Added state reset (`iceCandidateQueue=[]`, `remoteDescSet=false`, `offerSent=false`) at top of `initWebRTC()`
+- Replaced `drainIceCandidates()` with `safeSetRemoteDescription(sdp)`: sets remote desc then atomically flushes buffered candidates
+- Added `handleIncomingCandidate(data)`: buffers candidates if remote desc not yet set
+- Both offer and answer handlers now use `safeSetRemoteDescription()`; ICE handler uses `handleIncomingCandidate()`
+- `connectionState === 'failed'` now shows specific "Connection failed" message
+
+**Bug 3 — Incoming call notification never fires (call-notify.js + matches.html + messages.html):**
+- Root cause: Realtime broadcast is fire-and-forget — if receiver's subscription wasn't active when caller sent the event, it was permanently lost
+- `broadcastCallInvite()` in matches.html and messages.html now inserts a row into `call_invites` table instead of broadcasting
+- `call-notify.js` subscribes to `postgres_changes INSERT` on `call_invites` filtered by `callee_id` — DB row persists so event is delivered even if subscription set up just after insert
+- On subscribe, polls last 60 seconds for missed pending invites (handles page-load race)
+- Accept updates `status='accepted'` in DB then navigates to videocall.html; Decline sets `status='declined'`; auto-expire after 30s sets `status='expired'`
+- `call-notify.js` included on all 8 authenticated pages (dashboard, discover, matches, messages, profile, pricing, webinars, analytics); NOT on videocall.html
+
+**call_invites table — must be created in Supabase SQL editor:**
+```sql
+create table if not exists call_invites (
+  id uuid default gen_random_uuid() primary key,
+  room_id text not null,
+  match_id uuid references matches(id),
+  caller_id uuid references profiles(id),
+  callee_id uuid references profiles(id),
+  caller_name text,
+  caller_avatar text,
+  status text default 'pending',
+  created_at timestamptz default now()
+);
+alter table call_invites enable row level security;
+create policy "insert own" on call_invites for insert to authenticated
+  with check (caller_id = auth.uid());
+create policy "read own" on call_invites for select to authenticated
+  using (callee_id = auth.uid() or caller_id = auth.uid());
+create policy "update own" on call_invites for update to authenticated
+  using (callee_id = auth.uid() or caller_id = auth.uid());
+-- Also enable Realtime for this table:
+alter publication supabase_realtime add table call_invites;
+```
+
 ### [Session 7 — 2026-04-06]
 - Added Google OAuth sign-in to login.html and signup.html (both pages already had the button, divider, CSS, and `signInWithGoogle()` wired to `supabase.auth.signInWithOAuth`)
 - Fixed dashboard.html to auto-create a profile row for new Google OAuth users on first login: detects `PGRST116` (no row), upserts with `plan: 'free'`, empty skills arrays, and pulls `full_name` + `avatar_url` from Google user metadata
@@ -231,8 +282,11 @@ All 9 sidebar pages (dashboard, discover, matches, messages, profile, pricing, w
 - ✅ Google OAuth enabled (session 7) — Supabase Google provider configured, dashboard.html auto-creates profile on first OAuth login
 - `profiles` uses both `skills_offering`/`skills_wanting` (new) and `skills_offered`/`skills_wanted` (legacy) — profile.html saves to both for backwards compatibility
 - videocall.html logs sessions on `endCall()` + `beforeunload` via Supabase insert (no sendBeacon)
-- WebRTC calls require Supabase Realtime broadcast to be enabled (it's on by default — no extra config needed)
-- STUN servers are Google's free public servers; for NAT traversal behind strict firewalls, a TURN server would be needed (not implemented — free TURN servers are unreliable)
+- ✅ TURN servers added (session 8) — openrelay.metered.ca on ports 80/443/443-tcp; mobile NAT traversal now covered
+- ✅ ICE candidate race condition fixed (session 8) — safeSetRemoteDescription + handleIncomingCandidate with buffering
+- ✅ Incoming call notifications (session 8) — call_invites table + postgres_changes; **call_invites table must be created in Supabase** (SQL in session 8 log) and Realtime enabled for it
+- ✅ Mobile message input fixed (session 8) — sticky input, 100dvh height, FAB hides when chat open
+- `call_invites` Realtime must be enabled: `alter publication supabase_realtime add table call_invites;`
 
 ---
 
