@@ -1,8 +1,31 @@
 /**
  * call-notify.js — Global incoming call overlay for SkillSwap
  * Include on every authenticated page (except videocall.html).
- * Subscribes to the current user's personal broadcast channel and shows
- * a full-screen overlay when a call invite arrives.
+ *
+ * Uses Supabase postgres_changes on call_invites table.
+ * This is persistent — the DB row exists even if the receiver's subscription
+ * wasn't active yet when the caller triggered the invite.
+ *
+ * Required Supabase table (run once in SQL editor):
+ *
+ *   create table if not exists call_invites (
+ *     id uuid default gen_random_uuid() primary key,
+ *     room_id text not null,
+ *     match_id uuid references matches(id),
+ *     caller_id uuid references profiles(id),
+ *     callee_id uuid references profiles(id),
+ *     caller_name text,
+ *     caller_avatar text,
+ *     status text default 'pending',
+ *     created_at timestamptz default now()
+ *   );
+ *   alter table call_invites enable row level security;
+ *   create policy "insert own" on call_invites for insert to authenticated
+ *     with check (caller_id = auth.uid());
+ *   create policy "read own" on call_invites for select to authenticated
+ *     using (callee_id = auth.uid() or caller_id = auth.uid());
+ *   create policy "update own" on call_invites for update to authenticated
+ *     using (callee_id = auth.uid() or caller_id = auth.uid());
  */
 (function () {
   if (window.__ssCallNotifyInit) return;
@@ -13,8 +36,9 @@
 
   let notifyClient, notifyChannel;
   let dismissTimer = null;
+  let currentInviteId = null;
 
-  /* ── Overlay HTML ── */
+  /* ── Overlay HTML (injected once into body) ── */
   function injectOverlay() {
     if (document.getElementById('__ssCallOverlay')) return;
     const el = document.createElement('div');
@@ -71,18 +95,18 @@
 
   /* ── Show overlay ── */
   function showOverlay(payload) {
-    // Don't show while already in a call
     if (window.location.pathname.includes('videocall')) return;
 
-    // Deduplicate across tabs using sessionStorage
+    // Deduplicate: ignore same invite shown twice (e.g. page open in two tabs)
     const dedupKey = '__ssCall_' + payload.roomId;
     if (sessionStorage.getItem(dedupKey)) return;
     sessionStorage.setItem(dedupKey, '1');
-    setTimeout(() => sessionStorage.removeItem(dedupKey), 60000);
+    setTimeout(() => sessionStorage.removeItem(dedupKey), 120000);
 
     injectOverlay();
     const overlay = document.getElementById('__ssCallOverlay');
-    const { callerName, callerAvatar, roomId, matchId } = payload;
+    const { callerName, callerAvatar, roomId, matchId, inviteId } = payload;
+    currentInviteId = inviteId || null;
 
     // Avatar
     const avatarEl = document.getElementById('__ssCallAvatar');
@@ -95,7 +119,7 @@
     }
     document.getElementById('__ssCallName').textContent = callerName || 'Someone';
 
-    // 30-second drain bar
+    // 30-second countdown bar
     const bar = document.getElementById('__ssCallBar');
     bar.style.transition = 'none';
     bar.style.width = '100%';
@@ -106,24 +130,39 @@
 
     overlay.style.display = 'flex';
 
-    // Buttons
-    document.getElementById('__ssCallAccept').onclick = () => {
+    // Accept
+    document.getElementById('__ssCallAccept').onclick = async () => {
       clearTimeout(dismissTimer);
+      if (currentInviteId) {
+        await notifyClient.from('call_invites')
+          .update({ status: 'accepted' }).eq('id', currentInviteId);
+      }
       hideOverlay();
-      const url = 'videocall.html?room=' + encodeURIComponent(roomId)
+      window.location.href = 'videocall.html?room=' + encodeURIComponent(roomId)
         + (matchId ? '&match=' + matchId : '');
-      window.location.href = url;
     };
-    document.getElementById('__ssCallDecline').onclick = () => {
+
+    // Decline
+    document.getElementById('__ssCallDecline').onclick = async () => {
       clearTimeout(dismissTimer);
+      if (currentInviteId) {
+        await notifyClient.from('call_invites')
+          .update({ status: 'declined' }).eq('id', currentInviteId);
+      }
       hideOverlay();
     };
 
-    // Auto-dismiss after 30 s
+    // Auto-expire after 30 s
     clearTimeout(dismissTimer);
-    dismissTimer = setTimeout(hideOverlay, 30000);
+    dismissTimer = setTimeout(async () => {
+      if (currentInviteId) {
+        await notifyClient.from('call_invites')
+          .update({ status: 'expired' }).eq('id', currentInviteId);
+      }
+      hideOverlay();
+    }, 30000);
 
-    // Browser Notification API (works when tab is in background)
+    // Browser Notification API (handles tab in background)
     if ('Notification' in window && Notification.permission !== 'denied') {
       Notification.requestPermission().then(perm => {
         if (perm !== 'granted') return;
@@ -145,11 +184,11 @@
   function hideOverlay() {
     const el = document.getElementById('__ssCallOverlay');
     if (el) el.style.display = 'none';
+    currentInviteId = null;
   }
 
   /* ── Bootstrap ── */
   async function start() {
-    // Re-use page's Supabase instance if available, otherwise create our own
     const client = (typeof supabase !== 'undefined')
       ? supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
       : null;
@@ -161,19 +200,54 @@
 
     const userId = session.user.id;
 
-    notifyChannel = notifyClient.channel('incoming-call-' + userId);
-    notifyChannel
-      .on('broadcast', { event: 'incoming_call' }, ({ payload }) => {
-        showOverlay(payload);
+    // Subscribe to call_invites postgres_changes filtered to this callee.
+    // Unlike broadcast, postgres_changes delivers the event from a persistent DB row,
+    // so even if we subscribe shortly after the INSERT, Supabase will deliver it.
+    notifyChannel = notifyClient
+      .channel('ss-call-invites-' + userId)
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'call_invites',
+        filter: `callee_id=eq.${userId}`
+      }, ({ payload }) => {
+        const invite = payload.new;
+        if (invite && invite.status === 'pending') {
+          showOverlay({
+            roomId: invite.room_id,
+            matchId: invite.match_id,
+            callerName: invite.caller_name,
+            callerAvatar: invite.caller_avatar,
+            inviteId: invite.id
+          });
+        }
       })
-      .subscribe((status) => {
-        if (status === 'SUBSCRIBED') {
-          console.log('[call-notify] subscribed for user', userId);
+      .subscribe(async (status) => {
+        console.log('[call-notify] channel status:', status);
+        if (status !== 'SUBSCRIBED') return;
+
+        // On subscribe, check for any pending invite inserted in the last 60s
+        // that we may have missed if the page loaded just after the INSERT.
+        const { data } = await notifyClient
+          .from('call_invites')
+          .select('*')
+          .eq('callee_id', userId)
+          .eq('status', 'pending')
+          .gte('created_at', new Date(Date.now() - 60000).toISOString())
+          .order('created_at', { ascending: false })
+          .limit(1);
+        if (data && data[0]) {
+          showOverlay({
+            roomId: data[0].room_id,
+            matchId: data[0].match_id,
+            callerName: data[0].caller_name,
+            callerAvatar: data[0].caller_avatar,
+            inviteId: data[0].id
+          });
         }
       });
   }
 
-  // Wait for Supabase CDN to be ready
   function boot() {
     if (typeof supabase !== 'undefined') {
       start();

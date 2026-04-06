@@ -244,11 +244,25 @@ function startTimer() {
   }, 1000);
 }
 
-async function drainIceCandidates() {
+// Safe wrapper: sets remote description then flushes any buffered ICE candidates
+async function safeSetRemoteDescription(sdp) {
+  await pc.setRemoteDescription(new RTCSessionDescription(sdp));
+  remoteDescSet = true;
   for (const c of iceCandidateQueue) {
-    try { await pc.addIceCandidate(c); } catch(e) { console.error('ICE drain error:', e); }
+    try { await pc.addIceCandidate(c); } catch(e) { console.warn('Flushed ICE error:', e); }
   }
   iceCandidateQueue = [];
+}
+
+// Safe wrapper: buffers ICE candidates until remote description is set
+async function handleIncomingCandidate(candidateData) {
+  if (!pc) return;
+  const candidate = new RTCIceCandidate(candidateData);
+  if (remoteDescSet) {
+    try { await pc.addIceCandidate(candidate); } catch(e) { console.warn('ICE add error:', e); }
+  } else {
+    iceCandidateQueue.push(candidate);
+  }
 }
 
 // ── Controls ──
@@ -303,6 +317,11 @@ window.addEventListener('beforeunload', () => {
 
 // ── WebRTC ──
 async function initWebRTC() {
+  // Reset ICE buffering state before each fresh initialization
+  iceCandidateQueue = [];
+  remoteDescSet = false;
+  offerSent = false;
+
   // Get local media
   try {
     localStream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
@@ -354,8 +373,12 @@ async function initWebRTC() {
       setStatus('Connected!', 2000);
       if (!callStartTime) startTimer();
     }
-    if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed') {
+    if (pc.connectionState === 'disconnected') {
       setStatus('Partner disconnected');
+    }
+    if (pc.connectionState === 'failed') {
+      document.getElementById('waitingSub').textContent = 'Connection failed. Please try again.';
+      setStatus('Connection failed — check your network');
     }
   };
 
@@ -366,9 +389,7 @@ async function initWebRTC() {
   signalChannel.on('broadcast', {event:'offer'}, async ({payload}) => {
     if (isCaller) return;
     try {
-      await pc.setRemoteDescription(new RTCSessionDescription(payload.sdp));
-      remoteDescSet = true;
-      await drainIceCandidates();
+      await safeSetRemoteDescription(payload.sdp);
       const answer = await pc.createAnswer();
       await pc.setLocalDescription(answer);
       signalChannel.send({type:'broadcast', event:'answer', payload:{sdp: answer}});
@@ -380,21 +401,14 @@ async function initWebRTC() {
   signalChannel.on('broadcast', {event:'answer'}, async ({payload}) => {
     if (!isCaller) return;
     try {
-      await pc.setRemoteDescription(new RTCSessionDescription(payload.sdp));
-      remoteDescSet = true;
-      await drainIceCandidates();
+      await safeSetRemoteDescription(payload.sdp);
     } catch(e) { console.error('Handle answer error:', e); }
   });
 
-  // ICE candidates
+  // ICE candidates — buffered until remote description is set
   signalChannel.on('broadcast', {event:'ice'}, async ({payload}) => {
     if (!payload.candidate) return;
-    const candidate = new RTCIceCandidate(payload.candidate);
-    if (remoteDescSet && pc) {
-      try { await pc.addIceCandidate(candidate); } catch(e) { console.error('Add ICE error:', e); }
-    } else {
-      iceCandidateQueue.push(candidate);
-    }
+    await handleIncomingCandidate(payload.candidate);
   });
 
   // Ready — callee tells caller it joined → caller creates offer

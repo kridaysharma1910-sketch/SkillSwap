@@ -98,7 +98,19 @@ body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;display:fl
 
 @keyframes fadeUp{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
 @media(max-width:900px){.sidebar{transform:translateX(-100%);transition:transform .3s;background:#0e0e0e !important;border-right:1px solid rgba(255,255,255,0.1) !important;}.sidebar.open{transform:translateX(0);}.sidebar .nav-link{color:#fff;opacity:1;}.chat-layout{margin-left:0;}.hamburger{display:flex;}}
-@media(max-width:660px){.convos-panel{width:100%;position:absolute;left:0;top:0;bottom:0;z-index:50;background:var(--bg);}.convos-panel.hidden{display:none;}.chat-panel{width:100%;}.btn-back-mobile{display:flex !important;}.compose-fab{display:flex !important;}.chat-textarea{font-size:16px !important;}}
+@media(max-width:660px){
+  .convos-panel{width:100%;position:absolute;left:0;top:0;bottom:0;z-index:50;background:var(--bg);}
+  .convos-panel.hidden{display:none;}
+  /* Use dynamic viewport height so iOS address-bar doesn't clip the input */
+  .chat-panel{width:100%;height:-webkit-fill-available;height:100dvh;}
+  .btn-back-mobile{display:flex !important;}
+  /* No !important — JS can override with style.display='none' when chat is open */
+  .compose-fab{display:flex;}
+  .chat-textarea{font-size:16px !important;}
+  /* Sticky input bar so it stays above iOS home-bar / browser chrome */
+  .chat-input-wrap{position:sticky;bottom:0;z-index:5;background:var(--bg);
+    padding-bottom:max(14px,env(safe-area-inset-bottom));}
+}
 .convos-header-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
 .compose-btn{background:rgba(139,92,246,0.12);border:1px solid rgba(139,92,246,0.25);color:rgba(167,139,250,0.8);width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:none;text-decoration:none;flex-shrink:0;transition:background .15s;}
 .compose-btn:hover{background:rgba(139,92,246,0.22);}
@@ -252,8 +264,12 @@ async function openConvo(matchId){
   subscribeToMessages(matchId);
   startPolling(matchId);
   await sb.from('messages').update({read:true}).eq('match_id',matchId).neq('sender_id',currentUserId).then(({error})=>{if(error)console.error('Mark read error:',error);});
-  // On mobile, slide convos list away to show chat
-  if(window.innerWidth<=660){document.getElementById('convosPanel').classList.add('hidden');}
+  // On mobile, slide convos list away to show chat and hide the new-chat FAB
+  if(window.innerWidth<=660){
+    document.getElementById('convosPanel').classList.add('hidden');
+    const fab=document.getElementById('composeFab');
+    if(fab) fab.style.display='none';
+  }
 }
 
 async function loadMessages(matchId){
@@ -360,22 +376,26 @@ async function sendMessage(){
   await loadMessages(currentMatchId);
 }
 
-function backToConvosList(){document.getElementById('convosPanel').classList.remove('hidden');}
+function backToConvosList(){
+  document.getElementById('convosPanel').classList.remove('hidden');
+  // Restore the FAB now that we're back on the convos list
+  const fab=document.getElementById('composeFab');
+  if(fab) fab.style.display='';
+}
 
-// Broadcast a call invite event to the callee's personal Realtime channel
+// Insert a call_invite row — receiver's call-notify.js picks it up via postgres_changes
 async function broadcastCallInvite(peerId,payload){
-  return new Promise(resolve=>{
-    const ch=sb.channel('incoming-call-'+peerId);
-    let done=false;
-    const timer=setTimeout(()=>{done=true;try{sb.removeChannel(ch);}catch(e){}resolve();},2000);
-    ch.subscribe(status=>{
-      if(status==='SUBSCRIBED'&&!done){
-        clearTimeout(timer);
-        ch.send({type:'broadcast',event:'incoming_call',payload});
-        setTimeout(()=>{try{sb.removeChannel(ch);}catch(e){}done=true;resolve();},400);
-      }
-    });
+  const{roomId,matchId,callerName,callerAvatar}=payload;
+  const{error}=await sb.from('call_invites').insert({
+    room_id:roomId,
+    match_id:matchId||null,
+    caller_id:currentUserId,
+    callee_id:peerId,
+    caller_name:callerName,
+    caller_avatar:callerAvatar,
+    status:'pending'
   });
+  if(error) console.error('call_invite insert error:',error);
 }
 
 async function startCallFromMessages(){
