@@ -13,7 +13,7 @@ A skill-exchange web platform where users list skills they offer and skills they
 ## Tech Stack
 - **Frontend:** Plain HTML, CSS, Vanilla JS (no framework)
 - **Backend:** Supabase (auth + database)
-- **Video Calls:** Jitsi (to be integrated)
+- **Video Calls:** Custom WebRTC + Supabase Realtime signaling (no third-party services)
 - **Payments:** Lemon Squeezy / Paddle
 - **Deployment:** Vercel
 
@@ -50,9 +50,9 @@ A skill-exchange web platform where users list skills they offer and skills they
 | Discover | discover.html | ✅ Done — real users, match scoring, send requests, filters |
 | Matches | matches.html | ✅ Done — 4 tabs, accept/decline/complete, message + call links |
 | Messages | messages.html | ✅ Done — real-time chat, Supabase subscriptions, URL auto-open |
-| Video Call | videocall.html | ✅ Done — WebRTC P2P, Supabase Realtime signaling, fullscreen UI, session logging |
+| Video Call | videocall.html | ✅ Done — WebRTC P2P, ICE restart/retry, offer/answer wait-for-ICE-gathering, auto-reconnect on failure |
 | Pricing | pricing.html | ✅ Done — Free/Pro/Creator features, Supabase plan update, toggle |
-| Webinars | webinars.html | ✅ Done — real Supabase data, host modal, creator gating, register, full host control overlay |
+| Webinars | webinars.html | ✅ Done — host overlay, built-in WebRTC participant system (star topology), ended webinars filtered, participants redirect on end |
 | Analytics | analytics.html | ✅ Done — 6 stat cards, activity chart, skills table, badges grid, rank, creator section |
 
 ---
@@ -175,6 +175,33 @@ create policy "update own" on call_invites for update to authenticated
 alter publication supabase_realtime add table call_invites;
 ```
 
+### [Session 10 — 2026-04-07]
+
+**FIX 1 — Webinar built-in WebRTC participant system (webinars.html):**
+- Replaced Jitsi `window.open` with a full-screen built-in participant overlay (star topology: each participant connects to HOST only)
+- Participant overlay: host video fullscreen, own camera PiP bottom-right, mic/cam/leave controls, status pill, waiting state with spinner
+- Two Supabase Realtime channels per webinar: `webinar_ctrl:{id}` (existing — mute/kick/end commands) and new `webinar_rtc:{id}` (WebRTC signaling only)
+- Host side: `enterHostMode()` now subscribes to `webinar_rtc` channel; `handleParticipantJoin()` creates one `RTCPeerConnection` per participant, adds host stream tracks, sends offer after ICE gathering completes
+- Host tracks `participantPCs`, `participantIceQueues`, `participantRemoteDescSet` maps per participant userId
+- Screen share: when host starts/stops `getDisplayMedia`, `replaceTrack()` is called on all participant peer connections to switch the video track live
+- `endWebinar()` closes all participant PCs and removes `wrtcHostChannel`; `wrtcHostChannel` is also stored in globals alongside `hostChannel`
+- Participant side: `joinWebinarLive(id, title)` gets local media, subscribes to `webinar_rtc` channel, sends `{event:'join', payload:{userId, name}}`, receives `offer_to_participant`, creates answer after ICE gathering, sends answer back
+- Participant `leaveWebinar(redirect, delay)` cleans up PC + stream + channel; called on Leave button or when kicked/ended
+- Ended webinars filtered from listing: `.neq('status','ended')` added to `loadWebinars()` Supabase query
+- `end_webinar` host command now calls `leaveWebinar(true, 3000)` — redirects to webinars.html after 3s (was just `loadWebinars()`)
+- `mute_all` host command disables participant's local audio tracks directly via `participantStream.getAudioTracks()`
+- ICE_SERVERS config (STUN + openrelay TURN) added to webinars.html, same as videocall.html
+- `myName` global added and set in `init()` so participant join payload includes user's display name
+
+**FIX 2 — Video call reliability (videocall.html):**
+- Fix A — ICE restart on timeout: 8s `connectionTimeout` added after `RTCPeerConnection` creation; if not connected by then, caller creates a new offer with `{iceRestart:true}` and re-sends it; timeout cleared on `connectionState='connected'`
+- Fix B — Bundle candidates in SDP: added `createOfferAndWaitForICE()` and `createAnswerAndWaitForICE()` helpers that wait for `iceGatheringState==='complete'` (4s max fallback) before returning `localDescription`; used in both the `ready` handler (caller) and `offer` handler (callee) — fixes mobile first-try failures caused by unreliable trickle ICE
+- Fix C — Reset on failure: `connectionState='failed'` now closes and nulls `pc`, resets `remoteDescSet`/`iceCandidateQueue`/`offerSent`, shows "Reconnecting..." and calls `initWebRTC()` after 1.5s instead of leaving the call stuck
+
+**FIX 3 — Remove Video Call sidebar nav link (all 9 pages):**
+- Removed `<a href="videocall.html">Video Call</a>` from sidebar in: dashboard, discover, matches, messages, profile, pricing, webinars, videocall, analytics
+- videocall.html itself is unchanged — still accessible from Messages chat header call button
+
 ### [Session 9 — 2026-04-07]
 
 **FIX 1 — Webinar Host Controls (webinars.html):**
@@ -263,8 +290,8 @@ alter publication supabase_realtime add table call_invites;
 - messages.html ✅ — real-time chat + 3s polling fallback, CALL_INVITE:: renders as "Join Call" button, video call icon starts WebRTC room from chat header
 - profile.html ✅ — black/glass redesign, avatar photo upload + emoji picker, mobile Add button, save to skills_offering/wanting
 - pricing.html ✅ — black/glass redesign, updated Free/Pro/Creator features, Supabase plan update on selection
-- webinars.html ✅ — black/glass redesign, real Supabase data, filter by status, creator gating, attendee registration
-- videocall.html ✅ — custom WebRTC P2P via Supabase Realtime signaling, remote fullscreen + local PiP, mute/cam/end controls, timer, session logging
+- webinars.html ✅ — host overlay, built-in WebRTC star-topology participant view, ended webinars filtered, participant redirect on end, screen share via replaceTrack
+- videocall.html ✅ — WebRTC P2P, ICE restart on timeout, offer/answer bundled after ICE gathering, auto-teardown+reconnect on failure
 - analytics.html ✅ — new page, pro/creator gate, stats from sessions + analytics tables, global rank, rewards, creator section
 
 ### Mobile Sidebar (all pages)
@@ -308,6 +335,9 @@ All 9 sidebar pages (dashboard, discover, matches, messages, profile, pricing, w
 - ✅ Incoming call notifications (session 8) — call_invites table + postgres_changes; **call_invites table must be created in Supabase** (SQL in session 8 log) and Realtime enabled for it
 - ✅ Mobile message input fixed (session 8) — sticky input, 100dvh height, FAB hides when chat open
 - `call_invites` Realtime must be enabled: `alter publication supabase_realtime add table call_invites;`
+- ✅ Video call reliability fixed (session 10) — ICE restart on 8s timeout, offer/answer wait for full ICE gathering, auto-teardown+retry on failed state
+- ✅ Webinar participant system replaced (session 10) — Jitsi removed, built-in WebRTC star topology; signaling on `webinar_rtc:{id}` channel
+- ✅ Sidebar "Video Call" nav link removed from all 9 pages (session 10) — access only via Messages chat header
 
 ---
 
