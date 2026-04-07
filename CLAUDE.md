@@ -52,8 +52,8 @@ A skill-exchange web platform where users list skills they offer and skills they
 | Messages | messages.html | ✅ Done — real-time chat, Supabase subscriptions, URL auto-open |
 | Video Call | videocall.html | ✅ Done — WebRTC P2P, Supabase Realtime signaling, fullscreen UI, session logging |
 | Pricing | pricing.html | ✅ Done — Free/Pro/Creator features, Supabase plan update, toggle |
-| Webinars | webinars.html | ✅ Done — real Supabase data, host modal, creator gating, register |
-| Analytics | analytics.html | ✅ Done — pro/creator gate, stats, rank, rewards, creator earnings |
+| Webinars | webinars.html | ✅ Done — real Supabase data, host modal, creator gating, register, full host control overlay |
+| Analytics | analytics.html | ✅ Done — 6 stat cards, activity chart, skills table, badges grid, rank, creator section |
 
 ---
 
@@ -174,6 +174,27 @@ create policy "update own" on call_invites for update to authenticated
 -- Also enable Realtime for this table:
 alter publication supabase_realtime add table call_invites;
 ```
+
+### [Session 9 — 2026-04-07]
+
+**FIX 1 — Webinar Host Controls (webinars.html):**
+- Hosts now see a "Your Webinar" badge on their cards + host-specific action buttons
+- Pre-session (upcoming): "Edit" opens settings modal (title, description, date, allow-unmute toggle, require-registration toggle) with Supabase update on save; "Go Live" sets `is_live=true, status='live'` in Supabase then opens host overlay
+- Full-screen Host Control Overlay: live timer, local camera preview via `getUserMedia`, control bar with Mute/Camera/Screen Share (`getDisplayMedia`)/Mute All buttons
+- Participants panel: loads all `webinar_attendees` joined with profiles; each attendee has a kick button that broadcasts `{cmd:'kick', target_user_id}` via Supabase Realtime channel `webinar_ctrl:{id}`
+- Raise Hand panel: attendees can broadcast `raise_hand` events; host sees queue with "Call On" button per attendee; `called_on` command broadcast back
+- End Webinar: confirmation → broadcasts `{cmd:'end_webinar'}` → updates DB (`status='ended', is_live=false, attendee_count=N`) → shows post-session summary modal (duration, total attendees, earnings estimate) → on close reloads webinar list
+- Attendee side: `subscribeAttendeeToWebinar(id)` subscribes to `webinar_ctrl:{id}` channel on Join Live (and auto-subscribes to all live webinars on page load); receives `mute_all`, `kick`, `end_webinar` commands and shows appropriate toast / reloads
+- When host is live and revisits the webinars page, "Host Controls" button on live card re-opens overlay
+
+**FIX 2 — Analytics Dashboard (analytics.html) — completed from session 8:**
+- 6 overview stat cards: Swaps Completed, Active Matches, Hours Swapped, Skills Taught, Messages Sent, Match Response Rate — all pulled from Supabase in parallel via `Promise.all`
+- Activity chart: Chart.js bar chart showing sessions per day over last 30 days
+- Skills analytics section: table of offered skills with request count, completion count, completion %, mini progress bar; highlights most-requested skill; tip shown for skills with 0 activity
+- Messages & Engagement card: conversations started, messages sent, response rate with explanation
+- Global ranking: rank number, rank title, percentile bar, points breakdown grid (swaps × 10 pts, hours × 5 pts, webinars × 2 pts, matches × 1 pt)
+- Achievements grid: 8 badges (First Swap, Active Learner, Swap Master, Dedicated, Hour Hero, Social Butterfly, Knowledge Seeker, Top Ranker) — unlocked badges glow, locked ones show progress bar + fraction
+- Creator section (creator plan only): 5 stat cards + best-performing webinar card
 
 ### [Session 7 — 2026-04-06]
 - Added Google OAuth sign-in to login.html and signup.html (both pages already had the button, divider, CSS, and `signInWithGoogle()` wired to `supabase.auth.signInWithOAuth`)
