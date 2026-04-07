@@ -129,6 +129,76 @@ body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;min-height
 .toast{position:fixed;bottom:24px;right:24px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);color:#fff;padding:12px 20px;border-radius:12px;font-size:.85rem;z-index:9000;animation:fadeUp .3s ease;backdrop-filter:blur(12px);}
 
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+/* HOST CONTROL OVERLAY */
+.host-overlay{position:fixed;inset:0;background:#080808;z-index:500;display:none;flex-direction:column;}
+.host-overlay.open{display:flex;}
+.host-hud{display:flex;align-items:center;gap:14px;padding:14px 22px;border-bottom:1px solid var(--border);flex-wrap:wrap;}
+.live-badge-hud{display:flex;align-items:center;gap:6px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:8px;padding:5px 11px;flex-shrink:0;}
+.live-badge-hud-dot{width:6px;height:6px;background:#ef4444;border-radius:50%;animation:blink 1s infinite;}
+.live-badge-hud-text{font-size:.72rem;color:#fca5a5;font-weight:700;letter-spacing:.06em;}
+.host-webinar-name{font-family:'Syne',sans-serif;font-weight:700;font-size:.9rem;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.host-timer-display{font-family:'Syne',sans-serif;font-weight:700;font-size:.88rem;color:rgba(255,255,255,.55);background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:8px;padding:5px 12px;}
+.host-body{display:flex;flex:1;overflow:hidden;}
+.host-main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;overflow-y:auto;}
+.host-video-wrap{width:100%;max-width:640px;aspect-ratio:16/9;background:rgba(255,255,255,.02);border-radius:14px;border:1px solid var(--border);overflow:hidden;position:relative;flex-shrink:0;}
+.host-video-wrap video{width:100%;height:100%;object-fit:cover;display:block;}
+.host-cam-off{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--text-muted);pointer-events:none;}
+.host-cam-off svg{width:32px;height:32px;opacity:.25;}
+.host-cam-off span{font-size:.82rem;}
+.host-controls-bar{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;justify-content:center;}
+.ctrl-btn{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:11px;padding:10px 18px;color:rgba(255,255,255,.75);cursor:none;display:flex;align-items:center;gap:8px;font-family:'DM Sans',sans-serif;font-size:.82rem;transition:all .2s;}
+.ctrl-btn:hover{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.16);}
+.ctrl-btn.active{background:rgba(139,92,246,.1);border-color:rgba(139,92,246,.35);color:rgba(167,139,250,.9);}
+.ctrl-btn.muted{background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.25);color:#fca5a5;}
+.ctrl-btn svg{width:15px;height:15px;}
+.btn-end{background:rgba(239,68,68,.85)!important;border-color:transparent!important;color:#fff!important;font-family:'Syne',sans-serif;font-weight:700;}
+.btn-end:hover{background:#ef4444!important;}
+.host-side{width:280px;border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;}
+.host-side-tabs{display:flex;border-bottom:1px solid var(--border);}
+.h-tab{flex:1;padding:11px 4px;text-align:center;font-size:.75rem;background:none;border:none;color:rgba(255,255,255,.3);cursor:none;border-bottom:2px solid transparent;transition:all .2s;font-family:'DM Sans',sans-serif;}
+.h-tab.active{color:#fff;border-bottom-color:rgba(139,92,246,.7);}
+.h-tab-ct{background:rgba(239,68,68,.5);color:#fff;border-radius:100px;font-size:.6rem;padding:1px 5px;margin-left:3px;vertical-align:middle;}
+.h-panel{flex:1;overflow-y:auto;padding:12px;display:none;}
+.h-panel.active{display:block;}
+.h-panel-empty{color:var(--text-muted);font-size:.81rem;text-align:center;padding:24px 0;}
+.participant-row{display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.participant-row:last-child{border-bottom:none;}
+.p-av{width:28px;height:28px;border-radius:50%;background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.2);display:flex;align-items:center;justify-content:center;font-size:.66rem;font-weight:700;color:rgba(167,139,250,.8);flex-shrink:0;overflow:hidden;}
+.p-name{flex:1;font-size:.81rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.p-kick{background:none;border:none;color:rgba(239,68,68,.4);cursor:none;padding:3px;border-radius:5px;transition:color .2s;display:flex;align-items:center;}
+.p-kick:hover{color:#fca5a5;}
+.p-kick svg{width:13px;height:13px;}
+.raise-row{display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.raise-row:last-child{border-bottom:none;}
+.btn-call-on{background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.2);color:#86efac;border-radius:7px;padding:4px 10px;font-size:.73rem;cursor:none;font-family:'DM Sans',sans-serif;white-space:nowrap;transition:background .2s;}
+.btn-call-on:hover{background:rgba(34,197,94,.14);}
+
+/* HOST CARD EXTRAS */
+.host-actions{display:flex;gap:7px;margin-top:10px;}
+.btn-go-live{flex:1;background:rgba(239,68,68,.8);border:none;color:#fff;padding:9px;border-radius:9px;font-family:'Syne',sans-serif;font-size:.79rem;font-weight:700;cursor:none;transition:background .2s;display:flex;align-items:center;justify-content:center;gap:5px;}
+.btn-go-live:hover{background:#ef4444;}
+.btn-host-panel{flex:1;background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.3);color:rgba(167,139,250,.9);padding:9px;border-radius:9px;font-family:'Syne',sans-serif;font-size:.79rem;font-weight:700;cursor:none;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:5px;}
+.btn-host-panel:hover{background:rgba(139,92,246,.18);}
+.host-card-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(139,92,246,.08);border:1px solid rgba(139,92,246,.2);color:rgba(167,139,250,.75);font-size:.66rem;padding:2px 8px;border-radius:100px;margin-bottom:7px;}
+
+/* END WEBINAR SUMMARY */
+.summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:18px 0 4px;}
+.summary-cell{background:#0e0e0e;padding:16px;text-align:center;}
+.summary-val{font-family:'Syne',sans-serif;font-weight:700;font-size:1.8rem;letter-spacing:-.03em;}
+.summary-lbl{font-size:.74rem;color:var(--text-muted);margin-top:3px;}
+
+/* PRE-SESSION SETTINGS */
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.06);}
+.toggle-row:last-child{border-bottom:none;}
+.toggle-info{flex:1;padding-right:16px;}
+.toggle-label{font-size:.85rem;}
+.toggle-sub{font-size:.74rem;color:var(--text-muted);margin-top:2px;}
+.toggle-sw{width:40px;height:22px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:100px;cursor:none;position:relative;transition:background .2s,border-color .2s;flex-shrink:0;}
+.toggle-sw.on{background:rgba(139,92,246,.5);border-color:rgba(139,92,246,.55);}
+.toggle-sw::after{content:'';position:absolute;top:3px;left:3px;width:14px;height:14px;background:#fff;border-radius:50%;transition:left .15s;}
+.toggle-sw.on::after{left:21px;}
+
 @media(max-width:900px){.sidebar{transform:translateX(-100%);transition:transform .3s;background:#0e0e0e !important;border-right:1px solid rgba(255,255,255,0.1) !important;}.sidebar.open{transform:translateX(0);}.sidebar .nav-link{color:#fff;opacity:1;}.main{margin-left:0;padding:24px 20px;padding-top:56px;}.hamburger{display:flex;}.page-header{flex-direction:column;}.field-row{grid-template-columns:1fr;}}
 </style>
 </head>
@@ -176,6 +246,98 @@ body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;min-height
       </div>
       <div class="field" id="priceField" style="display:none;"><label>Price ($)</label><input type="number" id="wPrice" placeholder="9.99" min="1" step="0.01"></div>
       <button class="modal-submit" id="createBtn" onclick="createWebinar()">Create Webinar</button>
+    </div>
+  </div>
+</div>
+
+<!-- PRE-SESSION SETTINGS MODAL -->
+<div class="modal-overlay" id="preSessionModal">
+  <div class="modal" style="max-width:460px;">
+    <div class="modal-title">Webinar Settings<button class="modal-close" onclick="closePreSession()">×</button></div>
+    <div class="modal-alert" id="psAlert" style="display:none;"></div>
+    <div class="field"><label>Title</label><input type="text" id="psTitle" placeholder="Webinar title" maxlength="100"></div>
+    <div class="field"><label>Description</label><textarea id="psDesc" rows="3" maxlength="400"></textarea></div>
+    <div class="field"><label>Date &amp; Time</label><input type="datetime-local" id="psDate"></div>
+    <div style="margin:16px 0 4px;font-size:.74rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;">Session options</div>
+    <div class="toggle-row">
+      <div class="toggle-info"><div class="toggle-label">Allow attendees to unmute</div><div class="toggle-sub">Attendees can unmute themselves during the session</div></div>
+      <div class="toggle-sw" id="toggleUnmute" onclick="toggleSwitch(this)"></div>
+    </div>
+    <div class="toggle-row">
+      <div class="toggle-info"><div class="toggle-label">Require registration to join</div><div class="toggle-sub">Only registered attendees can join the live session</div></div>
+      <div class="toggle-sw on" id="toggleRequireReg" onclick="toggleSwitch(this)"></div>
+    </div>
+    <button class="modal-submit" style="margin-top:16px;" onclick="savePreSession()">Save Settings</button>
+  </div>
+</div>
+
+<!-- END WEBINAR SUMMARY MODAL -->
+<div class="modal-overlay" id="summaryModal">
+  <div class="modal" style="max-width:420px;text-align:center;">
+    <div style="font-size:2.2rem;margin-bottom:10px;line-height:1;">&#127881;</div>
+    <div class="modal-title" style="justify-content:center;font-size:1.05rem;">Webinar Ended</div>
+    <p style="color:var(--text-muted);font-size:.84rem;margin:-10px 0 0;">Great session! Here's a summary:</p>
+    <div class="summary-grid">
+      <div class="summary-cell"><div class="summary-val" id="sumDuration">0m</div><div class="summary-lbl">Duration</div></div>
+      <div class="summary-cell"><div class="summary-val" id="sumAttendees">0</div><div class="summary-lbl">Attendees</div></div>
+      <div class="summary-cell"><div class="summary-val" id="sumEarnings">$0</div><div class="summary-lbl">Earnings</div></div>
+    </div>
+    <button class="modal-submit" onclick="closeSummary()">Back to Webinars</button>
+  </div>
+</div>
+
+<!-- HOST CONTROL OVERLAY -->
+<div class="host-overlay" id="hostOverlay">
+  <div class="host-hud">
+    <div class="live-badge-hud"><div class="live-badge-hud-dot"></div><div class="live-badge-hud-text">LIVE</div></div>
+    <div class="host-webinar-name" id="hostWebinarName">Webinar</div>
+    <div class="host-timer-display" id="hostTimerDisplay">00:00</div>
+    <button class="ctrl-btn btn-end" onclick="confirmEndWebinar()">
+      <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+      End Webinar
+    </button>
+  </div>
+  <div class="host-body">
+    <div class="host-main">
+      <div class="host-video-wrap">
+        <video id="hostLocalVideo" autoplay muted playsinline></video>
+        <div class="host-cam-off" id="hostCamOff">
+          <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+          <span>Camera is off</span>
+        </div>
+      </div>
+      <div class="host-controls-bar">
+        <button class="ctrl-btn" id="muteBtn" onclick="toggleMute()">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+          Mute
+        </button>
+        <button class="ctrl-btn" id="camBtn" onclick="toggleCamera()">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+          Camera
+        </button>
+        <button class="ctrl-btn" id="screenBtn" onclick="toggleScreen()">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+          Share Screen
+        </button>
+        <button class="ctrl-btn" onclick="muteAllAttendees()">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="1" y1="1" x2="23" y2="23"/><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"/><path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+          Mute All
+        </button>
+      </div>
+    </div>
+    <div class="host-side">
+      <div class="host-side-tabs">
+        <button class="h-tab active" id="hTabPart" onclick="switchHostTab('participants')">Participants<span class="h-tab-ct" id="partCount">0</span></button>
+        <button class="h-tab" id="hTabHands" onclick="switchHostTab('hands')">Raise Hand<span class="h-tab-ct" id="handCount" style="display:none;"></span></button>
+      </div>
+      <div class="h-panel active" id="hPanelParticipants">
+        <div class="h-panel-empty" id="partEmpty">No attendees yet</div>
+        <div id="partList"></div>
+      </div>
+      <div class="h-panel" id="hPanelHands">
+        <div class="h-panel-empty" id="handsEmpty">No hands raised</div>
+        <div id="handsList"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -273,16 +435,42 @@ function renderCard(w,idx){
   const hostName=w.host?.full_name||w.host?.username||'SkillSwapper';
   const hostAv=w.host?.avatar_url?`<img src="${w.host.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`:w.host?.avatar_emoji||'?';
   const isReg=registeredIds.has(w.id);
+  const isHost=w.host_id===currentUserId;
   const delay=(idx%12)*0.05;
   const statusBadge=status==='live'?'<span class="webinar-status-badge status-live">Live</span>':status==='upcoming'?'<span class="webinar-status-badge status-upcoming">Upcoming</span>':'<span class="webinar-status-badge status-recorded">Recorded</span>';
   const btnText=status==='live'?'Join Live':status==='recorded'?'Watch Replay':(isReg?'Registered':'Register');
   const btnClass=isReg&&status!=='live'?'btn-attend registered':'btn-attend';
+
+  let hostActionsHtml='';
+  if(isHost){
+    if(status==='upcoming'){
+      hostActionsHtml=`<div class="host-actions">
+        <button class="btn-host-panel" onclick="openPreSession('${w.id}')">
+          <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Edit
+        </button>
+        <button class="btn-go-live" onclick="startLive('${w.id}')">
+          <svg width="10" height="10" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>
+          Go Live
+        </button>
+      </div>`;
+    } else if(status==='live'){
+      hostActionsHtml=`<div class="host-actions">
+        <button class="btn-host-panel" style="background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.3);color:#fca5a5;" onclick="enterHostMode('${w.id}')">
+          <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+          Host Controls
+        </button>
+      </div>`;
+    }
+  }
+
   return`<div class="webinar-card" style="animation-delay:${delay}s">
     <div class="webinar-cover" style="background:${coverColor}">
       <svg width="32" height="32" fill="none" stroke="rgba(139,92,246,0.4)" stroke-width="1.5" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
       ${statusBadge}
     </div>
     <div class="webinar-body">
+      ${isHost?'<div class="host-card-badge"><svg width="9" height="9" fill="currentColor" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>Your Webinar</div>':''}
       ${w.category?`<div class="webinar-cat">${w.category}</div>`:''}
       <div class="webinar-title">${w.title||'Untitled Webinar'}</div>
       <div class="webinar-desc">${w.description||'No description provided.'}</div>
@@ -296,8 +484,9 @@ function renderCard(w,idx){
       </div>
       <div class="webinar-footer">
         <button class="${btnClass}" onclick="attendWebinar('${w.id}','${status}',this)">${btnText}</button>
-        ${status==='upcoming'&&!isReg?`<button class="btn-remind" onclick="remindMe('${w.id}',this)" title="Remind me"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></button>`:''}
+        ${status==='upcoming'&&!isReg&&!isHost?`<button class="btn-remind" onclick="remindMe('${w.id}',this)" title="Remind me"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></button>`:''}
       </div>
+      ${hostActionsHtml}
     </div>
   </div>`;
 }
@@ -338,6 +527,7 @@ function onSearch(){clearTimeout(searchTimer);searchTimer=setTimeout(()=>{search
 
 async function attendWebinar(id,status,btn){
   if(status==='live'){
+    subscribeAttendeeToWebinar(id);
     const w=allWebinars.find(x=>x.id===id);
     const room=w?.jitsi_room||('webinar-'+id.slice(0,8));
     window.open('https://meet.jit.si/'+room,'_blank');
@@ -412,9 +602,285 @@ async function loadWebinars(){
   if(error){console.error('Webinars load error:',error);}
   allWebinars=data||[];
   applyFilter();
+  // Subscribe attendees to all live webinars' control channels
+  (data||[]).filter(w=>getStatus(w)==='live'&&w.host_id!==currentUserId).forEach(w=>subscribeAttendeeToWebinar(w.id));
 }
 
 function showToast(msg){const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>{t.style.opacity='0';setTimeout(()=>t.remove(),300);},3000);}
+
+// ── HOST STATE ──────────────────────────────────────────────────────────────
+let hostWebinarId=null,hostStream=null,hostScreenStream=null;
+let hostStartTime=null,hostTimerInterval=null;
+let isMuted=false,isCamOff=false,isSharing=false;
+let hostChannel=null,raiseHandQueue=[];
+let preSessionWebinarId=null,attendeeChannels={};
+
+// ── ENTER HOST MODE ──────────────────────────────────────────────────────────
+async function enterHostMode(webinarId){
+  hostWebinarId=webinarId;
+  const w=allWebinars.find(x=>x.id===webinarId);
+  document.getElementById('hostWebinarName').textContent=w?.title||'Webinar';
+  document.getElementById('hostOverlay').classList.add('open');
+  // Timer
+  if(!hostStartTime)hostStartTime=Date.now();
+  clearInterval(hostTimerInterval);
+  hostTimerInterval=setInterval(()=>{
+    const e=Math.floor((Date.now()-hostStartTime)/1000);
+    const m=String(Math.floor(e/60)).padStart(2,'0');
+    const s=String(e%60).padStart(2,'0');
+    document.getElementById('hostTimerDisplay').textContent=m+':'+s;
+  },1000);
+  // Media
+  await setupLocalMedia();
+  // Realtime channel
+  if(!hostChannel){
+    hostChannel=sb.channel('webinar_ctrl:'+webinarId);
+    hostChannel.on('broadcast',{event:'raise_hand'},({payload})=>addRaiseHand(payload)).subscribe();
+  }
+  // Participants
+  loadParticipants(webinarId);
+}
+
+async function setupLocalMedia(){
+  try{
+    hostStream=await navigator.mediaDevices.getUserMedia({video:true,audio:true});
+    document.getElementById('hostLocalVideo').srcObject=hostStream;
+    document.getElementById('hostCamOff').style.display='none';
+    isMuted=false;isCamOff=false;
+    const mb=document.getElementById('muteBtn');
+    mb.classList.remove('muted');
+    mb.innerHTML=`<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>Mute`;
+    document.getElementById('camBtn').classList.remove('muted');
+  }catch(e){
+    console.warn('Media access denied:',e);
+    document.getElementById('hostCamOff').style.display='flex';
+    isCamOff=true;
+  }
+}
+
+function toggleMute(){
+  if(!hostStream)return;
+  isMuted=!isMuted;
+  hostStream.getAudioTracks().forEach(t=>t.enabled=!isMuted);
+  const btn=document.getElementById('muteBtn');
+  btn.classList.toggle('muted',isMuted);
+  if(isMuted){
+    btn.innerHTML=`<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="1" y1="1" x2="23" y2="23"/><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"/><path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>Unmute`;
+  }else{
+    btn.innerHTML=`<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>Mute`;
+  }
+}
+
+function toggleCamera(){
+  if(!hostStream)return;
+  isCamOff=!isCamOff;
+  hostStream.getVideoTracks().forEach(t=>t.enabled=!isCamOff);
+  document.getElementById('hostCamOff').style.display=isCamOff?'flex':'none';
+  document.getElementById('camBtn').classList.toggle('muted',isCamOff);
+}
+
+async function toggleScreen(){
+  if(isSharing){
+    if(hostScreenStream){hostScreenStream.getTracks().forEach(t=>t.stop());hostScreenStream=null;}
+    isSharing=false;
+    if(hostStream)document.getElementById('hostLocalVideo').srcObject=hostStream;
+    const sb2=document.getElementById('screenBtn');
+    sb2.classList.remove('active');
+    sb2.innerHTML=`<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>Share Screen`;
+    return;
+  }
+  try{
+    hostScreenStream=await navigator.mediaDevices.getDisplayMedia({video:true});
+    isSharing=true;
+    document.getElementById('hostLocalVideo').srcObject=hostScreenStream;
+    const sb2=document.getElementById('screenBtn');
+    sb2.classList.add('active');
+    sb2.innerHTML=`<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>Stop Sharing`;
+    hostScreenStream.getVideoTracks()[0].addEventListener('ended',()=>toggleScreen());
+  }catch(e){console.warn('Screen share denied:',e);}
+}
+
+function muteAllAttendees(){
+  if(!hostChannel)return;
+  hostChannel.send({type:'broadcast',event:'host_command',payload:{cmd:'mute_all'}});
+  showToast('Mute All sent to attendees.');
+}
+
+async function loadParticipants(webinarId){
+  const{data,error}=await sb.from('webinar_attendees')
+    .select('user_id,profiles:user_id(full_name,username,avatar_url,avatar_emoji)')
+    .eq('webinar_id',webinarId);
+  if(error){console.error('Participants error:',error);return;}
+  const att=data||[];
+  document.getElementById('partCount').textContent=att.length;
+  const listEl=document.getElementById('partList');
+  const emptyEl=document.getElementById('partEmpty');
+  if(!att.length){emptyEl.style.display='block';listEl.innerHTML='';return;}
+  emptyEl.style.display='none';
+  listEl.innerHTML=att.map(a=>{
+    const p=a.profiles;
+    const name=p?.full_name||p?.username||'Attendee';
+    const avHtml=p?.avatar_url?`<img src="${p.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`:p?.avatar_emoji||name.slice(0,2).toUpperCase();
+    const showKick=a.user_id!==currentUserId;
+    const safeId=a.user_id;
+    const safeName=name.replace(/'/g,'&#39;');
+    return`<div class="participant-row">
+      <div class="p-av">${avHtml}</div>
+      <div class="p-name">${name}</div>
+      ${showKick?`<button class="p-kick" onclick="kickAttendee('${safeId}','${safeName}')" title="Remove"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>`:''}
+    </div>`;
+  }).join('');
+}
+
+function kickAttendee(userId,name){
+  if(!hostChannel)return;
+  hostChannel.send({type:'broadcast',event:'host_command',payload:{cmd:'kick',target_user_id:userId}});
+  showToast(`${name} removed.`);
+  document.querySelectorAll('.participant-row').forEach(row=>{
+    if(row.querySelector('.p-name')?.textContent===name)row.remove();
+  });
+  const c=parseInt(document.getElementById('partCount').textContent||'0');
+  document.getElementById('partCount').textContent=Math.max(0,c-1);
+}
+
+function addRaiseHand(payload){
+  if(raiseHandQueue.find(x=>x.user_id===payload.user_id))return;
+  raiseHandQueue.push(payload);
+  renderHandQueue();
+}
+
+function renderHandQueue(){
+  const el=document.getElementById('handsList');
+  const em=document.getElementById('handsEmpty');
+  const ct=document.getElementById('handCount');
+  if(!raiseHandQueue.length){em.style.display='block';el.innerHTML='';ct.style.display='none';return;}
+  em.style.display='none';ct.style.display='inline';ct.textContent=raiseHandQueue.length;
+  el.innerHTML=raiseHandQueue.map(h=>`
+    <div class="raise-row">
+      <div class="p-av">${h.name.slice(0,2).toUpperCase()}</div>
+      <div class="p-name">${h.name}</div>
+      <button class="btn-call-on" onclick="callOn('${h.user_id}')">Call On</button>
+    </div>`).join('');
+}
+
+function callOn(userId){
+  raiseHandQueue=raiseHandQueue.filter(x=>x.user_id!==userId);
+  if(hostChannel)hostChannel.send({type:'broadcast',event:'host_command',payload:{cmd:'called_on',target_user_id:userId}});
+  renderHandQueue();
+  showToast('Attendee called on.');
+}
+
+function switchHostTab(tab){
+  document.querySelectorAll('.h-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.h-panel').forEach(p=>p.classList.remove('active'));
+  if(tab==='participants'){
+    document.getElementById('hTabPart').classList.add('active');
+    document.getElementById('hPanelParticipants').classList.add('active');
+  }else{
+    document.getElementById('hTabHands').classList.add('active');
+    document.getElementById('hPanelHands').classList.add('active');
+  }
+}
+
+function confirmEndWebinar(){
+  if(confirm('End this webinar for all attendees? This cannot be undone.'))endWebinar();
+}
+
+async function endWebinar(){
+  if(!hostWebinarId)return;
+  const elapsed=hostStartTime?Math.floor((Date.now()-hostStartTime)/60000):0;
+  const w=allWebinars.find(x=>x.id===hostWebinarId);
+  const attCount=parseInt(document.getElementById('partCount').textContent||'0');
+  // Broadcast end to all attendees
+  if(hostChannel){
+    await hostChannel.send({type:'broadcast',event:'host_command',payload:{cmd:'end_webinar'}});
+  }
+  // Update Supabase
+  await sb.from('webinars').update({status:'ended',is_live:false,attendee_count:attCount}).eq('id',hostWebinarId);
+  // Stop media
+  if(hostStream){hostStream.getTracks().forEach(t=>t.stop());hostStream=null;}
+  if(hostScreenStream){hostScreenStream.getTracks().forEach(t=>t.stop());hostScreenStream=null;}
+  clearInterval(hostTimerInterval);hostTimerInterval=null;hostStartTime=null;
+  // Summary
+  document.getElementById('sumDuration').textContent=elapsed+'m';
+  document.getElementById('sumAttendees').textContent=attCount;
+  const earnings=(w&&!w.is_free&&w.price)?'$'+(w.price*attCount).toFixed(2):'$0';
+  document.getElementById('sumEarnings').textContent=earnings;
+  document.getElementById('hostOverlay').classList.remove('open');
+  document.getElementById('summaryModal').classList.add('open');
+  // Cleanup
+  if(hostChannel){sb.removeChannel(hostChannel);hostChannel=null;}
+  hostWebinarId=null;isMuted=false;isCamOff=false;isSharing=false;raiseHandQueue=[];
+}
+
+function closeSummary(){
+  document.getElementById('summaryModal').classList.remove('open');
+  loadWebinars();
+}
+
+async function startLive(webinarId){
+  const{error}=await sb.from('webinars').update({is_live:true,status:'live'}).eq('id',webinarId);
+  if(error){showToast('Error: '+error.message);return;}
+  const w=allWebinars.find(x=>x.id===webinarId);
+  if(w){w.is_live=true;w.status='live';}
+  showToast('You are now live!');
+  applyFilter();
+  await enterHostMode(webinarId);
+}
+
+// ── PRE-SESSION SETTINGS ─────────────────────────────────────────────────────
+function openPreSession(webinarId){
+  preSessionWebinarId=webinarId;
+  const w=allWebinars.find(x=>x.id===webinarId);
+  if(!w)return;
+  document.getElementById('psTitle').value=w.title||'';
+  document.getElementById('psDesc').value=w.description||'';
+  if(w.scheduled_at){
+    const d=new Date(w.scheduled_at);
+    document.getElementById('psDate').value=new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16);
+  }
+  document.getElementById('psAlert').style.display='none';
+  document.getElementById('preSessionModal').classList.add('open');
+}
+
+function closePreSession(){document.getElementById('preSessionModal').classList.remove('open');}
+
+function toggleSwitch(el){el.classList.toggle('on');}
+
+async function savePreSession(){
+  if(!preSessionWebinarId)return;
+  const title=document.getElementById('psTitle').value.trim();
+  const desc=document.getElementById('psDesc').value.trim();
+  const dateVal=document.getElementById('psDate').value;
+  const alertEl=document.getElementById('psAlert');
+  if(!title){alertEl.className='modal-alert error';alertEl.style.display='block';alertEl.textContent='Title is required.';return;}
+  alertEl.style.display='none';
+  const payload={title,description:desc||null};
+  if(dateVal)payload.scheduled_at=new Date(dateVal).toISOString();
+  const{error}=await sb.from('webinars').update(payload).eq('id',preSessionWebinarId);
+  if(error){alertEl.className='modal-alert error';alertEl.style.display='block';alertEl.textContent=error.message;return;}
+  closePreSession();
+  showToast('Webinar settings saved.');
+  await loadWebinars();
+}
+
+// ── ATTENDEE SIDE: subscribe to host commands ────────────────────────────────
+function subscribeAttendeeToWebinar(webinarId){
+  if(attendeeChannels[webinarId])return;
+  const ch=sb.channel('webinar_ctrl:'+webinarId);
+  ch.on('broadcast',{event:'host_command'},({payload})=>{
+    if(payload.cmd==='end_webinar'){
+      showToast('This webinar has ended.');
+      setTimeout(()=>loadWebinars(),2000);
+    }else if(payload.cmd==='mute_all'){
+      showToast('The host has muted all attendees.');
+    }else if(payload.cmd==='kick'&&payload.target_user_id===currentUserId){
+      showToast('You have been removed from this webinar.');
+      setTimeout(()=>loadWebinars(),2000);
+    }
+  }).subscribe();
+  attendeeChannels[webinarId]=ch;
+}
 
 async function init(){
   const{data:{session}}=await sb.auth.getSession();
