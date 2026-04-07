@@ -199,13 +199,63 @@ body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;min-height
 .toggle-sw::after{content:'';position:absolute;top:3px;left:3px;width:14px;height:14px;background:#fff;border-radius:50%;transition:left .15s;}
 .toggle-sw.on::after{left:21px;}
 
-@media(max-width:900px){.sidebar{transform:translateX(-100%);transition:transform .3s;background:#0e0e0e !important;border-right:1px solid rgba(255,255,255,0.1) !important;}.sidebar.open{transform:translateX(0);}.sidebar .nav-link{color:#fff;opacity:1;}.main{margin-left:0;padding:24px 20px;padding-top:56px;}.hamburger{display:flex;}.page-header{flex-direction:column;}.field-row{grid-template-columns:1fr;}}
+/* PARTICIPANT VIEW OVERLAY */
+.participant-overlay{position:fixed;inset:0;background:#000;z-index:400;display:flex;flex-direction:column;}
+.participant-overlay.hidden{display:none;}
+#hostRemoteVideo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;background:#111;}
+#myLocalPreview{position:absolute;bottom:88px;right:18px;width:130px;height:176px;object-fit:cover;border-radius:14px;border:2px solid rgba(255,255,255,.18);z-index:5;background:#1a1a1a;}
+.part-waiting{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:radial-gradient(ellipse at center,rgba(139,92,246,.08),#000 70%);}
+.part-waiting-icon{width:72px;height:72px;border-radius:50%;background:rgba(139,92,246,.1);border:2px solid rgba(139,92,246,.25);display:flex;align-items:center;justify-content:center;}
+.part-waiting-icon svg{width:28px;height:28px;color:rgba(167,139,250,.7);}
+.part-waiting-text{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;}
+.part-waiting-sub{color:var(--text-muted);font-size:.82rem;}
+.part-hud{position:absolute;top:0;left:0;right:0;z-index:10;padding:16px 20px;display:flex;align-items:center;gap:12px;background:linear-gradient(to bottom,rgba(0,0,0,.55),transparent);}
+.part-webinar-name{font-family:'Syne',sans-serif;font-weight:700;font-size:.88rem;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.part-status{font-size:.78rem;background:rgba(8,8,8,.7);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.7);padding:5px 14px;border-radius:100px;backdrop-filter:blur(12px);transition:opacity .4s;}
+.part-status.hidden{opacity:0;pointer-events:none;}
+.part-controls{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);z-index:10;display:flex;gap:10px;background:rgba(0,0,0,.55);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.1);border-radius:100px;padding:10px 14px;}
+.part-ctrl{width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.08);color:#fff;cursor:none;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;}
+.part-ctrl:hover{background:rgba(255,255,255,.18);}
+.part-ctrl.muted{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.06);}
+.part-ctrl.muted svg{opacity:.3;}
+.part-ctrl-end{background:rgba(239,68,68,.2)!important;border-color:rgba(239,68,68,.4)!important;width:50px!important;height:50px!important;}
+.part-ctrl-end:hover{background:rgba(239,68,68,.45)!important;}
+.part-ctrl svg{width:16px;height:16px;}
+
+@media(max-width:900px){.sidebar{transform:translateX(-100%);transition:transform .3s;background:#0e0e0e !important;border-right:1px solid rgba(255,255,255,0.1) !important;}.sidebar.open{transform:translateX(0);}.sidebar .nav-link{color:#fff;opacity:1;}.main{margin-left:0;padding:24px 20px;padding-top:56px;}.hamburger{display:flex;}.page-header{flex-direction:column;}.field-row{grid-template-columns:1fr;}#myLocalPreview{width:100px;height:136px;bottom:80px;right:12px;}.part-controls{padding:8px 12px;gap:8px;bottom:16px;}}
 </style>
 </head>
 <body>
 <div id="ss-cursor"></div><div id="ss-ring"></div>
 <div id="sidebar-overlay" onclick="toggleSidebar()"></div>
 <button class="hamburger" id="hamburger" onclick="toggleSidebar()"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+
+<!-- PARTICIPANT VIEW OVERLAY -->
+<div class="participant-overlay hidden" id="participantOverlay">
+  <video id="hostRemoteVideo" autoplay playsinline></video>
+  <video id="myLocalPreview" autoplay playsinline muted></video>
+  <div class="part-waiting" id="partWaiting">
+    <div class="part-waiting-icon"><svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>
+    <div class="part-waiting-text" id="partWaitingText">Connecting to webinar...</div>
+    <div class="part-waiting-sub">Waiting for the host to share their stream</div>
+  </div>
+  <div class="part-hud">
+    <div class="live-badge-hud"><div class="live-badge-hud-dot"></div><div class="live-badge-hud-text">LIVE</div></div>
+    <div class="part-webinar-name" id="partWebinarName">Webinar</div>
+    <div class="part-status" id="partStatusPill">Connecting...</div>
+  </div>
+  <div class="part-controls">
+    <button class="part-ctrl" id="partMicBtn" onclick="toggleParticipantMic()" title="Toggle mic">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+    </button>
+    <button class="part-ctrl" id="partCamBtn" onclick="toggleParticipantCam()" title="Toggle camera">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+    </button>
+    <button class="part-ctrl part-ctrl-end" onclick="leaveWebinar()" title="Leave webinar">
+      <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+    </button>
+  </div>
+</div>
 
 <!-- HOST MODAL -->
 <div class="modal-overlay" id="hostModal">
@@ -351,7 +401,6 @@ body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;min-height
   <span class="nav-section">Social</span>
   <a href="matches.html" class="nav-link"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Matches</a>
   <a href="messages.html" class="nav-link"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Messages</a>
-  <a href="videocall.html" class="nav-link"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>Video Call</a>
   <span class="nav-section">More</span>
   <a href="webinars.html" class="nav-link active"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>Webinars</a>
   <a href="analytics.html" class="nav-link" id="analyticsNavLink" style="display:none;"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Analytics</a>
@@ -408,7 +457,23 @@ document.querySelectorAll('a,button').forEach(el=>{el.addEventListener('mouseent
 function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebar-overlay').classList.toggle('show');}
 async function handleLogout(){await sb.auth.signOut();window.location.href='index.html';}
 
-let currentUserId=null,userPlan='free',allWebinars=[],activeFilter='all',registeredIds=new Set(),searchQ='';
+let currentUserId=null,userPlan='free',myName='',allWebinars=[],activeFilter='all',registeredIds=new Set(),searchQ='';
+
+// ── ICE servers (same as videocall.html) ──
+const ICE_SERVERS=[
+  {urls:'stun:stun.l.google.com:19302'},
+  {urls:'stun:stun1.l.google.com:19302'},
+  {urls:'turn:openrelay.metered.ca:80',username:'openrelayproject',credential:'openrelayproject'},
+  {urls:'turn:openrelay.metered.ca:443',username:'openrelayproject',credential:'openrelayproject'},
+  {urls:'turn:openrelay.metered.ca:443?transport=tcp',username:'openrelayproject',credential:'openrelayproject'}
+];
+
+// ── Participant WebRTC state ──
+let participantPC=null,participantStream=null,wrtcChannel=null;
+
+// ── Host WebRTC state ──
+let wrtcHostChannel=null;
+const participantPCs={},participantIceQueues={},participantRemoteDescSet={};
 
 const COVER_COLORS=['linear-gradient(135deg,rgba(139,92,246,0.15),rgba(8,8,8,1))','linear-gradient(135deg,rgba(34,211,238,0.12),rgba(8,8,8,1))','linear-gradient(135deg,rgba(167,139,250,0.12),rgba(8,8,8,1))','linear-gradient(135deg,rgba(103,232,249,0.1),rgba(8,8,8,1))','linear-gradient(135deg,rgba(196,181,253,0.1),rgba(8,8,8,1))'];
 
@@ -527,10 +592,8 @@ function onSearch(){clearTimeout(searchTimer);searchTimer=setTimeout(()=>{search
 
 async function attendWebinar(id,status,btn){
   if(status==='live'){
-    subscribeAttendeeToWebinar(id);
     const w=allWebinars.find(x=>x.id===id);
-    const room=w?.jitsi_room||('webinar-'+id.slice(0,8));
-    window.open('https://meet.jit.si/'+room,'_blank');
+    await joinWebinarLive(id, w?.title||'Live Webinar');
     return;
   }
   if(status==='recorded'){showToast('Replay feature coming soon.');return;}
@@ -598,6 +661,7 @@ async function createWebinar(){
 async function loadWebinars(){
   const{data,error}=await sb.from('webinars')
     .select('*,host:profiles!webinars_host_id_fkey(full_name,username,avatar_url,avatar_emoji)')
+    .neq('status','ended')
     .order('scheduled_at',{ascending:true});
   if(error){console.error('Webinars load error:',error);}
   allWebinars=data||[];
@@ -632,10 +696,19 @@ async function enterHostMode(webinarId){
   },1000);
   // Media
   await setupLocalMedia();
-  // Realtime channel
+  // Control channel (raise hands, kick, mute-all commands)
   if(!hostChannel){
     hostChannel=sb.channel('webinar_ctrl:'+webinarId);
     hostChannel.on('broadcast',{event:'raise_hand'},({payload})=>addRaiseHand(payload)).subscribe();
+  }
+  // WebRTC signaling channel
+  if(!wrtcHostChannel){
+    wrtcHostChannel=sb.channel('webinar_rtc:'+webinarId,{config:{broadcast:{self:false}}});
+    wrtcHostChannel
+      .on('broadcast',{event:'join'},({payload})=>handleParticipantJoin(payload))
+      .on('broadcast',{event:'answer'},({payload})=>handleParticipantAnswer(payload))
+      .on('broadcast',{event:'ice_to_host'},({payload})=>handleParticipantICE(payload))
+      .subscribe();
   }
   // Participants
   loadParticipants(webinarId);
@@ -687,6 +760,14 @@ async function toggleScreen(){
     const sb2=document.getElementById('screenBtn');
     sb2.classList.remove('active');
     sb2.innerHTML=`<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>Share Screen`;
+    // Restore camera track to all participant connections
+    const camTrack=hostStream?.getVideoTracks()[0];
+    if(camTrack){
+      for(const pc of Object.values(participantPCs)){
+        const sender=pc.getSenders().find(s=>s.track&&s.track.kind==='video');
+        if(sender)try{await sender.replaceTrack(camTrack);}catch(e){}
+      }
+    }
     return;
   }
   try{
@@ -696,7 +777,13 @@ async function toggleScreen(){
     const sb2=document.getElementById('screenBtn');
     sb2.classList.add('active');
     sb2.innerHTML=`<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>Stop Sharing`;
-    hostScreenStream.getVideoTracks()[0].addEventListener('ended',()=>toggleScreen());
+    const screenTrack=hostScreenStream.getVideoTracks()[0];
+    // Push screen track to all participant peer connections
+    for(const pc of Object.values(participantPCs)){
+      const sender=pc.getSenders().find(s=>s.track&&s.track.kind==='video');
+      if(sender&&screenTrack)try{await sender.replaceTrack(screenTrack);}catch(e){}
+    }
+    screenTrack.addEventListener('ended',()=>toggleScreen());
   }catch(e){console.warn('Screen share denied:',e);}
 }
 
@@ -810,6 +897,9 @@ async function endWebinar(){
   document.getElementById('summaryModal').classList.add('open');
   // Cleanup
   if(hostChannel){sb.removeChannel(hostChannel);hostChannel=null;}
+  if(wrtcHostChannel){sb.removeChannel(wrtcHostChannel);wrtcHostChannel=null;}
+  // Close all participant peer connections
+  for(const [uid,pc] of Object.entries(participantPCs)){pc.close();delete participantPCs[uid];}
   hostWebinarId=null;isMuted=false;isCamOff=false;isSharing=false;raiseHandQueue=[];
 }
 
@@ -871,15 +961,168 @@ function subscribeAttendeeToWebinar(webinarId){
   ch.on('broadcast',{event:'host_command'},({payload})=>{
     if(payload.cmd==='end_webinar'){
       showToast('This webinar has ended.');
-      setTimeout(()=>loadWebinars(),2000);
+      leaveWebinar(true, 3000);
     }else if(payload.cmd==='mute_all'){
+      if(participantStream)participantStream.getAudioTracks().forEach(t=>t.enabled=false);
       showToast('The host has muted all attendees.');
     }else if(payload.cmd==='kick'&&payload.target_user_id===currentUserId){
       showToast('You have been removed from this webinar.');
-      setTimeout(()=>loadWebinars(),2000);
+      leaveWebinar(true, 2000);
     }
   }).subscribe();
   attendeeChannels[webinarId]=ch;
+}
+
+// ── HOST WebRTC: handle participant joining ──────────────────────────────────
+async function handleParticipantJoin({userId,name}){
+  if(participantPCs[userId])return; // already connected
+  const pc=new RTCPeerConnection({iceServers:ICE_SERVERS});
+  participantPCs[userId]=pc;
+  participantIceQueues[userId]=[];
+  participantRemoteDescSet[userId]=false;
+  // Add host stream tracks to this peer connection
+  const stream=hostScreenStream||hostStream;
+  if(stream)stream.getTracks().forEach(t=>pc.addTrack(t,stream));
+  pc.onicecandidate=({candidate})=>{
+    if(candidate&&wrtcHostChannel)
+      wrtcHostChannel.send({type:'broadcast',event:'ice_to_participant',payload:{to:userId,candidate:candidate.toJSON()}});
+  };
+  pc.onconnectionstatechange=()=>{
+    if(pc.connectionState==='disconnected'||pc.connectionState==='failed'){
+      pc.close();delete participantPCs[userId];
+      loadParticipants(hostWebinarId);
+    }
+  };
+  // Create offer and wait for ICE gathering
+  try{
+    const offer=await pc.createOffer();
+    await pc.setLocalDescription(offer);
+    await new Promise(resolve=>{
+      if(pc.iceGatheringState==='complete'){resolve();return;}
+      pc.onicegatheringstatechange=()=>{if(pc.iceGatheringState==='complete')resolve();};
+      setTimeout(resolve,4000);
+    });
+    wrtcHostChannel.send({type:'broadcast',event:'offer_to_participant',payload:{to:userId,sdp:pc.localDescription}});
+  }catch(e){console.error('Offer to participant failed:',e);}
+}
+
+async function handleParticipantAnswer({from,sdp}){
+  const pc=participantPCs[from];
+  if(!pc)return;
+  try{
+    await pc.setRemoteDescription(new RTCSessionDescription(sdp));
+    participantRemoteDescSet[from]=true;
+    for(const c of(participantIceQueues[from]||[])){try{await pc.addIceCandidate(c);}catch(e){}}
+    participantIceQueues[from]=[];
+  }catch(e){console.error('Set remote answer error:',e);}
+}
+
+async function handleParticipantICE({from,candidate}){
+  const pc=participantPCs[from];
+  if(!pc||!candidate)return;
+  const c=new RTCIceCandidate(candidate);
+  if(participantRemoteDescSet[from]){
+    try{await pc.addIceCandidate(c);}catch(e){}
+  }else{
+    participantIceQueues[from]=participantIceQueues[from]||[];
+    participantIceQueues[from].push(c);
+  }
+}
+
+// ── PARTICIPANT WebRTC: join a live webinar ──────────────────────────────────
+async function joinWebinarLive(webinarId,title){
+  document.getElementById('partWebinarName').textContent=title;
+  document.getElementById('partStatusPill').textContent='Connecting...';
+  document.getElementById('partStatusPill').classList.remove('hidden');
+  document.getElementById('partWaiting').style.display='flex';
+  document.getElementById('participantOverlay').classList.remove('hidden');
+  // Get local media
+  try{
+    participantStream=await navigator.mediaDevices.getUserMedia({video:true,audio:true});
+    document.getElementById('myLocalPreview').srcObject=participantStream;
+  }catch(e){
+    try{participantStream=await navigator.mediaDevices.getUserMedia({video:false,audio:true});}
+    catch(e2){console.warn('No media access:',e2);}
+  }
+  // Subscribe to WebRTC signaling channel
+  wrtcChannel=sb.channel('webinar_rtc:'+webinarId,{config:{broadcast:{self:false}}});
+  wrtcChannel
+    .on('broadcast',{event:'offer_to_participant'},async({payload})=>{
+      if(payload.to!==currentUserId)return;
+      // Create peer connection
+      participantPC=new RTCPeerConnection({iceServers:ICE_SERVERS});
+      if(participantStream)participantStream.getTracks().forEach(t=>participantPC.addTrack(t,participantStream));
+      participantPC.ontrack=(e)=>{
+        const vid=document.getElementById('hostRemoteVideo');
+        if(!vid.srcObject){
+          vid.srcObject=e.streams[0];
+          vid.play().catch(()=>{});
+          document.getElementById('partWaiting').style.display='none';
+          document.getElementById('partStatusPill').textContent='Connected';
+          setTimeout(()=>document.getElementById('partStatusPill').classList.add('hidden'),3000);
+        }
+      };
+      participantPC.onicecandidate=({candidate})=>{
+        if(candidate&&wrtcChannel)
+          wrtcChannel.send({type:'broadcast',event:'ice_to_host',payload:{from:currentUserId,candidate:candidate.toJSON()}});
+      };
+      participantPC.onconnectionstatechange=()=>{
+        if(participantPC.connectionState==='disconnected')
+          document.getElementById('partStatusPill').textContent='Host disconnected';
+      };
+      try{
+        await participantPC.setRemoteDescription(new RTCSessionDescription(payload.sdp));
+        const answer=await participantPC.createAnswer();
+        await participantPC.setLocalDescription(answer);
+        await new Promise(resolve=>{
+          if(participantPC.iceGatheringState==='complete'){resolve();return;}
+          participantPC.onicegatheringstatechange=()=>{if(participantPC.iceGatheringState==='complete')resolve();};
+          setTimeout(resolve,4000);
+        });
+        wrtcChannel.send({type:'broadcast',event:'answer',payload:{from:currentUserId,sdp:participantPC.localDescription}});
+      }catch(e){console.error('Participant answer error:',e);}
+    })
+    .on('broadcast',{event:'ice_to_participant'},async({payload})=>{
+      if(payload.to!==currentUserId||!participantPC)return;
+      try{await participantPC.addIceCandidate(new RTCIceCandidate(payload.candidate));}catch(e){}
+    })
+    .subscribe((status)=>{
+      if(status==='SUBSCRIBED'){
+        // Announce presence to host
+        wrtcChannel.send({type:'broadcast',event:'join',payload:{userId:currentUserId,name:myName}});
+        document.getElementById('partWaitingText').textContent='Waiting for host to connect...';
+      }
+    });
+  // Also subscribe to control channel (mute_all, kick, end_webinar)
+  subscribeAttendeeToWebinar(webinarId);
+}
+
+function leaveWebinar(redirect=false,delay=0){
+  if(participantPC){participantPC.close();participantPC=null;}
+  if(participantStream){participantStream.getTracks().forEach(t=>t.stop());participantStream=null;}
+  if(wrtcChannel){sb.removeChannel(wrtcChannel);wrtcChannel=null;}
+  document.getElementById('participantOverlay').classList.add('hidden');
+  const rv=document.getElementById('hostRemoteVideo');
+  const lv=document.getElementById('myLocalPreview');
+  if(rv)rv.srcObject=null;
+  if(lv)lv.srcObject=null;
+  if(redirect){
+    setTimeout(()=>{window.location.href='webinars.html';},delay);
+  }
+}
+
+function toggleParticipantMic(){
+  if(!participantStream)return;
+  const enabled=participantStream.getAudioTracks()[0]?.enabled!==false;
+  participantStream.getAudioTracks().forEach(t=>t.enabled=!enabled);
+  document.getElementById('partMicBtn').classList.toggle('muted',enabled);
+}
+
+function toggleParticipantCam(){
+  if(!participantStream)return;
+  const enabled=participantStream.getVideoTracks()[0]?.enabled!==false;
+  participantStream.getVideoTracks().forEach(t=>t.enabled=!enabled);
+  document.getElementById('partCamBtn').classList.toggle('muted',enabled);
 }
 
 async function init(){
@@ -895,6 +1138,7 @@ async function init(){
   else if(profile?.avatar_emoji){avatarEl.textContent=profile.avatar_emoji;}
   else{avatarEl.textContent=name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);}
   userPlan=profile?.plan||'free';
+  myName=name;
   if(userPlan==='pro'||userPlan==='creator'){document.getElementById('analyticsNavLink').style.display='flex';}
   // Load registrations
   const{data:regs}=await sb.from('webinar_attendees').select('webinar_id').eq('user_id',currentUserId);

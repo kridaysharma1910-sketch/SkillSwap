@@ -112,7 +112,6 @@ body{background:#000;color:#fff;font-family:'DM Sans',sans-serif;height:100vh;di
   <span class="nav-section">Social</span>
   <a href="matches.html" class="nav-link"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Matches</a>
   <a href="messages.html" class="nav-link"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Messages</a>
-  <a href="videocall.html" class="nav-link active"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>Video Call</a>
   <span class="nav-section">More</span>
   <a href="webinars.html" class="nav-link"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>Webinars</a>
   <a href="analytics.html" class="nav-link" id="analyticsNavLink" style="display:none;"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Analytics</a>
@@ -224,6 +223,7 @@ let readyInterval = null;
 let micMuted = false, camOff = false;
 let callStartTime = null, callTimerInterval = null;
 let callActive = false;
+let connectionTimeout = null;
 
 // ── Helpers ──
 function setStatus(text, autohide) {
@@ -263,6 +263,29 @@ async function handleIncomingCandidate(candidateData) {
   } else {
     iceCandidateQueue.push(candidate);
   }
+}
+
+// Fix B — wait for ICE gathering before sending offer/answer (bundles all candidates in SDP)
+async function createOfferAndWaitForICE() {
+  const offer = await pc.createOffer();
+  await pc.setLocalDescription(offer);
+  await new Promise(resolve => {
+    if (pc.iceGatheringState === 'complete') { resolve(); return; }
+    pc.onicegatheringstatechange = () => { if (pc.iceGatheringState === 'complete') resolve(); };
+    setTimeout(resolve, 4000);
+  });
+  return pc.localDescription;
+}
+
+async function createAnswerAndWaitForICE() {
+  const answer = await pc.createAnswer();
+  await pc.setLocalDescription(answer);
+  await new Promise(resolve => {
+    if (pc.iceGatheringState === 'complete') { resolve(); return; }
+    pc.onicegatheringstatechange = () => { if (pc.iceGatheringState === 'complete') resolve(); };
+    setTimeout(resolve, 4000);
+  });
+  return pc.localDescription;
 }
 
 // ── Controls ──
@@ -369,6 +392,7 @@ async function initWebRTC() {
   pc.onconnectionstatechange = () => {
     console.log('PC state:', pc.connectionState);
     if (pc.connectionState === 'connected') {
+      clearTimeout(connectionTimeout);
       document.getElementById('waitingBg').style.display = 'none';
       setStatus('Connected!', 2000);
       if (!callStartTime) startTimer();
@@ -377,10 +401,31 @@ async function initWebRTC() {
       setStatus('Partner disconnected');
     }
     if (pc.connectionState === 'failed') {
-      document.getElementById('waitingSub').textContent = 'Connection failed. Please try again.';
-      setStatus('Connection failed — check your network');
+      // Fix C — fully tear down and recreate on failure
+      clearTimeout(connectionTimeout);
+      pc.close();
+      pc = null;
+      remoteDescSet = false;
+      iceCandidateQueue = [];
+      offerSent = false;
+      setStatus('Reconnecting...');
+      document.getElementById('waitingSub').textContent = 'Reconnecting...';
+      setTimeout(initWebRTC, 1500);
     }
   };
+
+  // Fix A — connection timeout: ICE restart after 8s if not connected
+  clearTimeout(connectionTimeout);
+  connectionTimeout = setTimeout(async () => {
+    if (pc && pc.connectionState !== 'connected' && isCaller) {
+      console.warn('Connection timeout — restarting ICE');
+      try {
+        const offer = await pc.createOffer({ iceRestart: true });
+        await pc.setLocalDescription(offer);
+        signalChannel.send({ type: 'broadcast', event: 'offer', payload: { sdp: offer } });
+      } catch(e) { console.error('ICE restart failed:', e); }
+    }
+  }, 8000);
 
   // ── Supabase Realtime signaling ──
   signalChannel = sb.channel(`call-${roomId}`, {config: {broadcast: {self: false}}});
@@ -390,8 +435,7 @@ async function initWebRTC() {
     if (isCaller) return;
     try {
       await safeSetRemoteDescription(payload.sdp);
-      const answer = await pc.createAnswer();
-      await pc.setLocalDescription(answer);
+      const answer = await createAnswerAndWaitForICE();
       signalChannel.send({type:'broadcast', event:'answer', payload:{sdp: answer}});
       setStatus('Connecting...', 0);
     } catch(e) { console.error('Handle offer error:', e); }
@@ -418,8 +462,7 @@ async function initWebRTC() {
       clearInterval(readyInterval);
       setStatus('Partner joined. Connecting...', 0);
       try {
-        const offer = await pc.createOffer();
-        await pc.setLocalDescription(offer);
+        const offer = await createOfferAndWaitForICE();
         signalChannel.send({type:'broadcast', event:'offer', payload:{sdp: offer}});
       } catch(e) { console.error('Create offer error:', e); offerSent = false; }
     }
