@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Host Room — SkillSwap</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#080808;--border:rgba(255,255,255,0.08);--text-muted:rgba(255,255,255,0.32);}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;overflow:hidden;}
+body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;cursor:none;}
+#ss-cursor{position:fixed;width:10px;height:10px;background:#fff;border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);mix-blend-mode:difference;}
+#ss-ring{position:fixed;width:34px;height:34px;border:1px solid rgba(255,255,255,0.5);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:all .2s;}
+
+/* Loading */
+.loading-screen{position:fixed;inset:0;background:#080808;z-index:8000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;transition:opacity .3s;}
+.loading-screen.done{opacity:0;pointer-events:none;}
+.load-spinner{width:32px;height:32px;border:2px solid rgba(255,255,255,.08);border-top-color:rgba(139,92,246,.7);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* Duplicate warning */
+.dup-overlay{position:fixed;inset:0;background:#080808;z-index:9000;display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;text-align:center;}
+.dup-overlay.show{display:flex;}
+.dup-icon{width:64px;height:64px;border-radius:50%;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.25);display:flex;align-items:center;justify-content:center;margin-bottom:4px;}
+.dup-icon svg{width:28px;height:28px;color:rgba(253,186,116,.7);}
+.dup-title{font-family:'Syne',sans-serif;font-weight:700;font-size:1.1rem;}
+.dup-sub{color:var(--text-muted);font-size:.85rem;max-width:360px;line-height:1.5;}
+.dup-btn{background:#fff;color:#080808;border:none;border-radius:11px;padding:11px 24px;font-family:'Syne',sans-serif;font-size:.85rem;font-weight:700;cursor:none;transition:opacity .2s;margin-top:6px;}
+.dup-btn:hover{opacity:.88;}
+.dup-btn-sec{background:none;border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.5);border-radius:11px;padding:10px 20px;font-family:'DM Sans',sans-serif;font-size:.82rem;cursor:none;transition:all .2s;}
+.dup-btn-sec:hover{border-color:rgba(255,255,255,.2);color:#fff;}
+
+/* HUD */
+.hud{height:52px;background:rgba(8,8,8,.97);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;padding:0 18px;flex-shrink:0;backdrop-filter:blur(20px);}
+.hud-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:.9rem;color:#fff;text-decoration:none;display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.logo-sq{width:7px;height:7px;background:#fff;border-radius:2px;}
+.hud-sep{width:1px;height:20px;background:rgba(255,255,255,.1);flex-shrink:0;}
+.hud-title{font-family:'Syne',sans-serif;font-weight:700;font-size:.85rem;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.live-pill{display:flex;align-items:center;gap:5px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:8px;padding:4px 10px;flex-shrink:0;}
+.live-dot{width:6px;height:6px;background:#ef4444;border-radius:50%;animation:blink 1s infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
+.live-text{font-size:.68rem;color:#fca5a5;font-weight:700;letter-spacing:.06em;}
+.hud-timer{font-family:'Syne',sans-serif;font-weight:700;font-size:.8rem;color:rgba(255,255,255,.5);background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:7px;padding:4px 10px;flex-shrink:0;}
+.viewers-pill{display:flex;align-items:center;gap:4px;color:rgba(255,255,255,.4);font-size:.76rem;flex-shrink:0;}
+.viewers-pill svg{width:13px;height:13px;}
+.hud-btn{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:8px;padding:5px 12px;color:rgba(255,255,255,.65);cursor:none;display:flex;align-items:center;gap:5px;font-family:'DM Sans',sans-serif;font-size:.76rem;transition:all .2s;flex-shrink:0;white-space:nowrap;}
+.hud-btn:hover{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.14);}
+.hud-btn svg{width:12px;height:12px;}
+.hud-btn.rec-active{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.3);color:#fca5a5;}
+.btn-end-hud{background:rgba(239,68,68,.85)!important;border-color:transparent!important;color:#fff!important;font-family:'Syne',sans-serif;font-weight:700;}
+.btn-end-hud:hover{background:#ef4444!important;}
+
+/* Layout */
+#appBody{display:flex;flex:1;overflow:hidden;height:calc(100vh - 52px);}
+
+/* Stage */
+.stage{flex:1;position:relative;background:#000;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+#localVideo{width:100%;height:100%;object-fit:contain;display:block;background:#000;}
+.cam-off-state{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:rgba(0,0,0,.6);}
+.cam-off-avatar{width:76px;height:76px;border-radius:50%;background:rgba(139,92,246,.1);border:2px solid rgba(139,92,246,.22);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:700;font-size:1.5rem;color:rgba(167,139,250,.8);}
+.cam-off-lbl{color:var(--text-muted);font-size:.8rem;}
+
+/* Not-live overlay */
+.not-live-overlay{position:absolute;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(6px);z-index:15;display:flex;align-items:center;justify-content:center;}
+.not-live-card{text-align:center;padding:36px 40px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:20px;max-width:340px;}
+.not-live-icon{font-size:2rem;margin-bottom:14px;}
+.not-live-title{font-family:'Syne',sans-serif;font-weight:700;font-size:1.05rem;margin-bottom:7px;}
+.not-live-sub{color:var(--text-muted);font-size:.82rem;margin-bottom:22px;line-height:1.5;}
+.btn-go-live{background:rgba(239,68,68,.85);border:none;color:#fff;padding:11px 28px;border-radius:11px;font-family:'Syne',sans-serif;font-size:.88rem;font-weight:700;cursor:none;transition:background .2s;display:inline-flex;align-items:center;gap:7px;}
+.btn-go-live:hover{background:#ef4444;}
+.btn-go-live:disabled{opacity:.5;}
+
+/* Participant thumbnails strip */
+.participant-thumbs{position:absolute;bottom:80px;left:14px;display:flex;gap:8px;z-index:10;flex-wrap:nowrap;max-width:calc(100% - 28px);overflow-x:auto;}
+.p-thumb{width:116px;height:84px;border-radius:10px;border:2px solid rgba(255,255,255,.15);overflow:hidden;background:#111;position:relative;flex-shrink:0;}
+.p-thumb video{width:100%;height:100%;object-fit:cover;display:block;}
+.p-thumb-name{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.6);font-size:.62rem;padding:3px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.p-thumb-placeholder{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:700;font-size:.9rem;color:rgba(167,139,250,.7);}
+
+/* Controls bar */
+.controls-bar{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);z-index:20;display:flex;gap:8px;align-items:center;background:rgba(0,0,0,.6);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.1);border-radius:100px;padding:8px 16px;}
+.ctrl{width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.08);color:#fff;cursor:none;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;position:relative;}
+.ctrl:hover{background:rgba(255,255,255,.18);}
+.ctrl.off{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.3);}
+.ctrl.off svg{opacity:.7;}
+.ctrl svg{width:16px;height:16px;}
+.ctrl-label-btn{height:36px;padding:0 14px;border-radius:18px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:rgba(255,255,255,.75);cursor:none;display:flex;align-items:center;gap:6px;font-family:'DM Sans',sans-serif;font-size:.76rem;transition:all .2s;white-space:nowrap;}
+.ctrl-label-btn:hover{background:rgba(255,255,255,.12);}
+.ctrl-label-btn.screen-active{background:rgba(139,92,246,.16);border-color:rgba(139,92,246,.4);color:rgba(167,139,250,.9);}
+.ctrl-label-btn svg{width:14px;height:14px;}
+.ctrl-sep{width:1px;height:28px;background:rgba(255,255,255,.1);margin:0 2px;}
+
+/* Side panel */
+.side-panel{width:300px;flex-shrink:0;border-left:1px solid var(--border);display:flex;flex-direction:column;background:rgba(255,255,255,.01);}
+.side-tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0;}
+.s-tab{flex:1;padding:11px 4px;text-align:center;font-size:.72rem;background:none;border:none;color:rgba(255,255,255,.3);cursor:none;border-bottom:2px solid transparent;transition:all .2s;font-family:'DM Sans',sans-serif;}
+.s-tab.active{color:#fff;border-bottom-color:rgba(139,92,246,.7);}
+.s-tab-badge{background:rgba(239,68,68,.55);color:#fff;border-radius:100px;font-size:.58rem;padding:1px 5px;margin-left:3px;vertical-align:middle;display:none;}
+
+/* Tab panels */
+.tab-panel{flex:1;overflow:hidden;display:none;flex-direction:column;min-height:0;}
+.tab-panel.active{display:flex;}
+.tab-scroll{flex:1;overflow-y:auto;padding:10px 12px;}
+
+/* Participants */
+.att-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.att-row:last-child{border-bottom:none;}
+.att-av{width:28px;height:28px;border-radius:50%;background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.2);display:flex;align-items:center;justify-content:center;font-size:.62rem;font-weight:700;color:rgba(167,139,250,.8);flex-shrink:0;overflow:hidden;}
+.att-av img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+.att-name{flex:1;font-size:.8rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.att-actions{display:flex;gap:3px;flex-shrink:0;}
+.att-btn{background:none;border:none;cursor:none;padding:4px;border-radius:5px;color:rgba(255,255,255,.25);display:flex;align-items:center;transition:color .2s;}
+.att-btn:hover{color:rgba(255,255,255,.8);}
+.att-btn.danger:hover{color:#fca5a5;}
+.att-btn svg{width:12px;height:12px;}
+.tab-empty{color:var(--text-muted);font-size:.8rem;text-align:center;padding:28px 12px;}
+
+/* Chat */
+.chat-msgs-wrap{flex:1;overflow-y:auto;padding:10px 12px;display:flex;flex-direction:column;gap:8px;min-height:0;}
+.chat-msg-bubble{display:flex;flex-direction:column;gap:2px;}
+.chat-msg-meta{display:flex;align-items:center;gap:6px;}
+.chat-sender-name{font-size:.68rem;font-weight:600;color:rgba(167,139,250,.8);}
+.chat-sender-name.host-name{color:rgba(103,232,249,.8);}
+.chat-time{font-size:.6rem;color:rgba(255,255,255,.2);}
+.chat-msg-text{font-size:.79rem;line-height:1.45;color:rgba(255,255,255,.85);}
+.chat-compose{border-top:1px solid rgba(255,255,255,.06);padding:10px 12px;display:flex;gap:8px;flex-shrink:0;}
+.chat-input{flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:9px;padding:8px 11px;color:#fff;font-family:'DM Sans',sans-serif;font-size:.79rem;outline:none;transition:border-color .2s;resize:none;}
+.chat-input:focus{border-color:rgba(139,92,246,.45);}
+.chat-send-btn{background:#fff;color:#080808;border:none;border-radius:9px;padding:8px 13px;font-family:'Syne',sans-serif;font-size:.72rem;font-weight:700;cursor:none;transition:opacity .2s;flex-shrink:0;}
+.chat-send-btn:hover{opacity:.88;}
+
+/* Raise hand */
+.hand-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.hand-row:last-child{border-bottom:none;}
+.btn-call-on{background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.2);color:#86efac;border-radius:7px;padding:4px 10px;font-size:.71rem;cursor:none;font-family:'DM Sans',sans-serif;white-space:nowrap;transition:background .2s;flex-shrink:0;}
+.btn-call-on:hover{background:rgba(34,197,94,.14);}
+
+/* Summary modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:600;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px);}
+.modal-overlay.open{display:flex;}
+.modal{background:#0e0e0e;border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:28px;width:100%;max-width:420px;text-align:center;animation:fadeUp .3s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.06);border-radius:14px;overflow:hidden;margin:18px 0 4px;}
+.summary-cell{background:#0e0e0e;padding:16px;}
+.summary-val{font-family:'Syne',sans-serif;font-weight:700;font-size:1.8rem;letter-spacing:-.03em;}
+.summary-lbl{font-size:.72rem;color:var(--text-muted);margin-top:3px;}
+.modal-submit{width:100%;background:#fff;color:#080808;border:none;border-radius:11px;padding:12px;font-family:'Syne',sans-serif;font-size:.88rem;font-weight:700;cursor:none;transition:opacity .2s;margin-top:8px;}
+.modal-submit:hover{opacity:.88;}
+
+/* Toast */
+.toast{position:fixed;bottom:24px;right:24px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:#fff;padding:12px 20px;border-radius:12px;font-size:.84rem;z-index:9000;animation:fadeUp .3s ease;backdrop-filter:blur(12px);}
+
+/* Mobile side panel toggle */
+.mobile-panel-toggle{display:none;position:fixed;bottom:84px;right:16px;width:44px;height:44px;border-radius:50%;background:rgba(139,92,246,.85);border:none;color:#fff;cursor:none;align-items:center;justify-content:center;z-index:30;box-shadow:0 4px 16px rgba(139,92,246,.4);}
+.mobile-panel-toggle svg{width:18px;height:18px;}
+
+@media(max-width:768px){
+  .side-panel{position:fixed;right:0;top:52px;bottom:0;z-index:200;transform:translateX(100%);transition:transform .3s;background:#0e0e0e;border-left:1px solid rgba(255,255,255,.1);}
+  .side-panel.open{transform:translateX(0);}
+  .mobile-panel-toggle{display:flex;}
+  .controls-bar{padding:6px 12px;gap:6px;}
+  .ctrl{width:40px;height:40px;}
+  .ctrl-label-btn{height:32px;padding:0 10px;font-size:.7rem;}
+  .hud{padding:0 12px;gap:8px;}
+  .viewers-pill{display:none;}
+}
+</style>
+</head>
+<body>
+<div id="ss-cursor"></div><div id="ss-ring"></div>
+
+<!-- Loading -->
+<div class="loading-screen" id="loadingScreen">
+  <div class="load-spinner"></div>
+  <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:.9rem;margin-top:4px;">Setting up host room...</div>
+</div>
+
+<!-- Duplicate tab warning -->
+<div class="dup-overlay" id="dupOverlay">
+  <div class="dup-icon"><svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg></div>
+  <div class="dup-title">Host room already open</div>
+  <div class="dup-sub">You already have this webinar's host room open in another tab. Switch to that tab to continue hosting.</div>
+  <button class="dup-btn" onclick="focusExistingTab()">Switch to existing tab</button>
+  <button class="dup-btn-sec" onclick="continueAnyway()">Continue here anyway</button>
+</div>
+
+<!-- App -->
+<div id="appRoot" style="display:flex;flex-direction:column;height:100vh;">
+  <!-- HUD -->
+  <div class="hud">
+    <a href="webinars.html" class="hud-logo"><div class="logo-sq"></div>SkillSwap</a>
+    <div class="hud-sep"></div>
+    <div class="hud-title" id="hudTitle">Loading...</div>
+    <div class="live-pill" id="livePill" style="display:none;"><div class="live-dot"></div><div class="live-text">LIVE</div></div>
+    <div class="hud-timer" id="hudTimer">00:00</div>
+    <div class="viewers-pill">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      <span id="viewerCount">0</span>
+    </div>
+    <button class="hud-btn" id="recBtn" onclick="toggleRecording()">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4" fill="currentColor"/></svg>
+      Record
+    </button>
+    <button class="hud-btn btn-end-hud" onclick="confirmEnd()">
+      <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+      End Webinar
+    </button>
+  </div>
+
+  <!-- Body -->
+  <div id="appBody">
+    <!-- Stage -->
+    <div class="stage" id="stage">
+      <video id="localVideo" autoplay muted playsinline></video>
+      <div class="cam-off-state" id="camOffState">
+        <div class="cam-off-avatar" id="camOffInitials">H</div>
+        <div class="cam-off-lbl">Camera is off</div>
+      </div>
+
+      <!-- Not-live overlay -->
+      <div class="not-live-overlay" id="notLiveOverlay">
+        <div class="not-live-card">
+          <div class="not-live-icon">📡</div>
+          <div class="not-live-title">Ready to go live?</div>
+          <div class="not-live-sub">Your camera and mic are ready. Start the webinar when you're set — attendees will join once you go live.</div>
+          <button class="btn-go-live" id="goLiveBtn" onclick="goLive()">
+            <svg width="10" height="10" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>
+            Go Live
+          </button>
+        </div>
+      </div>
+
+      <!-- Participant video thumbnails -->
+      <div class="participant-thumbs" id="participantThumbs"></div>
+
+      <!-- Controls -->
+      <div class="controls-bar">
+        <button class="ctrl" id="micCtrl" onclick="toggleMic()" title="Toggle mic">
+          <svg id="micIcon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+        </button>
+        <button class="ctrl" id="camCtrl" onclick="toggleCam()" title="Toggle camera">
+          <svg id="camIcon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+        </button>
+        <div class="ctrl-sep"></div>
+        <button class="ctrl-label-btn" id="screenCtrl" onclick="toggleScreen()">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+          <span id="screenLabel">Share Screen</span>
+        </button>
+        <button class="ctrl-label-btn" onclick="muteAll()" title="Mute all attendees">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="1" y1="1" x2="23" y2="23"/><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"/><path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+          Mute All
+        </button>
+      </div>
+    </div>
+
+    <!-- Side panel -->
+    <div class="side-panel" id="sidePanel">
+      <div class="side-tabs">
+        <button class="s-tab active" id="sTabParticipants" onclick="switchTab('Participants')">
+          Participants<span class="s-tab-badge" id="partBadge">0</span>
+        </button>
+        <button class="s-tab" id="sTabChat" onclick="switchTab('Chat')">
+          Chat<span class="s-tab-badge" id="chatBadge"></span>
+        </button>
+        <button class="s-tab" id="sTabHands" onclick="switchTab('Hands')">
+          Raised<span class="s-tab-badge" id="handsBadge"></span>
+        </button>
+      </div>
+
+      <!-- Participants panel -->
+      <div class="tab-panel active" id="panelParticipants">
+        <div class="tab-scroll" id="partList">
+          <div class="tab-empty">No attendees yet. Once people join, they'll appear here.</div>
+        </div>
+      </div>
+
+      <!-- Chat panel -->
+      <div class="tab-panel" id="panelChat">
+        <div class="chat-msgs-wrap" id="chatMsgs"></div>
+        <div class="chat-compose">
+          <input class="chat-input" id="chatInput" placeholder="Message attendees..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat();}">
+          <button class="chat-send-btn" onclick="sendChat()">Send</button>
+        </div>
+      </div>
+
+      <!-- Raised hands panel -->
+      <div class="tab-panel" id="panelHands">
+        <div class="tab-scroll" id="handsList">
+          <div class="tab-empty">No raised hands yet.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Mobile toggle -->
+<button class="mobile-panel-toggle" onclick="toggleSidePanel()">
+  <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+</button>
+
+<!-- Summary modal -->
+<div class="modal-overlay" id="summaryModal">
+  <div class="modal">
+    <div style="font-size:2rem;margin-bottom:10px;">🎉</div>
+    <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:1.05rem;margin-bottom:6px;">Webinar Ended</div>
+    <p style="color:var(--text-muted);font-size:.82rem;">Great session! Here's your summary:</p>
+    <div class="summary-grid">
+      <div class="summary-cell"><div class="summary-val" id="sumDuration">—</div><div class="summary-lbl">Duration</div></div>
+      <div class="summary-cell"><div class="summary-val" id="sumAttendees">—</div><div class="summary-lbl">Attendees</div></div>
+      <div class="summary-cell"><div class="summary-val" id="sumEarnings">$0</div><div class="summary-lbl">Earnings</div></div>
+    </div>
+    <button class="modal-submit" onclick="finishAndClose()">Back to Webinars</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const{createClient}=supabase;
+const sb=createClient('https://vgndpvkywvcnezvjuueq.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZnbmRwdmt5d3ZjbmV6dmp1dWVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MDk5OTEsImV4cCI6MjA5MDA4NTk5MX0.GGwx_-W7pu485h3d6dgkhqSwiqxT3Hx02Ck9HW8nyE0');
+
+// Custom cursor
+const cur=document.getElementById('ss-cursor'),ring=document.getElementById('ss-ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px';});
+(function trackHover(){document.querySelectorAll('a,button,input').forEach(el=>{el.addEventListener('mouseenter',()=>{ring.style.borderColor='rgba(139,92,246,0.6)';ring.style.width='44px';ring.style.height='44px';});el.addEventListener('mouseleave',()=>{ring.style.borderColor='rgba(255,255,255,0.5)';ring.style.width='34px';ring.style.height='34px';});});})();
+(function anim(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(anim);})();
+
+// URL params
+const params=new URLSearchParams(window.location.search);
+const webinarId=params.get('id');
+const startLiveFlag=params.get('startLive')==='1';
+
+// State
+let currentUserId=null,myName='',webinarData=null;
+let hostStream=null,hostScreenStream=null;
+let isMicOff=false,isCamOff=false,isSharing=false,isRecording=false,isLive=false;
+let hostStartTime=null,timerInterval=null;
+let ctrlChannel=null,rtcChannel=null;
+let mediaRecorder=null,recordedChunks=[];
+let raiseHandQueue=[],chatMessages=[],attendeeMap={};
+let unreadChat=0,unreadHands=0,activeTab='Participants';
+const participantPCs={},participantIceQueues={},participantRemoteDescSet={};
+
+const ICE_SERVERS=[
+  {urls:'stun:stun.l.google.com:19302'},
+  {urls:'stun:stun1.l.google.com:19302'},
+  {urls:'turn:openrelay.metered.ca:80',username:'openrelayproject',credential:'openrelayproject'},
+  {urls:'turn:openrelay.metered.ca:443',username:'openrelayproject',credential:'openrelayproject'},
+  {urls:'turn:openrelay.metered.ca:443?transport=tcp',username:'openrelayproject',credential:'openrelayproject'}
+];
+
+// ── Duplicate tab detection via BroadcastChannel ────────────────────────────
+let bc=null,iAmPrimary=false;
+function setupBroadcastChannel(){
+  if(!webinarId||!('BroadcastChannel' in window))return;
+  bc=new BroadcastChannel('ss_host_'+webinarId);
+  bc.onmessage=(e)=>{
+    if(e.data.type==='ping'){
+      bc.postMessage({type:'pong'});
+    }else if(e.data.type==='pong'&&!iAmPrimary){
+      // Another tab is already hosting
+      document.getElementById('loadingScreen').classList.add('done');
+      document.getElementById('dupOverlay').classList.add('show');
+    }else if(e.data.type==='focus_me'){
+      window.focus();
+    }
+  };
+  bc.postMessage({type:'ping'});
+  setTimeout(()=>{iAmPrimary=true;},350);
+}
+function focusExistingTab(){if(bc)bc.postMessage({type:'focus_me'});window.close();}
+function continueAnyway(){
+  iAmPrimary=true;
+  document.getElementById('dupOverlay').classList.remove('show');
+  document.getElementById('loadingScreen').classList.remove('done');
+  document.getElementById('loadingScreen').style.display='flex';
+  init();
+}
+
+// ── Media ────────────────────────────────────────────────────────────────────
+async function setupMedia(){
+  try{
+    hostStream=await navigator.mediaDevices.getUserMedia({video:true,audio:true});
+    document.getElementById('localVideo').srcObject=hostStream;
+    isMicOff=false;isCamOff=false;
+    document.getElementById('camOffState').style.display='none';
+  }catch(e){
+    try{
+      hostStream=await navigator.mediaDevices.getUserMedia({video:false,audio:true});
+      isCamOff=true;document.getElementById('camOffState').style.display='flex';
+    }catch(e2){isMicOff=true;isCamOff=true;}
+  }
+  syncCtrlBtns();
+}
+
+function syncCtrlBtns(){
+  document.getElementById('micCtrl').classList.toggle('off',isMicOff);
+  document.getElementById('camCtrl').classList.toggle('off',isCamOff);
+}
+
+function toggleMic(){
+  if(!hostStream)return;
+  isMicOff=!isMicOff;
+  hostStream.getAudioTracks().forEach(t=>t.enabled=!isMicOff);
+  syncCtrlBtns();
+}
+
+function toggleCam(){
+  if(!hostStream)return;
+  isCamOff=!isCamOff;
+  hostStream.getVideoTracks().forEach(t=>t.enabled=!isCamOff);
+  document.getElementById('camOffState').style.display=isCamOff?'flex':'none';
+  syncCtrlBtns();
+}
+
+async function toggleScreen(){
+  const scBtn=document.getElementById('screenCtrl');
+  const scLabel=document.getElementById('screenLabel');
+  if(isSharing){
+    if(hostScreenStream){hostScreenStream.getTracks().forEach(t=>t.stop());hostScreenStream=null;}
+    isSharing=false;
+    if(hostStream)document.getElementById('localVideo').srcObject=hostStream;
+    scBtn.classList.remove('screen-active');
+    scLabel.textContent='Share Screen';
+    const camTrack=hostStream?.getVideoTracks()[0];
+    if(camTrack){
+      for(const pc of Object.values(participantPCs)){
+        const s=pc.getSenders().find(x=>x.track&&x.track.kind==='video');
+        if(s)try{await s.replaceTrack(camTrack);}catch(err){}
+      }
+    }
+    return;
+  }
+  try{
+    hostScreenStream=await navigator.mediaDevices.getDisplayMedia({video:true,audio:false});
+    isSharing=true;
+    document.getElementById('localVideo').srcObject=hostScreenStream;
+    scBtn.classList.add('screen-active');
+    scLabel.textContent='Stop Sharing';
+    const screenTrack=hostScreenStream.getVideoTracks()[0];
+    for(const pc of Object.values(participantPCs)){
+      const s=pc.getSenders().find(x=>x.track&&x.track.kind==='video');
+      if(s&&screenTrack)try{await s.replaceTrack(screenTrack);}catch(err){}
+    }
+    screenTrack.addEventListener('ended',()=>{if(isSharing)toggleScreen();});
+  }catch(e){console.warn('Screen share denied:',e);}
+}
+
+// ── Recording ─────────────────────────────────────────────────────────────────
+function toggleRecording(){
+  const btn=document.getElementById('recBtn');
+  if(isRecording){
+    if(mediaRecorder&&mediaRecorder.state==='recording')mediaRecorder.stop();
+    isRecording=false;
+    btn.classList.remove('rec-active');
+    btn.innerHTML=`<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4" fill="currentColor"/></svg>Record`;
+    showToast('Recording saved — check your downloads.');
+    return;
+  }
+  const stream=hostScreenStream||hostStream;
+  if(!stream){showToast('No media stream to record.');return;}
+  recordedChunks=[];
+  const mimeType=MediaRecorder.isTypeSupported('video/webm;codecs=vp9')?'video/webm;codecs=vp9':'video/webm';
+  try{
+    mediaRecorder=new MediaRecorder(stream,{mimeType});
+  }catch(e){mediaRecorder=new MediaRecorder(stream);}
+  mediaRecorder.ondataavailable=e=>{if(e.data.size>0)recordedChunks.push(e.data);};
+  mediaRecorder.onstop=()=>{
+    const blob=new Blob(recordedChunks,{type:'video/webm'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;a.download='webinar-recording-'+Date.now()+'.webm';a.click();
+    setTimeout(()=>URL.revokeObjectURL(url),10000);
+  };
+  mediaRecorder.start(1000);
+  isRecording=true;
+  btn.classList.add('rec-active');
+  btn.innerHTML=`<svg fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><rect x="9" y="9" width="6" height="6" rx="1" fill="#080808"/></svg>Stop Rec`;
+  showToast('Recording started.');
+}
+
+// ── Timer ─────────────────────────────────────────────────────────────────────
+function startTimer(){
+  if(!hostStartTime)hostStartTime=Date.now();
+  clearInterval(timerInterval);
+  timerInterval=setInterval(()=>{
+    const e=Math.floor((Date.now()-hostStartTime)/1000);
+    document.getElementById('hudTimer').textContent=String(Math.floor(e/60)).padStart(2,'0')+':'+String(e%60).padStart(2,'0');
+  },1000);
+}
+
+// ── Go Live ───────────────────────────────────────────────────────────────────
+async function goLive(){
+  const btn=document.getElementById('goLiveBtn');
+  btn.disabled=true;btn.textContent='Going live...';
+  const{error}=await sb.from('webinars').update({is_live:true,status:'live'}).eq('id',webinarId);
+  if(error){
+    showToast('Error: '+error.message);
+    btn.disabled=false;
+    btn.innerHTML=`<svg width="10" height="10" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>Go Live`;
+    return;
+  }
+  activateLive();
+}
+
+function activateLive(){
+  isLive=true;
+  document.getElementById('notLiveOverlay').style.display='none';
+  document.getElementById('livePill').style.display='flex';
+  startTimer();
+  loadAttendees();
+}
+
+// ── Supabase Channels ─────────────────────────────────────────────────────────
+function setupChannels(){
+  ctrlChannel=sb.channel('webinar_ctrl:'+webinarId);
+  ctrlChannel
+    .on('broadcast',{event:'raise_hand'},({payload})=>onRaiseHand(payload))
+    .on('broadcast',{event:'chat_msg'},({payload})=>onChatMsg(payload,false))
+    .subscribe();
+
+  rtcChannel=sb.channel('webinar_rtc:'+webinarId,{config:{broadcast:{self:false}}});
+  rtcChannel
+    .on('broadcast',{event:'join'},({payload})=>onParticipantJoin(payload))
+    .on('broadcast',{event:'answer'},({payload})=>onParticipantAnswer(payload))
+    .on('broadcast',{event:'ice_to_host'},({payload})=>onParticipantICE(payload))
+    .subscribe();
+}
+
+// ── Participants ──────────────────────────────────────────────────────────────
+async function loadAttendees(){
+  const{data}=await sb.from('webinar_attendees')
+    .select('user_id,profiles:user_id(full_name,username,avatar_url,avatar_emoji)')
+    .eq('webinar_id',webinarId);
+  attendeeMap={};
+  (data||[]).forEach(a=>{
+    if(a.user_id===currentUserId)return;
+    const p=a.profiles;
+    attendeeMap[a.user_id]={name:p?.full_name||p?.username||'Attendee',avatarUrl:p?.avatar_url||null,avatarEmoji:p?.avatar_emoji||null};
+  });
+  renderAttendees();
+}
+
+function renderAttendees(){
+  const uids=Object.keys(attendeeMap);
+  document.getElementById('viewerCount').textContent=uids.length;
+  document.getElementById('partBadge').textContent=uids.length;
+  document.getElementById('partBadge').style.display='inline';
+  const list=document.getElementById('partList');
+  if(!uids.length){list.innerHTML='<div class="tab-empty">No attendees yet. Once people join, they\'ll appear here.</div>';return;}
+  list.innerHTML=uids.map(uid=>{
+    const a=attendeeMap[uid];
+    const initials=a.name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+    const avHtml=a.avatarUrl?`<img src="${a.avatarUrl}" alt="">`:a.avatarEmoji||initials;
+    const safeName=a.name.replace(/'/g,'&#39;').replace(/"/g,'&quot;');
+    return`<div class="att-row" id="att-${uid}">
+      <div class="att-av">${avHtml}</div>
+      <div class="att-name">${escHtml(a.name)}</div>
+      <div class="att-actions">
+        <button class="att-btn" onclick="muteOne('${uid}')" title="Mute attendee">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="1" y1="1" x2="23" y2="23"/><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"/><path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+        </button>
+        <button class="att-btn danger" onclick="kickAttendee('${uid}','${safeName}')" title="Remove from webinar">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function muteOne(userId){
+  if(!ctrlChannel)return;
+  ctrlChannel.send({type:'broadcast',event:'host_command',payload:{cmd:'mute_one',target_user_id:userId}});
+  showToast('Muted attendee.');
+}
+
+function muteAll(){
+  if(!ctrlChannel)return;
+  ctrlChannel.send({type:'broadcast',event:'host_command',payload:{cmd:'mute_all'}});
+  showToast('Muted all attendees.');
+}
+
+function kickAttendee(userId,name){
+  if(!ctrlChannel)return;
+  ctrlChannel.send({type:'broadcast',event:'host_command',payload:{cmd:'kick',target_user_id:userId}});
+  delete attendeeMap[userId];
+  const row=document.getElementById('att-'+userId);
+  if(row)row.remove();
+  renderAttendees();
+  removeParticipantThumb(userId);
+  showToast(name+' removed from webinar.');
+}
+
+// ── Raise Hand ────────────────────────────────────────────────────────────────
+function onRaiseHand({user_id,name}){
+  if(raiseHandQueue.find(x=>x.userId===user_id))return;
+  raiseHandQueue.push({userId:user_id,name:name||'Attendee'});
+  renderHands();
+  if(activeTab!=='Hands'){unreadHands++;syncBadges();}
+}
+
+function renderHands(){
+  const list=document.getElementById('handsList');
+  const badge=document.getElementById('handsBadge');
+  if(!raiseHandQueue.length){
+    list.innerHTML='<div class="tab-empty">No raised hands yet.</div>';
+    badge.style.display='none';return;
+  }
+  badge.style.display='inline';badge.textContent=raiseHandQueue.length;
+  list.innerHTML=raiseHandQueue.map(h=>`
+    <div class="hand-row">
+      <div class="att-av">${h.name.slice(0,2).toUpperCase()}</div>
+      <div class="att-name">${escHtml(h.name)}</div>
+      <button class="btn-call-on" onclick="callOn('${h.userId}')">Call On</button>
+    </div>`).join('');
+}
+
+function callOn(userId){
+  raiseHandQueue=raiseHandQueue.filter(x=>x.userId!==userId);
+  if(ctrlChannel)ctrlChannel.send({type:'broadcast',event:'host_command',payload:{cmd:'called_on',target_user_id:userId}});
+  renderHands();
+  showToast('Attendee called on.');
+}
+
+// ── Chat ──────────────────────────────────────────────────────────────────────
+function onChatMsg({userId,name,text,ts},isOwn=false){
+  if(!text)return;
+  chatMessages.push({userId,name,text,ts:ts||Date.now(),isOwn:isOwn||userId===currentUserId});
+  renderLastChatMsg();
+  if(activeTab!=='Chat'){unreadChat++;syncBadges();}
+}
+
+function renderLastChatMsg(){
+  const wrap=document.getElementById('chatMsgs');
+  const m=chatMessages[chatMessages.length-1];
+  if(!m)return;
+  const div=document.createElement('div');
+  div.className='chat-msg-bubble';
+  div.innerHTML=`<div class="chat-msg-meta">
+    <span class="chat-sender-name${m.isOwn?' host-name':''}">${m.isOwn?'You (Host)':escHtml(m.name)}</span>
+    <span class="chat-time">${new Date(m.ts).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'})}</span>
+  </div>
+  <div class="chat-msg-text">${escHtml(m.text)}</div>`;
+  wrap.appendChild(div);
+  wrap.scrollTop=wrap.scrollHeight;
+}
+
+function sendChat(){
+  const input=document.getElementById('chatInput');
+  const text=input.value.trim();
+  if(!text||!ctrlChannel)return;
+  input.value='';
+  const payload={userId:currentUserId,name:myName,text,ts:Date.now()};
+  ctrlChannel.send({type:'broadcast',event:'chat_msg',payload});
+  onChatMsg(payload,true);
+}
+
+function syncBadges(){
+  const cb=document.getElementById('chatBadge');
+  const hb=document.getElementById('handsBadge');
+  cb.style.display=unreadChat>0?'inline':'none';
+  cb.textContent=unreadChat;
+  const hCount=unreadHands||raiseHandQueue.length;
+  hb.style.display=hCount>0?'inline':'none';
+  hb.textContent=hCount;
+}
+
+// ── Tab switching ─────────────────────────────────────────────────────────────
+function switchTab(name){
+  activeTab=name;
+  document.querySelectorAll('.s-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('sTab'+name).classList.add('active');
+  document.getElementById('panel'+name).classList.add('active');
+  if(name==='Chat'){unreadChat=0;syncBadges();}
+  if(name==='Hands'){unreadHands=0;syncBadges();}
+}
+
+function toggleSidePanel(){
+  document.getElementById('sidePanel').classList.toggle('open');
+}
+
+// ── WebRTC host-side ──────────────────────────────────────────────────────────
+async function onParticipantJoin({userId,name}){
+  if(!isLive)return;
+  if(participantPCs[userId]){participantPCs[userId].close();delete participantPCs[userId];}
+  if(!attendeeMap[userId]){attendeeMap[userId]={name:name||'Attendee',avatarUrl:null,avatarEmoji:null};renderAttendees();}
+  const pc=new RTCPeerConnection({iceServers:ICE_SERVERS});
+  participantPCs[userId]=pc;
+  participantIceQueues[userId]=[];
+  participantRemoteDescSet[userId]=false;
+  const stream=hostScreenStream||hostStream;
+  if(stream)stream.getTracks().forEach(t=>pc.addTrack(t,stream));
+  pc.ontrack=(e)=>{
+    if(e.streams[0])addParticipantThumb(userId,attendeeMap[userId]?.name||name||'Attendee',e.streams[0]);
+  };
+  pc.onicecandidate=({candidate})=>{
+    if(candidate&&rtcChannel)
+      rtcChannel.send({type:'broadcast',event:'ice_to_participant',payload:{to:userId,candidate:candidate.toJSON()}});
+  };
+  pc.onconnectionstatechange=()=>{
+    if(pc.connectionState==='disconnected'||pc.connectionState==='failed'){
+      pc.close();delete participantPCs[userId];
+      removeParticipantThumb(userId);
+    }
+  };
+  try{
+    const offer=await pc.createOffer();
+    await pc.setLocalDescription(offer);
+    await new Promise(resolve=>{
+      if(pc.iceGatheringState==='complete'){resolve();return;}
+      pc.onicegatheringstatechange=()=>{if(pc.iceGatheringState==='complete')resolve();};
+      setTimeout(resolve,4000);
+    });
+    rtcChannel.send({type:'broadcast',event:'offer_to_participant',payload:{to:userId,sdp:pc.localDescription}});
+  }catch(e){console.error('Offer error:',e);}
+}
+
+async function onParticipantAnswer({from,sdp}){
+  const pc=participantPCs[from];if(!pc)return;
+  try{
+    await pc.setRemoteDescription(new RTCSessionDescription(sdp));
+    participantRemoteDescSet[from]=true;
+    for(const c of(participantIceQueues[from]||[])){try{await pc.addIceCandidate(c);}catch(e){}}
+    participantIceQueues[from]=[];
+  }catch(e){console.error('Answer error:',e);}
+}
+
+async function onParticipantICE({from,candidate}){
+  const pc=participantPCs[from];if(!pc||!candidate)return;
+  const c=new RTCIceCandidate(candidate);
+  if(participantRemoteDescSet[from]){try{await pc.addIceCandidate(c);}catch(e){}}
+  else{(participantIceQueues[from]=participantIceQueues[from]||[]).push(c);}
+}
+
+function addParticipantThumb(userId,name,stream){
+  const thumbs=document.getElementById('participantThumbs');
+  if(document.getElementById('pthumb-'+userId))return;
+  const div=document.createElement('div');div.className='p-thumb';div.id='pthumb-'+userId;
+  const vid=document.createElement('video');vid.autoplay=true;vid.playsinline=true;vid.muted=true;vid.srcObject=stream;
+  const nameLbl=document.createElement('div');nameLbl.className='p-thumb-name';nameLbl.textContent=name;
+  div.appendChild(vid);div.appendChild(nameLbl);thumbs.appendChild(div);
+}
+
+function removeParticipantThumb(userId){document.getElementById('pthumb-'+userId)?.remove();}
+
+// ── End webinar ───────────────────────────────────────────────────────────────
+function confirmEnd(){
+  if(confirm('End this webinar for all attendees? This cannot be undone.'))endWebinar();
+}
+
+async function endWebinar(){
+  const elapsed=hostStartTime?Math.floor((Date.now()-hostStartTime)/60000):0;
+  const attCount=Object.keys(attendeeMap).length;
+  if(ctrlChannel)await ctrlChannel.send({type:'broadcast',event:'host_command',payload:{cmd:'end_webinar'}});
+  await sb.from('webinars').update({status:'ended',is_live:false,attendee_count:attCount}).eq('id',webinarId);
+  // Cleanup media
+  if(mediaRecorder&&mediaRecorder.state==='recording')mediaRecorder.stop();
+  if(hostStream){hostStream.getTracks().forEach(t=>t.stop());hostStream=null;}
+  if(hostScreenStream){hostScreenStream.getTracks().forEach(t=>t.stop());hostScreenStream=null;}
+  clearInterval(timerInterval);timerInterval=null;
+  // Cleanup WebRTC
+  for(const [,pc] of Object.entries(participantPCs)){pc.close();}
+  Object.keys(participantPCs).forEach(k=>delete participantPCs[k]);
+  // Cleanup channels
+  if(ctrlChannel){sb.removeChannel(ctrlChannel);ctrlChannel=null;}
+  if(rtcChannel){sb.removeChannel(rtcChannel);rtcChannel=null;}
+  // Show summary
+  const earnings=webinarData&&!webinarData.is_free&&webinarData.price?'$'+(webinarData.price*attCount).toFixed(2):'$0';
+  document.getElementById('sumDuration').textContent=elapsed+'m';
+  document.getElementById('sumAttendees').textContent=attCount;
+  document.getElementById('sumEarnings').textContent=earnings;
+  document.getElementById('summaryModal').classList.add('open');
+  isLive=false;
+}
+
+function finishAndClose(){
+  if(bc)bc.close();
+  window.location.href='webinars.html';
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function showToast(msg){const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity .3s';setTimeout(()=>t.remove(),300);},3000);}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+async function init(){
+  if(!webinarId){window.location.href='webinars.html';return;}
+  setupBroadcastChannel();
+
+  const{data:{session}}=await sb.auth.getSession();
+  if(!session){window.location.href='login.html';return;}
+  currentUserId=session.user.id;
+
+  const{data:profile}=await sb.from('profiles').select('full_name,username,plan').eq('id',currentUserId).single();
+  myName=profile?.full_name||profile?.username||session.user.email.split('@')[0];
+
+  const initials=myName.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+  document.getElementById('camOffInitials').textContent=initials;
+
+  const{data:w,error:we}=await sb.from('webinars').select('*').eq('id',webinarId).single();
+  if(we||!w){showToast('Webinar not found.');setTimeout(()=>{window.location.href='webinars.html';},2000);return;}
+  if(w.host_id!==currentUserId){showToast('You are not the host of this webinar.');setTimeout(()=>{window.location.href='webinars.html';},2000);return;}
+  webinarData=w;
+  document.getElementById('hudTitle').textContent=w.title||'Webinar';
+  document.title='Host: '+(w.title||'Webinar')+' — SkillSwap';
+
+  await setupMedia();
+  setupChannels();
+
+  if(w.is_live||w.status==='live'){
+    activateLive();
+  }else if(startLiveFlag){
+    await goLive();
+  }
+  // else: "not live yet" overlay is shown by default
+
+  document.getElementById('loadingScreen').classList.add('done');
+  // Refresh cursor hover listeners after DOM settled
+  setTimeout(()=>{
+    document.querySelectorAll('a,button,input').forEach(el=>{
+      el.addEventListener('mouseenter',()=>{ring.style.borderColor='rgba(139,92,246,0.6)';ring.style.width='44px';ring.style.height='44px';});
+      el.addEventListener('mouseleave',()=>{ring.style.borderColor='rgba(255,255,255,0.5)';ring.style.width='34px';ring.style.height='34px';});
+    });
+  },500);
+}
+
+init();
+</script>
+</body>
+</html>
