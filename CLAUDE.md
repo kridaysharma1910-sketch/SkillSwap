@@ -52,8 +52,9 @@ A skill-exchange web platform where users list skills they offer and skills they
 | Messages | messages.html | ✅ Done — real-time chat, Supabase subscriptions, URL auto-open |
 | Video Call | videocall.html | ✅ Done — WebRTC P2P, ICE restart/retry, offer/answer wait-for-ICE-gathering, auto-reconnect on failure |
 | Pricing | pricing.html | ✅ Done — Free/Pro/Creator features, Supabase plan update, toggle |
-| Webinars | webinars.html | ✅ Done — host overlay, built-in WebRTC participant system (star topology), ended webinars filtered, participants redirect on end |
+| Webinars | webinars.html | ✅ Done — host overlay, built-in WebRTC participant system (star topology), ended webinars filtered, participants redirect on end, fallback quick controls dropdown, participant chat |
 | Analytics | analytics.html | ✅ Done — 6 stat cards, activity chart, skills table, badges grid, rank, creator section |
+| Webinar Host Room | webinar-host.html | ✅ Done — dedicated host tab, BroadcastChannel dup detection, full controls, chat, raise hand, recording, participant video thumbnails |
 
 ---
 
@@ -79,6 +80,44 @@ A skill-exchange web platform where users list skills they offer and skills they
 
 ## Session Log
 <!-- Claude Code appends to this after every session -->
+
+### [Session 11 — 2026-04-08]
+
+**FEATURE — Dedicated Webinar Host Room (`webinar-host.html`)**
+
+Created a full-screen standalone host control room page that opens in a new tab:
+
+- **Named window (`window.open(url, 'wh_'+id)`)** — browser focuses the existing tab instead of opening a duplicate if already open
+- **BroadcastChannel duplicate detection** — on load, pings other tabs; if a pong is received, shows a warning overlay ("Switch to existing tab" / "Continue here anyway")
+- **Loading screen** with spinner while auth + webinar data loads
+- **HUD bar**: logo link, webinar title, LIVE badge (hidden pre-live), live timer, viewer count, Record button, End Webinar button
+- **Stage area**: local camera/screen `<video>`, camera-off placeholder with host initials, participant video thumbnails strip (populated via WebRTC `ontrack` — host receives participant cameras)
+- **"Not live yet" overlay**: shown if webinar is not yet live in DB; "Go Live" button updates `is_live=true, status='live'` then hides overlay — if `?startLive=1` param is present, goes live automatically on page load
+- **Controls bar** (pill, absolute-bottom): Mic toggle · Camera toggle · Screen Share (with `replaceTrack` to all participant PCs) · Mute All
+- **Side panel** with 3 tabs (unread badges on Chat and Raised):
+  - *Participants*: loaded from `webinar_attendees` + profiles; per-attendee Mute (sends `mute_one` cmd) and Kick (sends `kick` cmd, removes from map + DOM)
+  - *Chat*: two-way realtime over `webinar_ctrl:{id}` channel, event `chat_msg`; host messages shown as "You (Host)"; auto-scroll; Enter key sends
+  - *Raised Hands*: queue rendered on `raise_hand` broadcast; "Call On" button sends `called_on` command and removes from queue
+- **Recording**: `MediaRecorder` on active stream (screen share takes priority); `ondataavailable` accumulates chunks; `onstop` creates a `.webm` blob and triggers download
+- **End Webinar**: confirms → broadcasts `end_webinar` → updates Supabase (`status='ended', is_live=false, attendee_count`) → stops all media + recording → closes all participant PCs + channels → shows summary modal (duration / attendees / earnings estimate) → "Back to Webinars" redirects to `webinars.html`
+- **WebRTC host-side** mirrors `webinars.html` logic: `onParticipantJoin` creates PC per participant, adds host stream, waits for ICE gathering before sending offer, handles answer + ICE buffering; `ontrack` populates participant video thumbnails
+
+**UPDATES — `webinars.html`**
+
+- **Go Live button**: no longer opens inline overlay — calls `openHostTab(id, true)` → `window.open('webinar-host.html?id=X&startLive=1', 'wh_X')`
+- **Host Controls button** (on live cards): calls `openHostTab(id)` → focuses existing host tab or opens it
+- **Fallback "Quick Controls" dropdown** added to all live host cards:
+  - Rejoin Host Room (opens/focuses host tab)
+  - Mute All Attendees (broadcasts `mute_all` via a temp channel if host tab is closed)
+  - End Webinar (broadcasts `end_webinar` + updates DB; confirmation required)
+  - Dropdown closes on outside click; toggle prevents re-opening same dropdown
+- **Participant chat panel** inside the participant overlay:
+  - Toggle button (chat bubble icon) added to participant controls bar
+  - Floating panel above controls: message list + input row
+  - `sendPartChat()` sends `chat_msg` event on `attendeeChannels[currentParticipantWebinarId]`
+  - `appendPartChatMsg()` renders messages; flashes chat button if panel is closed
+  - Chat panel + `currentParticipantWebinarId` reset on `leaveWebinar()`
+- **`subscribeAttendeeToWebinar`** extended to handle: `mute_one` (mutes self), `called_on` (toast notification), `chat_msg` (renders in participant chat panel)
 
 ### [Session 1 — 2026-04-01]
 - Discovered `dashboard.html` was missing despite being marked ✅ in CLAUDE.md — rebuilt it
@@ -338,6 +377,11 @@ All 9 sidebar pages (dashboard, discover, matches, messages, profile, pricing, w
 - ✅ Video call reliability fixed (session 10) — ICE restart on 8s timeout, offer/answer wait for full ICE gathering, auto-teardown+retry on failed state
 - ✅ Webinar participant system replaced (session 10) — Jitsi removed, built-in WebRTC star topology; signaling on `webinar_rtc:{id}` channel
 - ✅ Sidebar "Video Call" nav link removed from all 9 pages (session 10) — access only via Messages chat header
+- ✅ Dedicated webinar host room built (session 11) — `webinar-host.html`, opens in named tab, BroadcastChannel dup detection, full controls + chat + recording
+- ✅ Fallback host controls dropdown added to webinars.html (session 11) — quick mute-all / end-webinar without needing the host tab open
+- ✅ Participant chat added to webinars.html participant overlay (session 11) — two-way via `webinar_ctrl` channel `chat_msg` event
+- Webinar recording saves locally as `.webm` download — no server-side storage; cloud recording not yet implemented
+- `webinar-host.html` host room: inline overlay in `webinars.html` (`#hostOverlay`) is now unused for new sessions but kept in DOM as dead code — can be removed in a future cleanup
 
 ---
 
