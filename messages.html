@@ -28,9 +28,29 @@ body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;display:fl
 .sidebar-logout-full{width:100%;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.14);border-radius:10px;color:rgba(239,68,68,0.7);font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:500;padding:9px 12px;cursor:none;display:flex;align-items:center;gap:8px;transition:all .2s;}
 .sidebar-logout-full:hover{background:rgba(239,68,68,0.12);border-color:rgba(239,68,68,0.28);color:#f87171;}
 .sidebar-logout-full svg{width:14px;height:14px;}
-.hamburger{display:none;position:fixed;top:14px;left:14px;z-index:200;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:10px;padding:8px;cursor:none;color:#fff;}
+.hamburger{display:flex;position:fixed;top:14px;left:14px;z-index:200;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:10px;padding:8px;cursor:none;color:#fff;}
 .sidebar-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);backdrop-filter:blur(4px);z-index:98;}
 .sidebar-overlay.show{display:block;}
+.sidebar{transition:transform .25s;}
+.sidebar::-webkit-scrollbar{width:4px;}
+.sidebar::-webkit-scrollbar-track{background:transparent;}
+.sidebar::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:4px;}
+/* Active call banner */
+.active-call-banner{display:none;align-items:center;gap:12px;padding:10px 18px;background:rgba(34,197,94,0.08);border-bottom:1px solid rgba(34,197,94,0.2);flex-shrink:0;}
+.active-call-banner.show{display:flex;}
+.call-pulse{width:8px;height:8px;background:#22c55e;border-radius:50%;flex-shrink:0;animation:blink 1s infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
+.active-call-text{flex:1;font-size:.82rem;color:rgba(255,255,255,.7);}
+.active-call-text strong{color:#86efac;}
+.btn-rejoin{background:#22c55e;color:#080808;border:none;border-radius:8px;padding:6px 14px;font-family:'Syne',sans-serif;font-size:.78rem;font-weight:700;cursor:none;white-space:nowrap;text-decoration:none;display:inline-flex;align-items:center;gap:5px;transition:opacity .2s;}
+.btn-rejoin:hover{opacity:.85;}
+.btn-rejoin svg{width:12px;height:12px;}
+.btn-dismiss-call{background:none;border:none;color:rgba(255,255,255,.3);cursor:none;padding:4px;display:flex;align-items:center;font-size:1rem;line-height:1;transition:color .15s;}
+.btn-dismiss-call:hover{color:rgba(255,255,255,.6);}
+@media(min-width:901px){
+  body.sidebar-collapsed{--sidebar-w:0;}
+  body.sidebar-collapsed .sidebar{transform:translateX(-100%);}
+}
 
 /* CHAT LAYOUT */
 .chat-layout{margin-left:var(--sidebar-w);flex:1;display:flex;height:100vh;overflow:hidden;}
@@ -190,6 +210,13 @@ body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;display:fl
           <button class="icon-btn" id="callBtn" title="Start video call" onclick="startCallFromMessages('video')"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></button>
         </div>
       </div>
+      <!-- Active call banner — shown when a call is alive in localStorage for this match -->
+      <div class="active-call-banner" id="activeCallBanner">
+        <div class="call-pulse"></div>
+        <div class="active-call-text">Call with <strong id="activeCallPeer">partner</strong> is ongoing</div>
+        <a id="activeCallRejoinBtn" href="#" class="btn-rejoin"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>Rejoin</a>
+        <button class="btn-dismiss-call" onclick="dismissCallBanner()" title="Dismiss">✕</button>
+      </div>
       <div class="messages-area" id="messagesArea"></div>
       <div class="chat-input-wrap">
         <div id="emojiPicker" class="emoji-picker"></div>
@@ -211,8 +238,41 @@ let mx=0,my=0,rx=0,ry=0;
 document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px';});
 document.querySelectorAll('a,button').forEach(el=>{el.addEventListener('mouseenter',()=>{ring.style.borderColor='rgba(139,92,246,0.6)';ring.style.width='44px';ring.style.height='44px';});el.addEventListener('mouseleave',()=>{ring.style.borderColor='rgba(255,255,255,0.5)';ring.style.width='34px';ring.style.height='34px';});});
 (function anim(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(anim);})();
-function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebar-overlay').classList.toggle('show');}
+function toggleSidebar(){
+  if(window.innerWidth<=900){
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('sidebar-overlay').classList.toggle('show');
+  } else {
+    const c=document.body.classList.toggle('sidebar-collapsed');
+    localStorage.setItem('ss_sidebar',c?'0':'1');
+  }
+}
 async function handleLogout(){await sb.auth.signOut();window.location.href='index.html';}
+
+// ── Active call banner ──
+const ACTIVE_CALL_KEY='ss_active_call';
+function getActiveCallForMatch(matchId){
+  try{
+    const d=JSON.parse(localStorage.getItem(ACTIVE_CALL_KEY)||'null');
+    if(!d)return null;
+    if(Date.now()-d.timestamp>4*60*60*1000){localStorage.removeItem(ACTIVE_CALL_KEY);return null;}
+    if(d.matchId===matchId)return d;
+    return null;
+  }catch{return null;}
+}
+function showActiveCallBanner(call,peerName){
+  const banner=document.getElementById('activeCallBanner');
+  document.getElementById('activeCallPeer').textContent=peerName||call.peerName||'partner';
+  const voiceParam=call.voice?'&voice=1':'';
+  const callerParam=call.isCaller?'&caller=1':'';
+  document.getElementById('activeCallRejoinBtn').href=`videocall.html?room=${encodeURIComponent(call.roomId)}&match=${call.matchId||''}${callerParam}${voiceParam}`;
+  banner.classList.add('show');
+}
+function hideActiveCallBanner(){document.getElementById('activeCallBanner').classList.remove('show');}
+function dismissCallBanner(){
+  localStorage.removeItem(ACTIVE_CALL_KEY);
+  hideActiveCallBanner();
+}
 
 function genRoomId(){return Math.random().toString(36).slice(2,9)+Math.random().toString(36).slice(2,9);}
 let currentUserId=null,currentMatchId=null,conversations=[],realtimeSub=null,pollInterval=null;
@@ -277,6 +337,10 @@ async function openConvo(matchId){
   document.getElementById('noChatState').style.display='none';
   const chatActive=document.getElementById('chatActive');
   chatActive.style.display='flex';
+  // Check for active call for this match
+  const activeCall=getActiveCallForMatch(matchId);
+  if(activeCall)showActiveCallBanner(activeCall,name);
+  else hideActiveCallBanner();
   renderConvosList(conversations);
   await loadMessages(matchId);
   subscribeToMessages(matchId);
@@ -490,6 +554,7 @@ document.addEventListener('click',()=>{
 });
 
 async function init(){
+  if(window.innerWidth>900&&localStorage.getItem('ss_sidebar')==='0')document.body.classList.add('sidebar-collapsed');
   const{data:{session}}=await sb.auth.getSession();
   if(!session){window.location.href='login.html';return;}
   currentUserId=session.user.id;

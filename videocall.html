@@ -29,9 +29,20 @@ body{background:#000;color:#fff;font-family:'DM Sans',sans-serif;height:100vh;di
 .sidebar-logout-full{width:100%;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.14);border-radius:10px;color:rgba(239,68,68,0.7);font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:500;padding:9px 12px;cursor:none;display:flex;align-items:center;gap:8px;transition:all .2s;}
 .sidebar-logout-full:hover{background:rgba(239,68,68,0.12);border-color:rgba(239,68,68,0.28);color:#f87171;}
 .sidebar-logout-full svg{width:14px;height:14px;}
-.hamburger{display:none;position:fixed;top:14px;left:14px;z-index:201;background:rgba(0,0,0,0.7);border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:8px;cursor:none;color:#fff;backdrop-filter:blur(8px);}
+.hamburger{display:flex;position:fixed;top:14px;left:14px;z-index:201;background:rgba(0,0,0,0.7);border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:8px;cursor:none;color:#fff;backdrop-filter:blur(8px);}
 .sidebar-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);backdrop-filter:blur(4px);z-index:98;}
 .sidebar-overlay.show{display:block;}
+.sidebar{transition:transform .25s;}
+.sidebar::-webkit-scrollbar{width:4px;}
+.sidebar::-webkit-scrollbar-track{background:transparent;}
+.sidebar::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:4px;}
+#localCamOff{display:none;position:absolute;bottom:88px;right:18px;width:130px;height:176px;border-radius:14px;border:2px solid rgba(255,255,255,0.18);background:#1a1a1a;flex-direction:column;align-items:center;justify-content:center;gap:8px;z-index:6;}
+#localCamOff .cam-ini{width:44px;height:44px;border-radius:50%;background:rgba(139,92,246,0.18);border:1px solid rgba(139,92,246,0.3);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:700;font-size:.9rem;color:rgba(167,139,250,0.9);}
+#localCamOff .cam-lbl{font-size:.6rem;color:rgba(255,255,255,.35);text-align:center;}
+@media(min-width:901px){
+  body.sidebar-collapsed{--sidebar-w:0;}
+  body.sidebar-collapsed .sidebar{transform:translateX(-100%);}
+}
 
 /* ── CALL STAGE ── */
 .call-stage{margin-left:var(--sidebar-w);flex:1;position:relative;background:#111;height:100vh;overflow:hidden;display:none;}
@@ -88,6 +99,7 @@ body{background:#000;color:#fff;font-family:'DM Sans',sans-serif;height:100vh;di
   .call-stage,.no-room{margin-left:0;}
   .hamburger{display:flex;}
   #localVideo{width:100px;height:136px;bottom:80px;right:12px;}
+  #localCamOff{width:100px;height:136px;bottom:80px;right:12px;}
   .call-controls{padding:8px 12px;gap:8px;bottom:16px;}
   .ctrl-btn{width:42px;height:42px;}
   .ctrl-end{width:48px !important;height:48px !important;}
@@ -150,6 +162,8 @@ body{background:#000;color:#fff;font-family:'DM Sans',sans-serif;height:100vh;di
 
   <!-- Local video (PiP bottom-right) -->
   <video id="localVideo" autoplay playsinline muted></video>
+  <!-- Local cam-off placeholder (shown when camera is disabled or voice-only) -->
+  <div id="localCamOff"><div class="cam-ini" id="localCamInitials">ME</div><div class="cam-lbl">Camera off</div></div>
 
   <!-- Top HUD -->
   <div class="call-hud">
@@ -208,7 +222,15 @@ document.querySelectorAll('a,button').forEach(el=>{
   el.addEventListener('mouseleave',()=>{ring.style.borderColor='rgba(255,255,255,0.5)';ring.style.width='34px';ring.style.height='34px';});
 });
 (function anim(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(anim);})();
-function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebar-overlay').classList.toggle('show');}
+function toggleSidebar(){
+  if(window.innerWidth<=900){
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('sidebar-overlay').classList.toggle('show');
+  } else {
+    const c=document.body.classList.toggle('sidebar-collapsed');
+    localStorage.setItem('ss_sidebar',c?'0':'1');
+  }
+}
 async function handleLogout(){await sb.auth.signOut();window.location.href='index.html';}
 
 // ── WebRTC config ──
@@ -237,6 +259,16 @@ let screenShareStream = null, screenSharingActive = false;
 let recorder = null, recordingActive = false, recordingChunks = [];
 let userPlan = 'free';
 let isVoiceOnly = false;
+let savedPeerName = 'Partner';
+
+// ── Persistent call state (localStorage) ──
+const ACTIVE_CALL_KEY = 'ss_active_call';
+function saveCallState() {
+  try { localStorage.setItem(ACTIVE_CALL_KEY, JSON.stringify({roomId, matchId, voice: isVoiceOnly, isCaller, peerName: savedPeerName, timestamp: Date.now()})); } catch(e) {}
+}
+function clearCallState() {
+  try { localStorage.removeItem(ACTIVE_CALL_KEY); } catch(e) {}
+}
 
 // ── Helpers ──
 function setStatus(text, autohide) {
@@ -312,6 +344,8 @@ function toggleCam() {
   camOff = !camOff;
   if (localStream) localStream.getVideoTracks().forEach(t => { t.enabled = !camOff; });
   document.getElementById('btnCam').classList.toggle('muted', camOff);
+  document.getElementById('localVideo').style.display = camOff ? 'none' : '';
+  document.getElementById('localCamOff').style.display = camOff ? 'flex' : 'none';
 }
 
 async function toggleScreenShare() {
@@ -388,6 +422,7 @@ function toggleRecording() {
 
 // ── End Call ──
 async function endCall(sendHangup) {
+  clearCallState(); // clear persistent state — explicit end or partner hung up
   callActive = false;
   clearInterval(callTimerInterval);
   clearInterval(readyInterval);
@@ -420,17 +455,8 @@ async function endCall(sendHangup) {
   window.location.href = matchId ? 'messages.html?match=' + matchId : 'messages.html';
 }
 
-window.addEventListener('beforeunload', () => {
-  if (callActive && callStartTime && currentUserId) {
-    const d = Math.max(1, Math.floor((Date.now()-callStartTime)/60000));
-    const data = {user_id: currentUserId, duration_minutes: d};
-    if (matchId) data.match_id = matchId;
-    sb.from('sessions').insert(data);
-  }
-  if (signalChannel && callActive) {
-    try { signalChannel.send({type:'broadcast', event:'hangup', payload:{}}); } catch(e) {}
-  }
-});
+// No beforeunload handler — closing/navigating away keeps the call alive in localStorage
+// so the user can rejoin from Messages. Only endCall() explicitly clears it.
 
 // ── WebRTC ──
 async function initWebRTC() {
@@ -455,25 +481,38 @@ async function initWebRTC() {
     }
   }
   document.getElementById('localVideo').srcObject = localStream;
+  // Voice-only or no video track → show cam-off placeholder immediately
+  if (isVoiceOnly || localStream.getVideoTracks().length === 0) {
+    camOff = true;
+    document.getElementById('localVideo').style.display = 'none';
+    document.getElementById('localCamOff').style.display = 'flex';
+    document.getElementById('btnCam').classList.add('muted');
+    document.getElementById('waitingSub').textContent = 'Voice call — camera off';
+  }
 
   // Create peer connection
   pc = new RTCPeerConnection({iceServers: ICE_SERVERS});
   localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
 
-  // Remote track → show video, hide waiting bg
+  // Remote track → show video; only hide name plate when real video arrives
   pc.ontrack = (e) => {
     const remoteVid = document.getElementById('remoteVideo');
-    if (!remoteVid.srcObject) {
-      remoteVid.srcObject = e.streams[0];
-      remoteVid.play().catch(()=>{});
+    remoteVid.srcObject = e.streams[0];
+    remoteVid.play().catch(()=>{});
+    // Only hide the waiting name plate if the stream actually has a live video track
+    const hasVideo = e.streams[0].getVideoTracks().some(t => t.readyState === 'live' && t.enabled);
+    if (hasVideo) {
       document.getElementById('waitingBg').style.display = 'none';
-      const dot = document.getElementById('liveDot');
-      dot.style.background = '#22c55e';
-      dot.style.animation = 'blink 1s infinite';
-      document.getElementById('hudRoom').textContent = roomId;
-      setStatus('Connected!', 2500);
-      if (!callStartTime) startTimer();
+    } else {
+      // Voice call or cam-off — keep name visible, update sub text
+      document.getElementById('waitingSub').textContent = 'Connected — camera off';
     }
+    const dot = document.getElementById('liveDot');
+    dot.style.background = '#22c55e';
+    dot.style.animation = 'blink 1s infinite';
+    document.getElementById('hudRoom').textContent = isVoiceOnly ? 'Voice call' : roomId;
+    setStatus('Connected!', 2500);
+    if (!callStartTime) startTimer();
   };
 
   // ICE candidate to send
@@ -488,7 +527,10 @@ async function initWebRTC() {
     console.log('PC state:', pc.connectionState);
     if (pc.connectionState === 'connected') {
       clearTimeout(connectionTimeout);
-      document.getElementById('waitingBg').style.display = 'none';
+      // Only hide name plate if there's live video
+      const remoteVid = document.getElementById('remoteVideo');
+      const hasVideo = remoteVid.srcObject && remoteVid.srcObject.getVideoTracks().some(t => t.readyState === 'live' && t.enabled);
+      if (hasVideo) document.getElementById('waitingBg').style.display = 'none';
       setStatus('Connected!', 2000);
       if (!callStartTime) startTimer();
     }
@@ -597,6 +639,9 @@ async function initWebRTC() {
 
 // ── Init ──
 async function init() {
+  // Restore desktop sidebar collapsed state
+  if (window.innerWidth > 900 && localStorage.getItem('ss_sidebar') === '0') document.body.classList.add('sidebar-collapsed');
+
   const {data:{session}} = await sb.auth.getSession();
   if (!session) {window.location.href='login.html'; return;}
   currentUserId = session.user.id;
@@ -606,6 +651,8 @@ async function init() {
   if (pErr) console.error('Profile error:', pErr);
   const myName = profile?.full_name || profile?.username || session.user.email.split('@')[0];
   document.getElementById('sidebarName').textContent = myName;
+  // Set local cam-off initials
+  document.getElementById('localCamInitials').textContent = myName.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
   const avatarEl = document.getElementById('sidebarAvatar');
   if (profile?.avatar_url) avatarEl.innerHTML = `<img src="${profile.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
   else if (profile?.avatar_emoji) avatarEl.textContent = profile.avatar_emoji;
@@ -637,6 +684,7 @@ async function init() {
       const peerData = isCaller ? matchData.receiver : matchData.sender;
       if (peerData) {
         peerName = peerData.full_name || peerData.username || 'Partner';
+        savedPeerName = peerName;
         peerInitials = peerName.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
         // Pre-fill waiting bg (shown after join)
         document.getElementById('waitingName').textContent = peerName;
@@ -658,6 +706,7 @@ async function init() {
     joinScreen.classList.add('hidden');
     document.getElementById('callStage').style.display = 'block';
     callActive = true;
+    saveCallState(); // persist call — cleared only on explicit End Call or partner hangup
     await initWebRTC();
   }, {once: true});
 }

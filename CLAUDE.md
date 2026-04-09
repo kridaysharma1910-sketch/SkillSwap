@@ -81,6 +81,38 @@ A skill-exchange web platform where users list skills they offer and skills they
 ## Session Log
 <!-- Claude Code appends to this after every session -->
 
+### [Session 13 — 2026-04-09]
+
+**FEATURE 1 — Persistent calls (videocall.html + messages.html):**
+- Calls no longer end when the user closes or navigates away from the videocall tab
+- `saveCallState()` writes `{roomId, matchId, voice, isCaller, peerName, timestamp}` to `localStorage` key `ss_active_call` when the call starts (join button click)
+- `clearCallState()` removes the key — called only from `endCall()` (explicit red button) or when partner's hangup arrives
+- Removed `beforeunload` handler entirely — no hangup signal on tab close, so partner sees "disconnected" but the room stays alive for rejoin
+- In `messages.html`: `getActiveCallForMatch(matchId)` reads localStorage and returns the stored call if it matches the open conversation (expires after 4 hours)
+- `showActiveCallBanner()` renders a green pulsing banner above the message list with "Call with [name] is ongoing" + a **Rejoin** button linking back to videocall.html with the correct roomId/voice/caller params
+- `dismissCallBanner()` clears localStorage and hides the banner (user explicitly abandons the call)
+- Banner shown/hidden each time a conversation is opened via `openConvo()`
+
+**FEATURE 2 — Voice call names / cam-off placeholders (videocall.html):**
+- Added `#localCamOff` div (absolute, same position as `#localVideo`) — shown when camera is off or voice-only mode
+- `toggleCam()` hides `#localVideo` and shows `#localCamOff` (and vice versa)
+- In `initWebRTC()`, after getting local stream: if `isVoiceOnly` or no video tracks, immediately shows cam-off placeholder and sets `camOff = true`
+- `#localCamInitials` filled with user's initials from `myName` in `init()`
+- `ontrack` handler: only hides `#waitingBg` (peer name plate) if the incoming stream has a live video track — in voice-only mode the name plate stays visible with "Connected — camera off" sub text
+- `onconnectionstatechange` (connected): same check — only hides name plate if remote video present
+- `#waitingSub` updated to "Voice call — camera off" on voice-only init
+
+**FIX 3 — Sidebar scrollbar white line (all 9 pages):**
+- Added `.sidebar::-webkit-scrollbar{width:4px;}`, `.sidebar::-webkit-scrollbar-track{background:transparent;}`, `.sidebar::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:4px;}` to all sidebar pages
+- Removes the thick white default scrollbar; replaces with a thin, dark-themed custom track
+
+**FEATURE 4 — Desktop hamburger sidebar toggle (all 9 pages):**
+- `.hamburger` changed from `display:none` (desktop hidden) to `display:flex` — always visible at top-left
+- `toggleSidebar()` updated: on mobile (≤900px) does the existing open/overlay toggle; on desktop toggles `body.sidebar-collapsed` class and saves state to `localStorage` key `ss_sidebar` (`'0'` = collapsed, `'1'` = expanded)
+- CSS `@media(min-width:901px)`: `body.sidebar-collapsed` sets `--sidebar-w:0` and `transform:translateX(-100%)` on sidebar — all content areas that use `margin-left:var(--sidebar-w)` automatically collapse
+- `.sidebar{transition:transform .25s}` added for smooth slide animation
+- Each page's `init()` reads `ss_sidebar` on load and restores collapsed state if previously set
+
 ### [Session 12 — 2026-04-09]
 
 **FINAL VIDEO CALL OVERHAUL — messages.html + videocall.html + call-notify.js**
@@ -421,7 +453,7 @@ All 9 sidebar pages (dashboard, discover, matches, messages, profile, pricing, w
 - **Email confirmation must be DISABLED** in Supabase (Authentication → Providers → Email → "Confirm email" OFF)
 - ✅ Google OAuth enabled (session 7) — Supabase Google provider configured, dashboard.html auto-creates profile on first OAuth login
 - `profiles` uses both `skills_offering`/`skills_wanting` (new) and `skills_offered`/`skills_wanted` (legacy) — profile.html saves to both for backwards compatibility
-- videocall.html logs sessions on `endCall()` + `beforeunload` via Supabase insert (no sendBeacon)
+- ✅ Session logging simplified (session 13) — beforeunload removed; sessions only logged on explicit endCall()
 - ✅ TURN servers added (session 8) — openrelay.metered.ca on ports 80/443/443-tcp; mobile NAT traversal now covered
 - ✅ ICE candidate race condition fixed (session 8) — safeSetRemoteDescription + handleIncomingCandidate with buffering
 - ✅ Incoming call notifications (session 8) — call_invites table + postgres_changes; **call_invites table must be created in Supabase** (SQL in session 8 log) and Realtime enabled for it
@@ -442,6 +474,10 @@ All 9 sidebar pages (dashboard, discover, matches, messages, profile, pricing, w
 - ✅ Call recording in videocall.html (session 12) — pro/creator only; MediaRecorder saves .webm locally
 - ✅ Call end redirects to messages (session 12) — endCall goes to messages.html?match=ID instead of matches.html
 - ✅ Voice-only mode in videocall.html (session 12) — ?voice=1 skips video getUserMedia
+- ✅ Persistent calls (session 13) — tab close no longer ends call; localStorage stores active call; Messages shows green "Join Ongoing Call" banner
+- ✅ Voice call names / cam-off placeholders (session 13) — #localCamOff PiP overlay + waitingBg stays visible on voice-only; name shown when no video
+- ✅ Sidebar scrollbar fixed (session 13) — custom webkit scrollbar on all 9 pages; no more white line
+- ✅ Desktop hamburger sidebar toggle (session 13) — hamburger always visible; collapses sidebar with slide animation; state persisted in localStorage
 - Payment integration (Lemon Squeezy / Paddle) not yet wired — `selectPlan()` updates Supabase directly (no payment flow yet)
 
 ---
