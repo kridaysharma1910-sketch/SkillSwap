@@ -81,6 +81,59 @@ A skill-exchange web platform where users list skills they offer and skills they
 ## Session Log
 <!-- Claude Code appends to this after every session -->
 
+### [Session 12 — 2026-04-09]
+
+**FINAL VIDEO CALL OVERHAUL — messages.html + videocall.html + call-notify.js**
+
+**messages.html — Voice & Video Call Buttons:**
+- Replaced single video-call icon with two separate buttons in chat header: phone icon (voice) + video icon (video)
+- `startCallFromMessages(type)` now accepts `'voice'` or `'video'`
+- Voice calls use `VOICE_` prefix in room ID (e.g. `VOICE_abc123`) so callee side auto-detects call type
+- Voice call inserts `VOICE_INVITE::roomId` message; video inserts `CALL_INVITE::roomId`
+- `bubbleContent()` handles both prefixes — renders correct icon, label ("Incoming voice call" / "Video call invite"), and passes `&voice=1` in href for voice calls
+- Conversation list preview shows "📞 Voice call" or "📹 Video call" instead of raw invite string
+
+**messages.html — Emoji Picker:**
+- Emoji button (smiley face icon) added to the left of the chat textarea
+- Clicking button opens a floating panel above input with 80+ emojis in an 8-column grid
+- `insertEmoji(em)` inserts at cursor position, preserves selection, refocuses textarea
+- Panel closes on outside click via `document.addEventListener('click')`
+
+**messages.html — Read Receipts:**
+- `renderMessages()` now scans for the last message sent by me with `read=true`
+- That message shows a `<div class="msg-seen">Seen</div>` indicator below the timestamp
+- Styled in muted violet `rgba(139,92,246,0.65)`, 0.65rem, right-aligned
+
+**videocall.html — Screen Share:**
+- Screen share button added to controls bar (monitor icon)
+- `toggleScreenShare()` calls `getDisplayMedia`, then `replaceTrack()` on the video sender to the peer
+- Local PiP switches to screen share preview; restores camera on stop
+- `screenTrack.onended` auto-stops sharing when user closes browser picker
+- Button turns cyan/active when sharing is active
+
+**videocall.html — Call Recording (Pro/Creator only):**
+- Record button (circle icon) added to controls bar; hidden by default
+- Shown only for `pro` or `creator` plan (checked in `init()`)
+- `toggleRecording()` uses `MediaRecorder` on local stream (screen share stream takes priority)
+- Chunks stored via `ondataavailable`, `.webm` blob downloaded via `onstop`
+- Non-pro users see a "Recording is a Pro feature" status toast instead
+- Recording auto-stops on `endCall()`
+
+**videocall.html — Redirect to Messages on End:**
+- `endCall()` now redirects to `messages.html?match=matchId` instead of `matches.html`
+- Falls back to `messages.html` if no matchId
+- noRoomState "Go to Matches" link changed to "Go to Messages" → `messages.html`
+
+**videocall.html — Voice-Only Mode:**
+- `isVoiceOnly` global set from `?voice=1` URL param in `init()`
+- `initWebRTC()` passes `{video: !isVoiceOnly, audio: true}` to `getUserMedia`
+- Shows "Voice call — camera off" status toast on connect
+
+**call-notify.js — Voice Call Detection:**
+- Overlay title element given `id="__ssCallType"` so it can be updated dynamically
+- `showOverlay()` detects `VOICE_` prefix in `roomId`, updates title to "Incoming voice call" vs "Incoming video call"
+- Accept button adds `&voice=1` to the videocall URL when it's a voice call
+
 ### [Session 11 — 2026-04-08]
 
 **FEATURE — Dedicated Webinar Host Room (`webinar-host.html`)**
@@ -382,6 +435,14 @@ All 9 sidebar pages (dashboard, discover, matches, messages, profile, pricing, w
 - ✅ Participant chat added to webinars.html participant overlay (session 11) — two-way via `webinar_ctrl` channel `chat_msg` event
 - Webinar recording saves locally as `.webm` download — no server-side storage; cloud recording not yet implemented
 - `webinar-host.html` host room: inline overlay in `webinars.html` (`#hostOverlay`) is now unused for new sessions but kept in DOM as dead code — can be removed in a future cleanup
+- ✅ Voice + Video call buttons in messages.html (session 12) — phone icon + video icon in chat header, separate call types
+- ✅ Emoji picker in messages.html (session 12) — 80+ emojis, inserts at cursor, closes on outside click
+- ✅ Read receipts in messages.html (session 12) — "Seen" shown below last read message sent by me
+- ✅ Screen share in videocall.html (session 12) — replaceTrack to peer, auto-reverts to camera on stop
+- ✅ Call recording in videocall.html (session 12) — pro/creator only; MediaRecorder saves .webm locally
+- ✅ Call end redirects to messages (session 12) — endCall goes to messages.html?match=ID instead of matches.html
+- ✅ Voice-only mode in videocall.html (session 12) — ?voice=1 skips video getUserMedia
+- Payment integration (Lemon Squeezy / Paddle) not yet wired — `selectPlan()` updates Supabase directly (no payment flow yet)
 
 ---
 
