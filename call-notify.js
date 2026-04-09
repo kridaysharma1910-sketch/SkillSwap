@@ -58,7 +58,7 @@
              margin:0 auto 14px;display:flex;align-items:center;justify-content:center;
              font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:700;
              color:rgba(167,139,250,0.9);overflow:hidden;"></div>
-        <div style="color:rgba(255,255,255,0.4);font-size:.75rem;letter-spacing:.06em;
+        <div id="__ssCallType" style="color:rgba(255,255,255,0.4);font-size:.75rem;letter-spacing:.06em;
                     text-transform:uppercase;margin-bottom:4px;">Incoming video call</div>
         <div id="__ssCallName" style="font-family:'Syne',sans-serif;font-weight:700;
              font-size:1.1rem;color:#fff;margin-bottom:18px;"></div>
@@ -107,6 +107,9 @@
     const overlay = document.getElementById('__ssCallOverlay');
     const { callerName, callerAvatar, roomId, matchId, inviteId } = payload;
     currentInviteId = inviteId || null;
+    const isVoice = roomId && roomId.startsWith('VOICE_');
+    const typeEl = document.getElementById('__ssCallType');
+    if (typeEl) typeEl.textContent = isVoice ? 'Incoming voice call' : 'Incoming video call';
 
     // Avatar
     const avatarEl = document.getElementById('__ssCallAvatar');
@@ -138,8 +141,9 @@
           .update({ status: 'accepted' }).eq('id', currentInviteId);
       }
       hideOverlay();
+      const voiceParam = (roomId && roomId.startsWith('VOICE_')) ? '&voice=1' : '';
       window.location.href = 'videocall.html?room=' + encodeURIComponent(roomId)
-        + (matchId ? '&match=' + matchId : '');
+        + (matchId ? '&match=' + matchId : '') + voiceParam;
     };
 
     // Decline

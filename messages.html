@@ -83,13 +83,27 @@ body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;display:fl
 .date-divider::before,.date-divider::after{content:'';flex:1;height:1px;background:var(--border);}
 
 /* INPUT */
-.chat-input-wrap{padding:14px 18px;border-top:1px solid var(--border);display:flex;gap:10px;align-items:flex-end;flex-shrink:0;}
+.chat-input-wrap{position:relative;padding:14px 18px;border-top:1px solid var(--border);display:flex;gap:10px;align-items:flex-end;flex-shrink:0;}
 .chat-textarea{flex:1;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:11px 14px;color:#fff;font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;resize:none;max-height:120px;overflow-y:auto;transition:border-color .2s;}
 .chat-textarea::placeholder{color:var(--text-muted);}
 .chat-textarea:focus{border-color:rgba(139,92,246,0.45);}
 .btn-send{background:#fff;color:#080808;border:none;border-radius:10px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:none;transition:opacity .2s;flex-shrink:0;}
 .btn-send:hover{opacity:.85;}
 .btn-send svg{width:16px;height:16px;}
+
+/* EMOJI PICKER */
+.emoji-btn{background:none;border:none;color:var(--text-muted);cursor:none;padding:6px;border-radius:8px;display:flex;align-items:center;justify-content:center;transition:color .15s;flex-shrink:0;}
+.emoji-btn:hover{color:#fff;}
+.emoji-btn svg{width:19px;height:19px;}
+.emoji-picker{position:absolute;bottom:calc(100% + 6px);left:0;width:308px;background:#161616;border:1px solid var(--border);border-radius:14px;padding:10px;z-index:200;display:none;box-shadow:0 8px 32px rgba(0,0,0,0.6);}
+.emoji-picker.open{display:block;}
+.emoji-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:2px;max-height:188px;overflow-y:auto;}
+.emoji-grid::-webkit-scrollbar{width:3px;}
+.emoji-grid::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:2px;}
+.emoji-grid button{background:none;border:none;font-size:1.15rem;cursor:pointer;padding:5px 4px;border-radius:6px;transition:background .12s;line-height:1;}
+.emoji-grid button:hover{background:rgba(255,255,255,0.08);}
+/* READ RECEIPTS */
+.msg-seen{font-size:.65rem;color:rgba(139,92,246,0.65);text-align:right;margin-top:1px;}
 
 /* NO CHAT SELECTED */
 .no-chat{flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;color:var(--text-muted);}
@@ -172,11 +186,14 @@ body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;display:fl
           <div class="chat-peer-sub" id="chatPeerSub"></div>
         </div>
         <div class="chat-header-actions">
-          <button class="icon-btn" id="callBtn" title="Start video call" onclick="startCallFromMessages()"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></button>
+          <button class="icon-btn" id="voiceCallBtn" title="Start voice call" onclick="startCallFromMessages('voice')"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.45 2 2 0 0 1 3.58 1.27h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9a16 16 0 0 0 6.06 6.06l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></button>
+          <button class="icon-btn" id="callBtn" title="Start video call" onclick="startCallFromMessages('video')"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></button>
         </div>
       </div>
       <div class="messages-area" id="messagesArea"></div>
       <div class="chat-input-wrap">
+        <div id="emojiPicker" class="emoji-picker"></div>
+        <button class="emoji-btn" id="emojiToggle" onclick="toggleEmojiPicker(event)" title="Emoji"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9" stroke-linecap="round" stroke-width="3"/><line x1="15" y1="9" x2="15.01" y2="9" stroke-linecap="round" stroke-width="3"/></svg></button>
         <textarea class="chat-textarea" id="msgInput" placeholder="Type a message..." rows="1" onkeydown="onMsgKey(event)" oninput="autoResize(this)"></textarea>
         <button class="btn-send" onclick="sendMessage()"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
       </div>
@@ -234,8 +251,10 @@ function renderConvosList(convos){
     const name=peer?.full_name||peer?.username||'Skill Swapper';
     const lastMsg=c.last_msg||'';
     const preview=lastMsg.startsWith('CALL_INVITE::')
-      ? '📹 Video call invite'
-      : lastMsg.slice(0,36)+(lastMsg.length>36?'...':'') || 'No messages yet';
+      ? '📹 Video call'
+      : lastMsg.startsWith('VOICE_INVITE::')
+        ? '📞 Voice call'
+        : lastMsg.slice(0,36)+(lastMsg.length>36?'...':'') || 'No messages yet';
     const t=c.last_ts?timeAgo(c.last_ts):'';
     const isActive=c.id===currentMatchId;
     return`<div class="convo-item${isActive?' active':''}" onclick="openConvo('${c.id}')">
@@ -281,18 +300,21 @@ async function loadMessages(matchId){
 }
 
 function bubbleContent(content,isMine,matchId){
-  if(content&&content.startsWith('CALL_INVITE::')){
-    const roomId=content.replace('CALL_INVITE::','');
-    const label=isMine?'You started a video call':'Video call invite';
-    // Sender (isMine) rejoins as caller=1; receiver joins as callee (no param)
+  if(content&&(content.startsWith('CALL_INVITE::')||content.startsWith('VOICE_INVITE::'))) {
+    const isVoice=content.startsWith('VOICE_INVITE::');
+    const roomId=content.replace(isVoice?'VOICE_INVITE::':'CALL_INVITE::','');
+    const label=isMine?(isVoice?'You started a voice call':'You started a video call'):(isVoice?'Incoming voice call':'Video call invite');
     const roleParam=isMine?'&caller=1':'';
     const matchParam=matchId?'&match='+matchId:'';
-    const href=`videocall.html?room=${encodeURIComponent(roomId)}${matchParam}${roleParam}`;
+    const voiceParam=isVoice?'&voice=1':'';
+    const href=`videocall.html?room=${encodeURIComponent(roomId)}${matchParam}${roleParam}${voiceParam}`;
+    const icon=isVoice
+      ?`<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.45 2 2 0 0 1 3.58 1.27h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9a16 16 0 0 0 6.06 6.06l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>`
+      :`<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>`;
     return`<div style="display:flex;flex-direction:column;gap:8px;">
       <span style="font-size:.8rem;opacity:.7;">${label}</span>
       <a href="${href}" style="display:inline-flex;align-items:center;gap:6px;background:#fff;color:#080808;padding:8px 14px;border-radius:9px;font-family:'Syne',sans-serif;font-size:.8rem;font-weight:700;text-decoration:none;width:fit-content;">
-        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
-        Join Call
+        ${icon}${isVoice?'Join Voice Call':'Join Call'}
       </a>
     </div>`;
   }
@@ -305,18 +327,22 @@ function renderMessages(msgs){
     area.innerHTML=`<div style="text-align:center;padding:32px;color:var(--text-muted);font-size:.85rem;">No messages yet. Say hello!</div>`;
     return;
   }
+  // Find last index of my read messages for "Seen" indicator
+  let lastReadMineIdx=-1;
+  msgs.forEach((msg,i)=>{if(msg.sender_id===currentUserId&&msg.read)lastReadMineIdx=i;});
   let html='';let lastDate='';
-  msgs.forEach(msg=>{
+  msgs.forEach((msg,idx)=>{
     const d=new Date(msg.created_at).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
     if(d!==lastDate){html+=`<div class="date-divider">${d}</div>`;lastDate=d;}
     const isMine=msg.sender_id===currentUserId;
     const av=avatarHtml(msg.sender);
     const t=new Date(msg.created_at).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+    const seenHtml=(isMine&&idx===lastReadMineIdx)?'<div class="msg-seen">Seen</div>':'';
     html+=`<div class="msg-row${isMine?' mine':''}">
       <div class="msg-av">${av}</div>
       <div>
         <div class="msg-bubble">${bubbleContent(msg.content,isMine,currentMatchId)}</div>
-        <div class="msg-time">${t}</div>
+        <div class="msg-time">${t}</div>${seenHtml}
       </div>
     </div>`;
   });
@@ -397,25 +423,71 @@ async function broadcastCallInvite(peerId,payload){
   if(error) console.error('call_invite insert error:',error);
 }
 
-async function startCallFromMessages(){
+async function startCallFromMessages(type='video'){
   if(!currentMatchId)return;
-  const btn=document.getElementById('callBtn');
-  if(btn){btn.style.opacity='.5';btn.style.pointerEvents='none';}
-  const roomId=genRoomId();
+  const voiceBtn=document.getElementById('voiceCallBtn');
+  const videoBtn=document.getElementById('callBtn');
+  if(voiceBtn){voiceBtn.style.opacity='.5';voiceBtn.style.pointerEvents='none';}
+  if(videoBtn){videoBtn.style.opacity='.5';videoBtn.style.pointerEvents='none';}
+  // Encode call type in room id prefix so call-notify.js and callee side can detect it
+  const baseId=genRoomId();
+  const roomId=type==='voice'?'VOICE_'+baseId:baseId;
   const match=conversations.find(c=>c.id===currentMatchId);
   const peerId=match?(match.sender_id===currentUserId?match.receiver_id:match.sender_id):null;
-  const{error}=await sb.from('messages').insert({match_id:currentMatchId,sender_id:currentUserId,content:'CALL_INVITE::'+roomId});
-  if(error){console.error('CALL_INVITE insert error:',error);if(btn){btn.style.opacity='';btn.style.pointerEvents='';}return;}
-  // Notify callee via their personal broadcast channel
+  const msgContent=type==='voice'?'VOICE_INVITE::'+roomId:'CALL_INVITE::'+roomId;
+  const{error}=await sb.from('messages').insert({match_id:currentMatchId,sender_id:currentUserId,content:msgContent});
+  if(error){
+    console.error('CALL_INVITE insert error:',error);
+    if(voiceBtn){voiceBtn.style.opacity='';voiceBtn.style.pointerEvents='';}
+    if(videoBtn){videoBtn.style.opacity='';videoBtn.style.pointerEvents='';}
+    return;
+  }
   if(peerId){
     const{data:me}=await sb.from('profiles').select('full_name,avatar_url').eq('id',currentUserId).single();
     await broadcastCallInvite(peerId,{roomId,matchId:currentMatchId,callerName:me?.full_name||'Someone',callerAvatar:me?.avatar_url||null});
   }
-  window.location.href='videocall.html?room='+encodeURIComponent(roomId)+'&match='+currentMatchId+'&caller=1';
+  const voiceParam=type==='voice'?'&voice=1':'';
+  window.location.href='videocall.html?room='+encodeURIComponent(roomId)+'&match='+currentMatchId+'&caller=1'+voiceParam;
 }
 
 function onMsgKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();}}
 function autoResize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,120)+'px';}
+
+// ── Emoji Picker ──
+const EMOJIS=['😀','😁','😂','🤣','😊','😍','🥰','😘','😎','🤔','😅','😭','😤','😡','🤩','🥳','😴','🤗','😏','🙄','😬','🤯','🥺','😢','😷','🫠','😶','🤫','🤭','😌','🥹','🫡','👍','👎','👋','🙌','🤝','💪','🫂','👏','🙏','💅','🤌','❤️','🧡','💛','💚','💙','💜','🖤','💔','💕','💯','🔥','✨','⭐','🎉','🎊','🎁','💡','🌈','🚀','🎯','💀','👻','🌟','💫','🍕','🍔','☕','🎵','🎶','📚','💻','🎮'];
+
+function buildEmojiPicker(){
+  const picker=document.getElementById('emojiPicker');
+  if(picker.querySelector('.emoji-grid'))return;
+  const grid=document.createElement('div');
+  grid.className='emoji-grid';
+  EMOJIS.forEach(em=>{
+    const btn=document.createElement('button');
+    btn.textContent=em;
+    btn.title=em;
+    btn.onclick=(e)=>{e.stopPropagation();insertEmoji(em);};
+    grid.appendChild(btn);
+  });
+  picker.appendChild(grid);
+}
+
+function toggleEmojiPicker(e){
+  e.stopPropagation();
+  document.getElementById('emojiPicker').classList.toggle('open');
+}
+
+function insertEmoji(em){
+  const input=document.getElementById('msgInput');
+  const s=input.selectionStart,end=input.selectionEnd;
+  input.value=input.value.slice(0,s)+em+input.value.slice(end);
+  input.selectionStart=input.selectionEnd=s+em.length;
+  input.focus();
+  autoResize(input);
+}
+
+document.addEventListener('click',()=>{
+  document.getElementById('emojiPicker')?.classList.remove('open');
+});
 
 async function init(){
   const{data:{session}}=await sb.auth.getSession();
@@ -453,6 +525,7 @@ async function init(){
     if(found)openConvo(matchParam);
     else console.error('Match param not found in accepted matches:',matchParam);
   }
+  buildEmojiPicker();
 }
 
 init();

@@ -68,6 +68,9 @@ body{background:#000;color:#fff;font-family:'DM Sans',sans-serif;height:100vh;di
 .ctrl-end:hover{background:rgba(239,68,68,0.45) !important;}
 .ctrl-btn svg{width:18px;height:18px;flex-shrink:0;}
 .ctrl-end svg{width:20px;height:20px;}
+.ctrl-btn.screen-active{background:rgba(34,211,238,0.15);border-color:rgba(34,211,238,0.4);}
+.ctrl-btn.screen-active svg{color:rgba(103,232,249,0.9);}
+.ctrl-btn.rec-active{background:rgba(239,68,68,0.25) !important;border-color:rgba(239,68,68,0.5) !important;animation:blink 1s infinite;}
 
 /* ── NO ROOM STATE ── */
 .no-room{margin-left:var(--sidebar-w);flex:1;display:none;align-items:center;justify-content:center;flex-direction:column;gap:16px;padding:40px;background:var(--bg);}
@@ -168,6 +171,12 @@ body{background:#000;color:#fff;font-family:'DM Sans',sans-serif;height:100vh;di
     <button class="ctrl-btn" id="btnCam" onclick="toggleCam()" title="Toggle camera">
       <svg id="camIcon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
     </button>
+    <button class="ctrl-btn" id="btnShare" onclick="toggleScreenShare()" title="Share screen">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+    </button>
+    <button class="ctrl-btn" id="btnRecord" onclick="toggleRecording()" title="Record call (Pro)" style="display:none;">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3.5" fill="currentColor" stroke="none"/></svg>
+    </button>
     <button class="ctrl-btn ctrl-end" onclick="endCall(true)" title="End call">
       <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45c.98.37 2.05.58 3.14.58a2 2 0 0 1 2 2v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.42 19.42 0 0 1 3.59 12a19.79 19.79 0 0 1-3.07-8.68A2 2 0 0 1 2.5 1.17h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L6.5 9.07a16 16 0 0 0 4.18 4.24z" transform="rotate(135 12 12)"/></svg>
     </button>
@@ -178,8 +187,8 @@ body{background:#000;color:#fff;font-family:'DM Sans',sans-serif;height:100vh;di
 <div class="no-room" id="noRoomState">
   <div class="no-room-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></div>
   <h2>No call in progress</h2>
-  <p>Start a call from a match or click the "Join Call" button your partner sent you in Messages.</p>
-  <a href="matches.html" class="btn-white"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Go to Matches</a>
+  <p>Start a call from a message thread by clicking the phone or video icon in the chat header.</p>
+  <a href="messages.html" class="btn-white"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Go to Messages</a>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -224,6 +233,10 @@ let micMuted = false, camOff = false;
 let callStartTime = null, callTimerInterval = null;
 let callActive = false;
 let connectionTimeout = null;
+let screenShareStream = null, screenSharingActive = false;
+let recorder = null, recordingActive = false, recordingChunks = [];
+let userPlan = 'free';
+let isVoiceOnly = false;
 
 // ── Helpers ──
 function setStatus(text, autohide) {
@@ -301,11 +314,91 @@ function toggleCam() {
   document.getElementById('btnCam').classList.toggle('muted', camOff);
 }
 
+async function toggleScreenShare() {
+  if (!pc || !localStream) { setStatus('Start the call first', 2000); return; }
+  if (!screenSharingActive) {
+    try {
+      screenShareStream = await navigator.mediaDevices.getDisplayMedia({video: true, audio: false});
+      const screenTrack = screenShareStream.getVideoTracks()[0];
+      const sender = pc.getSenders().find(s => s.track && s.track.kind === 'video');
+      if (sender) await sender.replaceTrack(screenTrack);
+      screenSharingActive = true;
+      document.getElementById('btnShare').classList.add('screen-active');
+      document.getElementById('localVideo').srcObject = screenShareStream;
+      screenTrack.onended = () => stopScreenShare();
+    } catch(e) {
+      if (e.name !== 'NotAllowedError') console.error('Screen share error:', e);
+    }
+  } else {
+    stopScreenShare();
+  }
+}
+
+async function stopScreenShare() {
+  if (!screenSharingActive) return;
+  if (screenShareStream) { screenShareStream.getTracks().forEach(t => t.stop()); screenShareStream = null; }
+  screenSharingActive = false;
+  const btn = document.getElementById('btnShare');
+  if (btn) btn.classList.remove('screen-active');
+  if (localStream) {
+    document.getElementById('localVideo').srcObject = localStream;
+    const camTrack = localStream.getVideoTracks()[0];
+    const sender = pc && pc.getSenders().find(s => s.track && s.track.kind === 'video');
+    if (sender && camTrack) await sender.replaceTrack(camTrack);
+  }
+}
+
+function toggleRecording() {
+  if (userPlan !== 'pro' && userPlan !== 'creator') {
+    setStatus('Recording is a Pro feature — upgrade to unlock', 3500);
+    return;
+  }
+  if (!recordingActive) {
+    const stream = (screenSharingActive && screenShareStream) ? screenShareStream : localStream;
+    if (!stream) { setStatus('No active stream to record', 2000); return; }
+    try {
+      recordingChunks = [];
+      const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
+        ? 'video/webm;codecs=vp9' : 'video/webm';
+      recorder = new MediaRecorder(stream, {mimeType});
+      recorder.ondataavailable = e => { if (e.data && e.data.size > 0) recordingChunks.push(e.data); };
+      recorder.onstop = () => {
+        const blob = new Blob(recordingChunks, {type: 'video/webm'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = 'skillswap-call-' + Date.now() + '.webm'; a.click();
+        URL.revokeObjectURL(url);
+        recordingChunks = [];
+      };
+      recorder.start(1000);
+      recordingActive = true;
+      document.getElementById('btnRecord').classList.add('rec-active');
+      setStatus('Recording started', 2000);
+    } catch(e) {
+      console.error('Recording error:', e);
+      setStatus('Recording not supported in this browser', 2500);
+    }
+  } else {
+    if (recorder && recorder.state !== 'inactive') recorder.stop();
+    recordingActive = false;
+    document.getElementById('btnRecord').classList.remove('rec-active');
+    setStatus('Recording saved — check your downloads', 2500);
+  }
+}
+
 // ── End Call ──
 async function endCall(sendHangup) {
   callActive = false;
   clearInterval(callTimerInterval);
   clearInterval(readyInterval);
+
+  // Stop recording if active
+  if (recordingActive && recorder && recorder.state !== 'inactive') {
+    recorder.stop();
+    recordingActive = false;
+  }
+  // Stop screen share if active
+  if (screenSharingActive) stopScreenShare();
 
   if (sendHangup && signalChannel) {
     try { signalChannel.send({type:'broadcast', event:'hangup', payload:{}}); } catch(e) {}
@@ -323,7 +416,8 @@ async function endCall(sendHangup) {
     if (error) console.error('Session log error:', error);
   }
   callStartTime = null;
-  window.location.href = 'matches.html';
+  // Redirect back to messages thread (not matches)
+  window.location.href = matchId ? 'messages.html?match=' + matchId : 'messages.html';
 }
 
 window.addEventListener('beforeunload', () => {
@@ -345,14 +439,15 @@ async function initWebRTC() {
   remoteDescSet = false;
   offerSent = false;
 
-  // Get local media
+  // Get local media (voice-only mode skips video)
   try {
-    localStream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
+    localStream = await navigator.mediaDevices.getUserMedia({video: !isVoiceOnly, audio: true});
+    if (isVoiceOnly) setStatus('Voice call — camera off', 2500);
   } catch(e) {
     console.error('getUserMedia error:', e);
     try {
       localStream = await navigator.mediaDevices.getUserMedia({video: false, audio: true});
-      setStatus('Camera unavailable — audio only');
+      setStatus('Camera unavailable — audio only', 2500);
     } catch(e2) {
       console.error('Audio-only getUserMedia error:', e2);
       setStatus('Camera & mic access denied. Check browser permissions.');
@@ -515,12 +610,17 @@ async function init() {
   if (profile?.avatar_url) avatarEl.innerHTML = `<img src="${profile.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
   else if (profile?.avatar_emoji) avatarEl.textContent = profile.avatar_emoji;
   else avatarEl.textContent = myName.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
-  if (profile?.plan==='pro'||profile?.plan==='creator') document.getElementById('analyticsNavLink').style.display='flex';
+  userPlan = profile?.plan || 'free';
+  if (userPlan === 'pro' || userPlan === 'creator') {
+    document.getElementById('analyticsNavLink').style.display='flex';
+    document.getElementById('btnRecord').style.display = 'flex';
+  }
 
   const params = new URLSearchParams(window.location.search);
   roomId = params.get('room');
   matchId = params.get('match') || null;
   isCaller = params.get('caller') === '1';
+  isVoiceOnly = params.get('voice') === '1';
 
   if (!roomId) {
     document.getElementById('noRoomState').style.display = 'flex';
