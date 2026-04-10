@@ -172,6 +172,13 @@ Start by telling me: what's the current state per CLAUDE.md, and what are we bui
 
 ## Session Log
 
+### [Session 14 — 2026-04-10]
+- videocall.html: WhatsApp-style ringing screen for caller (pulsing avatar, "Ringing...", red cancel button); callee auto-starts WebRTC directly (no join screen); iOS fallback join screen if getUserMedia throws NotAllowedError
+- Signal events: `accepted` (callee accepted → caller ringing screen → "Connecting..."), `declined` (caller sees "Call declined"), `cancelled` (caller cancelled → callee dismissed), `ended` (call_invites marked on endCall)
+- ICE gathering timeout reduced 4s → 2s; `cancelCall()` and `showCallEnded(reason)` added
+- call-notify.js: Accept broadcasts `accepted` before navigating; Decline broadcasts `declined`; subscribes to `call-{roomId}` to dismiss overlay if caller cancels; floating `#__ssActivePill` green pill on all pages (top-right, links to rejoin)
+- messages.html: `bubbleContent()` wraps call invites in `data-call-room` divs; `updateCallBubbleStatuses()` batch-queries call_invites and patches in ended/declined/cancelled/no-answer state after render
+
 ### [Session 13 — 2026-04-09]
 - Persistent calls: tab close no longer ends call; `ss_active_call` localStorage key stores call state; Messages shows green "Rejoin" banner for ongoing calls
 - Voice call cam-off: `#localCamOff` PiP overlay with initials; waiting bg stays visible in voice-only mode
