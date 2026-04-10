@@ -31,8 +31,6 @@
   if (window.__ssCallNotifyInit) return;
   window.__ssCallNotifyInit = true;
 
-  const SUPABASE_URL = 'https://vgndpvkywvcnezvjuueq.supabase.co';
-  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZnbmRwdmt5d3ZjbmV6dmp1dWVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MDk5OTEsImV4cCI6MjA5MDA4NTk5MX0.GGwx_-W7pu485h3d6dgkhqSwiqxT3Hx02Ck9HW8nyE0';
   const ACTIVE_CALL_KEY = 'ss_active_call';
 
   let notifyClient, notifyChannel;
@@ -287,7 +285,7 @@
   /* ── Bootstrap ── */
   async function start() {
     const client = (typeof supabase !== 'undefined')
-      ? supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+      ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
       : null;
     if (!client) return;
 
