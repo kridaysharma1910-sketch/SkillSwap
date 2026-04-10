@@ -178,6 +178,10 @@ Start by telling me: what's the current state per CLAUDE.md, and what are we bui
 - ICE gathering timeout reduced 4s → 2s; `cancelCall()` and `showCallEnded(reason)` added
 - call-notify.js: Accept broadcasts `accepted` before navigating; Decline broadcasts `declined`; subscribes to `call-{roomId}` to dismiss overlay if caller cancels; floating `#__ssActivePill` green pill on all pages (top-right, links to rejoin)
 - messages.html: `bubbleContent()` wraps call invites in `data-call-room` divs; `updateCallBubbleStatuses()` batch-queries call_invites and patches in ended/declined/cancelled/no-answer state after render
+- Bug fix (same session): ringing screen showed double avatar — fixed by making ringing screen background opaque (#000) and hiding waitingBg while ringing
+- Bug fix (same session): calls disconnecting due to premature 8s ICE restart firing before callee accepted — moved ICE restart timeout to fire only after offer is sent
+- Bug fix (same session): initWebRTC() on reconnect leaked signalChannel + readyInterval — added cleanup of both at the top of initWebRTC()
+- Bug fix (same session): call log flickering between "Join Call" and "Call ended" — replaced async DOM-patching with pre-fetch cache (fetchCallStatuses) called before renderMessages(); bubbleContent() now renders final state synchronously
 
 ### [Session 13 — 2026-04-09]
 - Persistent calls: tab close no longer ends call; `ss_active_call` localStorage key stores call state; Messages shows green "Rejoin" banner for ongoing calls
