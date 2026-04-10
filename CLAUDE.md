@@ -1,33 +1,53 @@
-# SkillSwap — Project Brain for Claude Code
+# SkillSwap — Claude Code Context
 
-## What is SkillSwap?
-A skill-exchange web platform where users list skills they offer and skills they want, and get matched with others to do a skill swap. Think "I'll teach you guitar, you teach me Spanish."
+## Project
+Skill-exchange platform: users list skills they offer/want, get matched, swap sessions.
 
-**Live URL:** https://skill-swap-chi-gules.vercel.app  
+**Live:** https://skill-swap-chi-gules.vercel.app  
 **GitHub:** https://github.com/kridaysharma1910-sketch/SkillSwap  
-**Supabase Project ID:** vgndpvkywvcnezvjuueq  
-**Deployed via:** Vercel (auto-deploy from main branch)
+**Supabase ID:** vgndpvkywvcnezvjuueq  
+**Deploy:** Vercel (auto from main)
 
 ---
 
-## Tech Stack
-- **Frontend:** Plain HTML, CSS, Vanilla JS (no framework)
-- **Backend:** Supabase (auth + database)
-- **Video Calls:** Custom WebRTC + Supabase Realtime signaling (no third-party services)
-- **Payments:** Lemon Squeezy / Paddle
-- **Deployment:** Vercel
+## Stack
+- Frontend: Plain HTML + CSS + Vanilla JS (no frameworks, no build tools)
+- Backend: Supabase (auth + DB + Realtime)
+- Video: Custom WebRTC + Supabase Realtime signaling; Google STUN + OpenRelay TURN
+- Deploy: Vercel
 
 ---
 
-## Supabase DB Tables (all created and live as of session 4)
+## Supabase Tables
 - `profiles` — id, full_name, username, bio, location, website, avatar_url, avatar_emoji, plan, rating, rank, rewards[], skills_offering[], skills_wanting[], skills_offered[], skills_wanted[], hours_per_week, session_format, updated_at
-- `matches` — id, sender_id → profiles, receiver_id → profiles, status (pending/accepted/rejected/completed), skill_offered, skill_wanted, created_at, updated_at
-- `messages` — id, match_id → matches, sender_id → profiles, content, read, created_at
-- `sessions` — id, match_id → matches, user_id → profiles, partner_id → profiles, duration_minutes, skill_taught, skill_learned, completed_at
-- `webinars` — id, host_id → profiles, title, description, category, cover_emoji, jitsi_room, is_free, price, scheduled_at, duration_minutes, max_attendees, attendee_count, earnings, is_live, status, created_at
-- `webinar_attendees` — id, webinar_id → webinars, user_id → profiles, paid, amount_paid, joined_at
-- `analytics` — id, user_id → profiles (unique), skills_taught_count, skills_learned_count, total_video_minutes, webinars_watched, webinars_hosted, total_earnings, global_rank, updated_at
-- Storage bucket: `avatars` (public) — stores profile photos at `{user_id}/avatar.{ext}`
+- `matches` — id, sender_id→profiles, receiver_id→profiles, status (pending/accepted/rejected/completed), skill_offered, skill_wanted, created_at, updated_at
+- `messages` — id, match_id→matches, sender_id→profiles, content, read, created_at
+- `sessions` — id, match_id→matches, user_id→profiles, partner_id→profiles, duration_minutes, skill_taught, skill_learned, completed_at
+- `webinars` — id, host_id→profiles, title, description, category, cover_emoji, jitsi_room, is_free, price, scheduled_at, duration_minutes, max_attendees, attendee_count, earnings, is_live, status, created_at
+- `webinar_attendees` — id, webinar_id→webinars, user_id→profiles, paid, amount_paid, joined_at
+- `analytics` — id, user_id→profiles (unique), skills_taught_count, skills_learned_count, total_video_minutes, webinars_watched, webinars_hosted, total_earnings, global_rank, updated_at
+- `call_invites` — id, room_id, match_id→matches, caller_id→profiles, callee_id→profiles, caller_name, caller_avatar, status (pending/accepted/declined/expired), created_at
+- Storage: `avatars` bucket (public) — `{user_id}/avatar.{ext}`
+
+---
+
+## Pages
+
+| Page | File | Status |
+|------|------|--------|
+| Landing | index.html | ✅ |
+| Sign Up | signup.html | ✅ |
+| Login | login.html | ✅ |
+| Dashboard | dashboard.html | ✅ |
+| Profile | profile.html | ✅ |
+| Discover | discover.html | ✅ |
+| Matches | matches.html | ✅ |
+| Messages | messages.html | ✅ |
+| Video Call | videocall.html | ✅ |
+| Pricing | pricing.html | ✅ |
+| Webinars | webinars.html | ✅ |
+| Analytics | analytics.html | ✅ |
+| Webinar Host Room | webinar-host.html | ✅ |
 
 ---
 
@@ -38,244 +58,78 @@ A skill-exchange web platform where users list skills they offer and skills they
 
 ---
 
-## Pages Status
-
-| Page | File | Status |
-|------|------|--------|
-| Landing | index.html | ✅ Done — hero, globe, marquee, full black/glass redesign |
-| Sign Up | signup.html | ✅ Done — Supabase auth, upsert profile, black/glass redesign |
-| Login | login.html | ✅ Done — auth fixed, social proof panel, globe, black/glass redesign |
-| Dashboard | dashboard.html | ✅ Done — real Supabase data, stats, plan gating, analytics section |
-| Profile | profile.html | ✅ Done — avatar upload + emoji, tag input, live preview, upsert |
-| Discover | discover.html | ✅ Done — real users, match scoring, send requests, filters |
-| Matches | matches.html | ✅ Done — 4 tabs, accept/decline/complete, message + call links |
-| Messages | messages.html | ✅ Done — real-time chat, Supabase subscriptions, URL auto-open |
-| Video Call | videocall.html | ✅ Done — WebRTC P2P, ICE restart/retry, offer/answer wait-for-ICE-gathering, auto-reconnect on failure |
-| Pricing | pricing.html | ✅ Done — Free/Pro/Creator features, Supabase plan update, toggle |
-| Webinars | webinars.html | ✅ Done — host overlay, built-in WebRTC participant system (star topology), ended webinars filtered, participants redirect on end, fallback quick controls dropdown, participant chat |
-| Analytics | analytics.html | ✅ Done — 6 stat cards, activity chart, skills table, badges grid, rank, creator section |
-| Webinar Host Room | webinar-host.html | ✅ Done — dedicated host tab, BroadcastChannel dup detection, full controls, chat, raise hand, recording, participant video thumbnails |
-
----
-
-## Build Priority Order
-1. profile.html
-2. discover.html
-3. matches.html
-4. messages.html
-5. videocall.html
-6. pricing.html
-7. webinars.html
+## Design System
+- **Theme:** Full black (#080808 bg), Syne (headings 800w) + DM Sans (body 300-500w)
+- **No purple buttons** — all CTAs white bg + #080808 text
+- **Accents:** violet rgba(139,92,246) + cyan rgba(34,211,238) for borders/glows only
+- **Cards:** bg rgba(255,255,255,0.03), border rgba(255,255,255,0.08), radius 18px, backdrop-filter blur(12px)
+- **Inputs:** bg rgba(255,255,255,0.04), border rgba(255,255,255,0.09), radius 12px, violet glow on focus
+- **CSS vars:** `--bg:#080808`, `--bg-card:rgba(255,255,255,0.03)`, `--border:rgba(255,255,255,0.08)`, `--border-hover:rgba(139,92,246,0.3)`, `--text-muted:rgba(255,255,255,0.32)`
+- **Globe:** Canvas-based dot-matrix globe on index/login/signup (premium version via _replace_globe.js)
+- **Custom cursor:** 10px white dot + 34px trailing ring, both fixed, turns purple on hover
+- **Tags:** violet / cyan / dim-white variants, 100px radius, 3px 10px padding, 10px font
+- **Sidebar scrollbar:** 4px wide, dark themed (no white line)
+- **Sidebar collapse:** Hamburger always visible on desktop, toggles body.sidebar-collapsed, state in localStorage ss_sidebar
 
 ---
 
 ## Code Conventions
-- Pure HTML/CSS/JS — no frameworks, no build tools
-- Supabase JS client loaded via CDN
 - Each page handles its own auth check (redirect to login if not logged in)
-- Keep styles consistent with existing pages (same fonts, colors, button styles)
 - All Supabase calls use async/await
+- Supabase JS client loaded via CDN
+- All 9 sidebar pages share same sidebar pattern with `#sidebar-overlay` for mobile
 
 ---
 
-## Session Log
-<!-- Claude Code appends to this after every session -->
+## Key Implementation Notes
 
-### [Session 13 — 2026-04-09]
+### WebRTC (videocall.html)
+- Room ID: random alphanumeric, passed as `?room=` URL param
+- Signaling: Supabase broadcast channel `call-{roomId}` for offer/answer/ICE
+- ICE servers: Google STUN (free) + OpenRelay TURN (ports 80/443)
+- Caller retries `ready` ping every 2s until callee responds
+- `createOfferAndWaitForICE()` / `createAnswerAndWaitForICE()` — wait for iceGatheringState=complete (4s max) before sending SDP
+- ICE restart on 8s timeout if not connected; auto-teardown+retry on failed state
+- `safeSetRemoteDescription()` + `handleIncomingCandidate()` to prevent race conditions
+- Voice-only mode: `?voice=1` skips video getUserMedia
+- Screen share: `replaceTrack()` to peer, auto-reverts on stop
+- Recording: MediaRecorder, pro/creator only, saves .webm locally
+- Persistent calls: `ss_active_call` in localStorage, cleared only on explicit hangup; NO beforeunload hangup
+- Cam-off placeholder: `#localCamOff` div shown when camera off or voice-only
 
-**FEATURE 1 — Persistent calls (videocall.html + messages.html):**
-- Calls no longer end when the user closes or navigates away from the videocall tab
-- `saveCallState()` writes `{roomId, matchId, voice, isCaller, peerName, timestamp}` to `localStorage` key `ss_active_call` when the call starts (join button click)
-- `clearCallState()` removes the key — called only from `endCall()` (explicit red button) or when partner's hangup arrives
-- Removed `beforeunload` handler entirely — no hangup signal on tab close, so partner sees "disconnected" but the room stays alive for rejoin
-- In `messages.html`: `getActiveCallForMatch(matchId)` reads localStorage and returns the stored call if it matches the open conversation (expires after 4 hours)
-- `showActiveCallBanner()` renders a green pulsing banner above the message list with "Call with [name] is ongoing" + a **Rejoin** button linking back to videocall.html with the correct roomId/voice/caller params
-- `dismissCallBanner()` clears localStorage and hides the banner (user explicitly abandons the call)
-- Banner shown/hidden each time a conversation is opened via `openConvo()`
+### Call Notifications (call-notify.js)
+- Inserts row into `call_invites` table instead of broadcast (DB-persistent)
+- Subscribes to `postgres_changes INSERT` on `call_invites` filtered by `callee_id`
+- On subscribe, polls last 60s for missed pending invites
+- Included on all 8 authenticated pages EXCEPT videocall.html
+- **Requires:** `call_invites` table created + Realtime enabled (SQL in Known Issues section)
 
-**FEATURE 2 — Voice call names / cam-off placeholders (videocall.html):**
-- Added `#localCamOff` div (absolute, same position as `#localVideo`) — shown when camera is off or voice-only mode
-- `toggleCam()` hides `#localVideo` and shows `#localCamOff` (and vice versa)
-- In `initWebRTC()`, after getting local stream: if `isVoiceOnly` or no video tracks, immediately shows cam-off placeholder and sets `camOff = true`
-- `#localCamInitials` filled with user's initials from `myName` in `init()`
-- `ontrack` handler: only hides `#waitingBg` (peer name plate) if the incoming stream has a live video track — in voice-only mode the name plate stays visible with "Connected — camera off" sub text
-- `onconnectionstatechange` (connected): same check — only hides name plate if remote video present
-- `#waitingSub` updated to "Voice call — camera off" on voice-only init
+### Messages (messages.html)
+- Real-time via Supabase postgres_changes + 3s polling fallback
+- Voice call: `VOICE_INVITE::roomId`; Video call: `CALL_INVITE::roomId`
+- Emoji picker: 80+ emojis, inserts at cursor
+- Read receipts: "Seen" below last read message sent by me
+- Active call banner: green pulsing banner with Rejoin link if `ss_active_call` matches open convo
 
-**FIX 3 — Sidebar scrollbar white line (all 9 pages):**
-- Added `.sidebar::-webkit-scrollbar{width:4px;}`, `.sidebar::-webkit-scrollbar-track{background:transparent;}`, `.sidebar::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:4px;}` to all sidebar pages
-- Removes the thick white default scrollbar; replaces with a thin, dark-themed custom track
+### Webinars
+- Star topology WebRTC: each participant connects to HOST only
+- Two channels per webinar: `webinar_ctrl:{id}` (commands) + `webinar_rtc:{id}` (signaling)
+- `webinar-host.html`: dedicated full-screen host room, opens in named tab `wh_{id}`
+- BroadcastChannel duplicate tab detection in webinar-host.html
+- Fallback quick controls dropdown on webinar cards in webinars.html
+- Recording saves as .webm locally (no server storage)
+- Ended webinars filtered from listing via `.neq('status','ended')`
 
-**FEATURE 4 — Desktop hamburger sidebar toggle (all 9 pages):**
-- `.hamburger` changed from `display:none` (desktop hidden) to `display:flex` — always visible at top-left
-- `toggleSidebar()` updated: on mobile (≤900px) does the existing open/overlay toggle; on desktop toggles `body.sidebar-collapsed` class and saves state to `localStorage` key `ss_sidebar` (`'0'` = collapsed, `'1'` = expanded)
-- CSS `@media(min-width:901px)`: `body.sidebar-collapsed` sets `--sidebar-w:0` and `transform:translateX(-100%)` on sidebar — all content areas that use `margin-left:var(--sidebar-w)` automatically collapse
-- `.sidebar{transition:transform .25s}` added for smooth slide animation
-- Each page's `init()` reads `ss_sidebar` on load and restores collapsed state if previously set
+### Auth
+- Email confirmation must be DISABLED in Supabase (Auth → Providers → Email → "Confirm email" OFF)
+- Google OAuth enabled; dashboard.html auto-creates profile on first OAuth login (detects PGRST116)
+- `profiles` saves to both `skills_offering/wanting` (new) and `skills_offered/wanted` (legacy) for compatibility
 
-### [Session 12 — 2026-04-09]
+---
 
-**FINAL VIDEO CALL OVERHAUL — messages.html + videocall.html + call-notify.js**
-
-**messages.html — Voice & Video Call Buttons:**
-- Replaced single video-call icon with two separate buttons in chat header: phone icon (voice) + video icon (video)
-- `startCallFromMessages(type)` now accepts `'voice'` or `'video'`
-- Voice calls use `VOICE_` prefix in room ID (e.g. `VOICE_abc123`) so callee side auto-detects call type
-- Voice call inserts `VOICE_INVITE::roomId` message; video inserts `CALL_INVITE::roomId`
-- `bubbleContent()` handles both prefixes — renders correct icon, label ("Incoming voice call" / "Video call invite"), and passes `&voice=1` in href for voice calls
-- Conversation list preview shows "📞 Voice call" or "📹 Video call" instead of raw invite string
-
-**messages.html — Emoji Picker:**
-- Emoji button (smiley face icon) added to the left of the chat textarea
-- Clicking button opens a floating panel above input with 80+ emojis in an 8-column grid
-- `insertEmoji(em)` inserts at cursor position, preserves selection, refocuses textarea
-- Panel closes on outside click via `document.addEventListener('click')`
-
-**messages.html — Read Receipts:**
-- `renderMessages()` now scans for the last message sent by me with `read=true`
-- That message shows a `<div class="msg-seen">Seen</div>` indicator below the timestamp
-- Styled in muted violet `rgba(139,92,246,0.65)`, 0.65rem, right-aligned
-
-**videocall.html — Screen Share:**
-- Screen share button added to controls bar (monitor icon)
-- `toggleScreenShare()` calls `getDisplayMedia`, then `replaceTrack()` on the video sender to the peer
-- Local PiP switches to screen share preview; restores camera on stop
-- `screenTrack.onended` auto-stops sharing when user closes browser picker
-- Button turns cyan/active when sharing is active
-
-**videocall.html — Call Recording (Pro/Creator only):**
-- Record button (circle icon) added to controls bar; hidden by default
-- Shown only for `pro` or `creator` plan (checked in `init()`)
-- `toggleRecording()` uses `MediaRecorder` on local stream (screen share stream takes priority)
-- Chunks stored via `ondataavailable`, `.webm` blob downloaded via `onstop`
-- Non-pro users see a "Recording is a Pro feature" status toast instead
-- Recording auto-stops on `endCall()`
-
-**videocall.html — Redirect to Messages on End:**
-- `endCall()` now redirects to `messages.html?match=matchId` instead of `matches.html`
-- Falls back to `messages.html` if no matchId
-- noRoomState "Go to Matches" link changed to "Go to Messages" → `messages.html`
-
-**videocall.html — Voice-Only Mode:**
-- `isVoiceOnly` global set from `?voice=1` URL param in `init()`
-- `initWebRTC()` passes `{video: !isVoiceOnly, audio: true}` to `getUserMedia`
-- Shows "Voice call — camera off" status toast on connect
-
-**call-notify.js — Voice Call Detection:**
-- Overlay title element given `id="__ssCallType"` so it can be updated dynamically
-- `showOverlay()` detects `VOICE_` prefix in `roomId`, updates title to "Incoming voice call" vs "Incoming video call"
-- Accept button adds `&voice=1` to the videocall URL when it's a voice call
-
-### [Session 11 — 2026-04-08]
-
-**FEATURE — Dedicated Webinar Host Room (`webinar-host.html`)**
-
-Created a full-screen standalone host control room page that opens in a new tab:
-
-- **Named window (`window.open(url, 'wh_'+id)`)** — browser focuses the existing tab instead of opening a duplicate if already open
-- **BroadcastChannel duplicate detection** — on load, pings other tabs; if a pong is received, shows a warning overlay ("Switch to existing tab" / "Continue here anyway")
-- **Loading screen** with spinner while auth + webinar data loads
-- **HUD bar**: logo link, webinar title, LIVE badge (hidden pre-live), live timer, viewer count, Record button, End Webinar button
-- **Stage area**: local camera/screen `<video>`, camera-off placeholder with host initials, participant video thumbnails strip (populated via WebRTC `ontrack` — host receives participant cameras)
-- **"Not live yet" overlay**: shown if webinar is not yet live in DB; "Go Live" button updates `is_live=true, status='live'` then hides overlay — if `?startLive=1` param is present, goes live automatically on page load
-- **Controls bar** (pill, absolute-bottom): Mic toggle · Camera toggle · Screen Share (with `replaceTrack` to all participant PCs) · Mute All
-- **Side panel** with 3 tabs (unread badges on Chat and Raised):
-  - *Participants*: loaded from `webinar_attendees` + profiles; per-attendee Mute (sends `mute_one` cmd) and Kick (sends `kick` cmd, removes from map + DOM)
-  - *Chat*: two-way realtime over `webinar_ctrl:{id}` channel, event `chat_msg`; host messages shown as "You (Host)"; auto-scroll; Enter key sends
-  - *Raised Hands*: queue rendered on `raise_hand` broadcast; "Call On" button sends `called_on` command and removes from queue
-- **Recording**: `MediaRecorder` on active stream (screen share takes priority); `ondataavailable` accumulates chunks; `onstop` creates a `.webm` blob and triggers download
-- **End Webinar**: confirms → broadcasts `end_webinar` → updates Supabase (`status='ended', is_live=false, attendee_count`) → stops all media + recording → closes all participant PCs + channels → shows summary modal (duration / attendees / earnings estimate) → "Back to Webinars" redirects to `webinars.html`
-- **WebRTC host-side** mirrors `webinars.html` logic: `onParticipantJoin` creates PC per participant, adds host stream, waits for ICE gathering before sending offer, handles answer + ICE buffering; `ontrack` populates participant video thumbnails
-
-**UPDATES — `webinars.html`**
-
-- **Go Live button**: no longer opens inline overlay — calls `openHostTab(id, true)` → `window.open('webinar-host.html?id=X&startLive=1', 'wh_X')`
-- **Host Controls button** (on live cards): calls `openHostTab(id)` → focuses existing host tab or opens it
-- **Fallback "Quick Controls" dropdown** added to all live host cards:
-  - Rejoin Host Room (opens/focuses host tab)
-  - Mute All Attendees (broadcasts `mute_all` via a temp channel if host tab is closed)
-  - End Webinar (broadcasts `end_webinar` + updates DB; confirmation required)
-  - Dropdown closes on outside click; toggle prevents re-opening same dropdown
-- **Participant chat panel** inside the participant overlay:
-  - Toggle button (chat bubble icon) added to participant controls bar
-  - Floating panel above controls: message list + input row
-  - `sendPartChat()` sends `chat_msg` event on `attendeeChannels[currentParticipantWebinarId]`
-  - `appendPartChatMsg()` renders messages; flashes chat button if panel is closed
-  - Chat panel + `currentParticipantWebinarId` reset on `leaveWebinar()`
-- **`subscribeAttendeeToWebinar`** extended to handle: `mute_one` (mutes self), `called_on` (toast notification), `chat_msg` (renders in participant chat panel)
-
-### [Session 1 — 2026-04-01]
-- Discovered `dashboard.html` was missing despite being marked ✅ in CLAUDE.md — rebuilt it
-- Built `dashboard.html`: sidebar nav, stat cards (skills offered/wanted/active matches), recent matches list, skills tags, profile completion banner, quick actions
-- Built `profile.html`: emoji avatar picker, full/username/bio/location/website fields, tag-input for skills offered/wanted, availability selectors, live profile preview, Supabase upsert
-- Built `discover.html`: search + filter bar, match-score algorithm, user cards grid, skeleton loading, send swap request (inserts into `matches` table), load-more pagination
-- Built `matches.html`: 4-tab layout (Pending/Active/Sent/Completed), accept/decline/complete actions updating `matches.status` in Supabase
-- Built `messages.html`: full chat UI with conversation list, real-time messaging via Supabase `postgres_changes` subscription, date dividers, auto-resize textarea
-- Built `videocall.html`: Jitsi Meet embedded via iframe, call active matches directly (deterministic room name), random room generator, end-call overlay
-- Built `pricing.html`: Free/$9 Pro/$19 Creator tiers, monthly/annual billing toggle (20% off), FAQ accordion, current plan detection from `profiles.plan`
-- Built `webinars.html`: live/upcoming/recorded sections, host modal (Creator-gated), register/join/remind actions, Jitsi join for live sessions, demo fallback data
-- All pages share same sidebar nav, color system, font stack, custom cursor, and auth guard pattern
-
-### [Session 2 — 2026-04-01]
-- Fixed `login.html` signin bug: `showAlert` was relying on CSS class specificity to unhide the alert box — now sets `style.display = 'flex'` inline so errors always show
-- Fixed `hideAlert` to explicitly set `style.display = 'none'` to reset cleanly
-- Added `data.session` guard before `window.location.href = 'dashboard.html'` — Supabase v2 can return `{ session: null, error: null }` when email is unconfirmed; previously this caused a silent redirect loop back to login
-- All fixes committed and pushed to main (Vercel auto-deployed)
-
-### [Session 3 — 2026-04-03]
-- Redesigned `login.html` UI: sticky navbar (Syne logo + white square), 2-column grid layout (social proof left / form right), cyan+violet orbs, animated badge, "Welcome back." solid + "Keep swapping." outline heading, 3 glass stat cards with hover glow, recent activity card (3 rows with avatars + colored tags), rotating globe canvas (R=125, bottom-right, opacity 0.5), white submit button (no purple), violet-glow input focus, custom "Remember me" checkbox, custom cursor (`#ss-cursor` / `#ss-ring`), all Supabase logic preserved unchanged
-- Fixed `dashboard.html` logout button: old button was a tiny `↪` icon in near-invisible muted color — replaced with full-width "↪ Sign out" button (red tint, border, always visible at bottom of sidebar); also fixed sidebar `height: 100vh` + `overflow-y: auto` so bottom of sidebar is never clipped
-- Fixed `dashboard.html` logout redirect: was sending to `login.html`, now sends to `index.html` (front page)
-- Fixed `signup.html` auth bug: profiles were written with `.update().eq('id', ...)` which silently fails if no row exists — changed to `.upsert({ id: data.user.id, ... })`
-- Fixed `login.html` auth bug: removed `if (!data.session)` block that was incorrectly blocking valid logins — replaced with `if (data.user)` redirect per Supabase v2 pattern
-- Added `console.log` on signup error, profile upsert error, and login error for easier debugging
-- Diagnosed persistent "Invalid login credentials" 400 error — root cause is Supabase **email confirmation enabled**: users sign up but cannot log in until they confirm their email. Fix: Supabase Dashboard → Authentication → Providers → Email → toggle "Confirm email" OFF
-
-### [Session 4 — 2026-04-04]
-- Redesigned `profile.html` to black/glass system: SVG sidebar icons, avatar photo upload (Supabase storage) + emoji picker, mobile-friendly "Add" button for skill tag inputs, saves to both `skills_offering`/`skills_wanting` and legacy `skills_offered`/`skills_wanted` columns, logout goes to index.html
-- Redesigned `pricing.html` to black/glass system: updated plan features (Free 7days/Pro unlimited+analytics/Creator+webinar hosting+earnings), Supabase plan update on click, billing toggle (20% off), FAQ accordion, plan button states reflect current plan
-- Redesigned `webinars.html` to black/glass system: real Supabase data, filter by live/upcoming/recorded, creator-gated host modal (free/paid toggle), attendee registration in webinar_attendees table, Jitsi join for live sessions
-- Redesigned `videocall.html` to black/glass system: session logging to `sessions` table on `endCall()` and `beforeunload`, live call timer, auto-start from URL `?match=` param, fixed match queries to use `sender_id`/`receiver_id`
-- Created `analytics.html`: new page gated to pro/creator, stats pulled from `sessions` + `analytics` tables, global rank with progress bar, rewards system (4 badges), creator section with webinar earnings
-- Updated all pages: SVG-only icons (no emojis in UI), consistent sidebar with analytics link shown/hidden by plan, logout goes to index.html
-- Ran full SQL schema in Supabase SQL editor — all tables created, RLS policies enabled, all tables live
-- CLAUDE.md updated: pages status, known issues, session log
-
-### [Session 5 — 2026-04-05]
-- Fixed mobile sidebar on ALL 9 pages (dashboard, discover, matches, messages, profile, pricing, webinars, videocall, analytics): added `#sidebar-overlay` div (rgba(0,0,0,0.85) + backdrop-filter:blur(4px), z-index:98), forced sidebar `background:#0e0e0e` on mobile, `.nav-link` color:#fff/opacity:1 in mobile media query, overlay toggles with sidebar open/close
-- Fixed messages.html (Issue 2): added 3-second polling fallback (`setInterval` every 3s calls `loadMessages`), re-fetch after `sendMessage` insert, `console.error` on every Supabase error, never crashes on null data, CALL_INVITE:: messages render as "Join Call" button linking to `videocall.html?room=`, video call button now creates a Daily.co room and sends CALL_INVITE message
-- Replaced Jitsi with Daily.co on videocall.html (Issue 3): complete rewrite — reads `?room=` URL param, loads Daily Prebuilt iframe fullscreen, shows "No call in progress" state if no room param, keeps call timer + session logging to `sessions` table on end/unload, sidebar fixed mobile
-- Updated matches.html (Issue 3): "Call" button replaced with "Start Call" button that creates Daily.co room via API POST, inserts `CALL_INVITE::{url}` message to partner, then redirects caller to `videocall.html?room={url}`
-- Daily.co API key stored in DAILY_API_KEY constant in matches.html and messages.html
-
-### [Session 8 — 2026-04-06]
-- Replaced globe canvas code on index.html, login.html, signup.html with premium dot-matrix version: 900+ explicit land coordinates across all continents, animated connection arcs with moving dots, pulsing nodes — ran via `_replace_globe.js` Node script
-- Fixed 3 critical bugs across messages.html, matches.html, videocall.html, and call-notify.js (details below)
-
-**Bug 1 — Mobile message input hidden / FAB blocking send button (messages.html):**
-- Root cause: `.compose-fab` had `display:flex !important` in mobile CSS so JS `style.display='none'` was silently ignored; FAB was fixed at bottom-right directly over the send button
-- Removed `!important` from compose-fab mobile rule so JS can override it
-- `openConvo()` now hides FAB with `style.display='none'` on mobile; `backToConvosList()` restores it
-- `.chat-panel` mobile height changed to `-webkit-fill-available` + `100dvh` (iOS address-bar clipped the input with `height:100vh` + `overflow:hidden`)
-- `.chat-input-wrap` made `position:sticky; bottom:0` with `env(safe-area-inset-bottom)` padding so input stays above iOS home bar
-
-**Bug 2 — WebRTC stuck on "Waiting for partner" / ICE race condition (videocall.html):**
-- Root cause: `iceCandidateQueue`, `remoteDescSet`, `offerSent` were never reset between `initWebRTC()` calls — stale state caused ICE candidates to be applied before `setRemoteDescription()`
-- Added state reset (`iceCandidateQueue=[]`, `remoteDescSet=false`, `offerSent=false`) at top of `initWebRTC()`
-- Replaced `drainIceCandidates()` with `safeSetRemoteDescription(sdp)`: sets remote desc then atomically flushes buffered candidates
-- Added `handleIncomingCandidate(data)`: buffers candidates if remote desc not yet set
-- Both offer and answer handlers now use `safeSetRemoteDescription()`; ICE handler uses `handleIncomingCandidate()`
-- `connectionState === 'failed'` now shows specific "Connection failed" message
-
-**Bug 3 — Incoming call notification never fires (call-notify.js + matches.html + messages.html):**
-- Root cause: Realtime broadcast is fire-and-forget — if receiver's subscription wasn't active when caller sent the event, it was permanently lost
-- `broadcastCallInvite()` in matches.html and messages.html now inserts a row into `call_invites` table instead of broadcasting
-- `call-notify.js` subscribes to `postgres_changes INSERT` on `call_invites` filtered by `callee_id` — DB row persists so event is delivered even if subscription set up just after insert
-- On subscribe, polls last 60 seconds for missed pending invites (handles page-load race)
-- Accept updates `status='accepted'` in DB then navigates to videocall.html; Decline sets `status='declined'`; auto-expire after 30s sets `status='expired'`
-- `call-notify.js` included on all 8 authenticated pages (dashboard, discover, matches, messages, profile, pricing, webinars, analytics); NOT on videocall.html
-
-**call_invites table — must be created in Supabase SQL editor:**
+## Known Issues / Pending
+- **Payment not wired** — `selectPlan()` updates Supabase directly, no Lemon Squeezy/Paddle flow yet
+- `call_invites` table must be created manually in Supabase SQL editor:
 ```sql
 create table if not exists call_invites (
   id uuid default gen_random_uuid() primary key,
@@ -283,216 +137,73 @@ create table if not exists call_invites (
   match_id uuid references matches(id),
   caller_id uuid references profiles(id),
   callee_id uuid references profiles(id),
-  caller_name text,
-  caller_avatar text,
+  caller_name text, caller_avatar text,
   status text default 'pending',
   created_at timestamptz default now()
 );
 alter table call_invites enable row level security;
-create policy "insert own" on call_invites for insert to authenticated
-  with check (caller_id = auth.uid());
-create policy "read own" on call_invites for select to authenticated
-  using (callee_id = auth.uid() or caller_id = auth.uid());
-create policy "update own" on call_invites for update to authenticated
-  using (callee_id = auth.uid() or caller_id = auth.uid());
--- Also enable Realtime for this table:
+create policy "insert own" on call_invites for insert to authenticated with check (caller_id = auth.uid());
+create policy "read own" on call_invites for select to authenticated using (callee_id = auth.uid() or caller_id = auth.uid());
+create policy "update own" on call_invites for update to authenticated using (callee_id = auth.uid() or caller_id = auth.uid());
 alter publication supabase_realtime add table call_invites;
 ```
-
-### [Session 10 — 2026-04-07]
-
-**FIX 1 — Webinar built-in WebRTC participant system (webinars.html):**
-- Replaced Jitsi `window.open` with a full-screen built-in participant overlay (star topology: each participant connects to HOST only)
-- Participant overlay: host video fullscreen, own camera PiP bottom-right, mic/cam/leave controls, status pill, waiting state with spinner
-- Two Supabase Realtime channels per webinar: `webinar_ctrl:{id}` (existing — mute/kick/end commands) and new `webinar_rtc:{id}` (WebRTC signaling only)
-- Host side: `enterHostMode()` now subscribes to `webinar_rtc` channel; `handleParticipantJoin()` creates one `RTCPeerConnection` per participant, adds host stream tracks, sends offer after ICE gathering completes
-- Host tracks `participantPCs`, `participantIceQueues`, `participantRemoteDescSet` maps per participant userId
-- Screen share: when host starts/stops `getDisplayMedia`, `replaceTrack()` is called on all participant peer connections to switch the video track live
-- `endWebinar()` closes all participant PCs and removes `wrtcHostChannel`; `wrtcHostChannel` is also stored in globals alongside `hostChannel`
-- Participant side: `joinWebinarLive(id, title)` gets local media, subscribes to `webinar_rtc` channel, sends `{event:'join', payload:{userId, name}}`, receives `offer_to_participant`, creates answer after ICE gathering, sends answer back
-- Participant `leaveWebinar(redirect, delay)` cleans up PC + stream + channel; called on Leave button or when kicked/ended
-- Ended webinars filtered from listing: `.neq('status','ended')` added to `loadWebinars()` Supabase query
-- `end_webinar` host command now calls `leaveWebinar(true, 3000)` — redirects to webinars.html after 3s (was just `loadWebinars()`)
-- `mute_all` host command disables participant's local audio tracks directly via `participantStream.getAudioTracks()`
-- ICE_SERVERS config (STUN + openrelay TURN) added to webinars.html, same as videocall.html
-- `myName` global added and set in `init()` so participant join payload includes user's display name
-
-**FIX 2 — Video call reliability (videocall.html):**
-- Fix A — ICE restart on timeout: 8s `connectionTimeout` added after `RTCPeerConnection` creation; if not connected by then, caller creates a new offer with `{iceRestart:true}` and re-sends it; timeout cleared on `connectionState='connected'`
-- Fix B — Bundle candidates in SDP: added `createOfferAndWaitForICE()` and `createAnswerAndWaitForICE()` helpers that wait for `iceGatheringState==='complete'` (4s max fallback) before returning `localDescription`; used in both the `ready` handler (caller) and `offer` handler (callee) — fixes mobile first-try failures caused by unreliable trickle ICE
-- Fix C — Reset on failure: `connectionState='failed'` now closes and nulls `pc`, resets `remoteDescSet`/`iceCandidateQueue`/`offerSent`, shows "Reconnecting..." and calls `initWebRTC()` after 1.5s instead of leaving the call stuck
-
-**FIX 3 — Remove Video Call sidebar nav link (all 9 pages):**
-- Removed `<a href="videocall.html">Video Call</a>` from sidebar in: dashboard, discover, matches, messages, profile, pricing, webinars, videocall, analytics
-- videocall.html itself is unchanged — still accessible from Messages chat header call button
-
-### [Session 9 — 2026-04-07]
-
-**FIX 1 — Webinar Host Controls (webinars.html):**
-- Hosts now see a "Your Webinar" badge on their cards + host-specific action buttons
-- Pre-session (upcoming): "Edit" opens settings modal (title, description, date, allow-unmute toggle, require-registration toggle) with Supabase update on save; "Go Live" sets `is_live=true, status='live'` in Supabase then opens host overlay
-- Full-screen Host Control Overlay: live timer, local camera preview via `getUserMedia`, control bar with Mute/Camera/Screen Share (`getDisplayMedia`)/Mute All buttons
-- Participants panel: loads all `webinar_attendees` joined with profiles; each attendee has a kick button that broadcasts `{cmd:'kick', target_user_id}` via Supabase Realtime channel `webinar_ctrl:{id}`
-- Raise Hand panel: attendees can broadcast `raise_hand` events; host sees queue with "Call On" button per attendee; `called_on` command broadcast back
-- End Webinar: confirmation → broadcasts `{cmd:'end_webinar'}` → updates DB (`status='ended', is_live=false, attendee_count=N`) → shows post-session summary modal (duration, total attendees, earnings estimate) → on close reloads webinar list
-- Attendee side: `subscribeAttendeeToWebinar(id)` subscribes to `webinar_ctrl:{id}` channel on Join Live (and auto-subscribes to all live webinars on page load); receives `mute_all`, `kick`, `end_webinar` commands and shows appropriate toast / reloads
-- When host is live and revisits the webinars page, "Host Controls" button on live card re-opens overlay
-
-**FIX 2 — Analytics Dashboard (analytics.html) — completed from session 8:**
-- 6 overview stat cards: Swaps Completed, Active Matches, Hours Swapped, Skills Taught, Messages Sent, Match Response Rate — all pulled from Supabase in parallel via `Promise.all`
-- Activity chart: Chart.js bar chart showing sessions per day over last 30 days
-- Skills analytics section: table of offered skills with request count, completion count, completion %, mini progress bar; highlights most-requested skill; tip shown for skills with 0 activity
-- Messages & Engagement card: conversations started, messages sent, response rate with explanation
-- Global ranking: rank number, rank title, percentile bar, points breakdown grid (swaps × 10 pts, hours × 5 pts, webinars × 2 pts, matches × 1 pt)
-- Achievements grid: 8 badges (First Swap, Active Learner, Swap Master, Dedicated, Hour Hero, Social Butterfly, Knowledge Seeker, Top Ranker) — unlocked badges glow, locked ones show progress bar + fraction
-- Creator section (creator plan only): 5 stat cards + best-performing webinar card
-
-### [Session 7 — 2026-04-06]
-- Added Google OAuth sign-in to login.html and signup.html (both pages already had the button, divider, CSS, and `signInWithGoogle()` wired to `supabase.auth.signInWithOAuth`)
-- Fixed dashboard.html to auto-create a profile row for new Google OAuth users on first login: detects `PGRST116` (no row), upserts with `plan: 'free'`, empty skills arrays, and pulls `full_name` + `avatar_url` from Google user metadata
-- Google OAuth setup required in Supabase: Authentication → Providers → Google → enable + paste Client ID & Secret
-- Google Cloud Console redirect URI required: `https://vgndpvkywvcnezvjuueq.supabase.co/auth/v1/callback`
-
-### [Session 6 — 2026-04-05]
-- Replaced Daily.co with custom WebRTC + Supabase Realtime signaling in videocall.html — zero third-party services, fully free
-- Signaling flow: Supabase channel `call-{roomId}` used for offer/answer/ICE candidate exchange via broadcast events; caller retries `ready` ping every 2s until callee responds
-- Room ID is a random alphanumeric string (genRoomId); stored in messages table as `CALL_INVITE::{roomId}`, callee joins via `?room={roomId}&match={matchId}`, caller passes `&caller=1`
-- STUN servers: stun.l.google.com:19302 + stun1.l.google.com:19302 (free, no auth)
-- videocall.html UI: remote video fullscreen bg, local video PiP bottom-right, glass control bar (mute/cam/end), live dot + timer in top HUD, waiting avatar while connecting, status pill overlay, partner disconnected detection
-- Updated matches.html: `startDailyCall` → `startWebRTCCall` (generates roomId, inserts CALL_INVITE message, redirects with caller=1)
-- Updated messages.html: `startCallFromMessages` uses genRoomId, `bubbleContent` passes matchId + caller param to join links
-
-## UI Design System (Updated)
-
-### Design Theme
-- Full black aesthetic: background #080808 everywhere
-- Font stack: Syne (headings/logo, 800 weight) + DM Sans (body/inputs, 300-500)
-- Custom cursor: 10px white dot (mix-blend-mode: difference) + 34px trailing ring, both fixed positioned, turns purple on hover
-- No purple buttons anywhere — all CTAs are white bg + #080808 text
-- Subtle violet (rgba(139,92,246)) and cyan (rgba(34,211,238)) used ONLY as border accents, tag colors, focus glows, and orbs
-
-### CSS Variables (use in all pages)
---bg: #080808
---bg-card: rgba(255,255,255,0.03)
---border: rgba(255,255,255,0.08)
---border-hover: rgba(139,92,246,0.3)
---text-muted: rgba(255,255,255,0.32)
---accent-v-soft: rgba(167,139,250,0.65)
---accent-c-soft: rgba(103,232,249,0.6)
-
-### Glass Card System (apply to ALL cards sitewide)
-- background: rgba(255,255,255,0.03)
-- border: 1px solid rgba(255,255,255,0.08)
-- border-radius: 18px
-- backdrop-filter: blur(12px)
-- On hover: border-color → rgba(139,92,246,0.3), transform: translateY(-3px)
-- ::before pseudo on hover: top 1px gradient glow (transparent → rgba(139,92,246,0.6) → transparent)
-
-### Colored Tags (use on all cards)
-- Violet tag: border rgba(139,92,246,0.35), color rgba(167,139,250,0.7)
-- Cyan tag: border rgba(34,211,238,0.28), color rgba(103,232,249,0.65)
-- White/dim tag: border rgba(255,255,255,0.18), color rgba(255,255,255,0.42)
-- All tags: border-radius 100px, padding 3px 10px, font-size 10px
-
-### Globe (rotating world, canvas-based)
-- Drawn with vanilla JS Canvas API
-- Continent outlines as lat/lon polygon arrays, filled rgba(139,92,246,0.12), stroked rgba(167,139,250,0.32)
-- Latitude + longitude grid lines at rgba(255,255,255,0.04)
-- Scattered nodes (violet, cyan, white) with connection lines
-- Rotates continuously at ~0.003-0.004 rad/frame
-- index.html: large globe (R=220) centered behind hero text, smaller globe (R=160) right side in "How it works"
-- signup.html: globe (R=145) bottom-right of left panel, opacity 0.7
-- login.html: globe (R=125) bottom-right of form panel, opacity 0.5
-
-### Pages completed
-- index.html ✅ — full redesign done (hero, globe, marquee, skills tags, step cards, feature cards, CTA, footer)
-- signup.html ✅ — full redesign done (split layout, globe, glass cards, form inputs, skill tags, plan cards)
-- login.html ✅ — full redesign done (navbar, 2-col grid, social proof left panel, globe bottom-right, white button, custom cursor)
-- dashboard.html ✅ — real Supabase data, stats, matches, skills, analytics section, plan gating
-- discover.html ✅ — real Supabase users, match scoring, send match requests, filters
-- matches.html ✅ — pending/sent/active/completed tabs, accept/decline/complete, message + call buttons; "Start Call" generates roomId, sends CALL_INVITE, redirects caller
-- messages.html ✅ — real-time chat + 3s polling fallback, CALL_INVITE:: renders as "Join Call" button, video call icon starts WebRTC room from chat header
-- profile.html ✅ — black/glass redesign, avatar photo upload + emoji picker, mobile Add button, save to skills_offering/wanting
-- pricing.html ✅ — black/glass redesign, updated Free/Pro/Creator features, Supabase plan update on selection
-- webinars.html ✅ — host overlay, built-in WebRTC star-topology participant view, ended webinars filtered, participant redirect on end, screen share via replaceTrack
-- videocall.html ✅ — WebRTC P2P, ICE restart on timeout, offer/answer bundled after ICE gathering, auto-teardown+reconnect on failure
-- analytics.html ✅ — new page, pro/creator gate, stats from sessions + analytics tables, global rank, rewards, creator section
-
-### Mobile Sidebar (all pages)
-All 9 sidebar pages (dashboard, discover, matches, messages, profile, pricing, webinars, videocall, analytics) have:
-- `#sidebar-overlay` div: rgba(0,0,0,0.85) + backdrop-filter:blur(4px), z-index:98, closes sidebar on tap
-- Mobile sidebar: background:#0e0e0e (solid, not glassy), border-right:1px solid rgba(255,255,255,0.1)
-- `.sidebar .nav-link` in mobile media query: color:#fff, opacity:1
-- `toggleSidebar()` toggles both `.open` on sidebar and `.show` on overlay
-
-### Pages pending UI update
-(none — all pages now use black/glass design system)
-
-### Input Style (all pages)
-- background: rgba(255,255,255,0.04)
-- border: 1px solid rgba(255,255,255,0.09)
-- border-radius: 12px
-- padding: 12px 16px
-- color: #fff
-- On focus: border-color rgba(139,92,246,0.45), background rgba(139,92,246,0.04), box-shadow 0 0 0 3px rgba(139,92,246,0.08)
-
-### Navbar (all pages)
-- background: rgba(8,8,8,0.94), backdrop-filter: blur(20px)
-- border-bottom: 1px solid rgba(255,255,255,0.07)
-- position: sticky, top: 0, z-index: 50
-- Logo: Syne 800 + 9×9px white square (border-radius 2px) before text
-- All nav CTAs: white bg, dark text, pill shape — no purple
+- `avatars` storage bucket must be created in Supabase dashboard
+- Realtime must be enabled for `messages` table in Supabase dashboard
+- `#hostOverlay` in webinars.html is dead code (replaced by webinar-host.html) — safe to remove
+- Webinar cloud recording not implemented — local .webm download only
 
 ---
 
-## Known Issues / Next Steps
-- Payment integration (Lemon Squeezy / Paddle) not yet wired — `selectPlan()` updates Supabase directly (no payment flow yet)
-- ✅ SQL schema run in Supabase — all tables created, RLS enabled (done session 4)
-- Storage bucket `avatars` must be created in Supabase dashboard for avatar uploads to work
-- Realtime must be enabled in Supabase dashboard for `messages` table (for live chat to work)
-- **Email confirmation must be DISABLED** in Supabase (Authentication → Providers → Email → "Confirm email" OFF)
-- ✅ Google OAuth enabled (session 7) — Supabase Google provider configured, dashboard.html auto-creates profile on first OAuth login
-- `profiles` uses both `skills_offering`/`skills_wanting` (new) and `skills_offered`/`skills_wanted` (legacy) — profile.html saves to both for backwards compatibility
-- ✅ Session logging simplified (session 13) — beforeunload removed; sessions only logged on explicit endCall()
-- ✅ TURN servers added (session 8) — openrelay.metered.ca on ports 80/443/443-tcp; mobile NAT traversal now covered
-- ✅ ICE candidate race condition fixed (session 8) — safeSetRemoteDescription + handleIncomingCandidate with buffering
-- ✅ Incoming call notifications (session 8) — call_invites table + postgres_changes; **call_invites table must be created in Supabase** (SQL in session 8 log) and Realtime enabled for it
-- ✅ Mobile message input fixed (session 8) — sticky input, 100dvh height, FAB hides when chat open
-- `call_invites` Realtime must be enabled: `alter publication supabase_realtime add table call_invites;`
-- ✅ Video call reliability fixed (session 10) — ICE restart on 8s timeout, offer/answer wait for full ICE gathering, auto-teardown+retry on failed state
-- ✅ Webinar participant system replaced (session 10) — Jitsi removed, built-in WebRTC star topology; signaling on `webinar_rtc:{id}` channel
-- ✅ Sidebar "Video Call" nav link removed from all 9 pages (session 10) — access only via Messages chat header
-- ✅ Dedicated webinar host room built (session 11) — `webinar-host.html`, opens in named tab, BroadcastChannel dup detection, full controls + chat + recording
-- ✅ Fallback host controls dropdown added to webinars.html (session 11) — quick mute-all / end-webinar without needing the host tab open
-- ✅ Participant chat added to webinars.html participant overlay (session 11) — two-way via `webinar_ctrl` channel `chat_msg` event
-- Webinar recording saves locally as `.webm` download — no server-side storage; cloud recording not yet implemented
-- `webinar-host.html` host room: inline overlay in `webinars.html` (`#hostOverlay`) is now unused for new sessions but kept in DOM as dead code — can be removed in a future cleanup
-- ✅ Voice + Video call buttons in messages.html (session 12) — phone icon + video icon in chat header, separate call types
-- ✅ Emoji picker in messages.html (session 12) — 80+ emojis, inserts at cursor, closes on outside click
-- ✅ Read receipts in messages.html (session 12) — "Seen" shown below last read message sent by me
-- ✅ Screen share in videocall.html (session 12) — replaceTrack to peer, auto-reverts to camera on stop
-- ✅ Call recording in videocall.html (session 12) — pro/creator only; MediaRecorder saves .webm locally
-- ✅ Call end redirects to messages (session 12) — endCall goes to messages.html?match=ID instead of matches.html
-- ✅ Voice-only mode in videocall.html (session 12) — ?voice=1 skips video getUserMedia
-- ✅ Persistent calls (session 13) — tab close no longer ends call; localStorage stores active call; Messages shows green "Join Ongoing Call" banner
-- ✅ Voice call names / cam-off placeholders (session 13) — #localCamOff PiP overlay + waitingBg stays visible on voice-only; name shown when no video
-- ✅ Sidebar scrollbar fixed (session 13) — custom webkit scrollbar on all 9 pages; no more white line
-- ✅ Desktop hamburger sidebar toggle (session 13) — hamburger always visible; collapses sidebar with slide animation; state persisted in localStorage
-- Payment integration (Lemon Squeezy / Paddle) not yet wired — `selectPlan()` updates Supabase directly (no payment flow yet)
-
----
-
-## 🚀 Session Start Prompt — paste this into Claude Code at the start of every session
+## Session Start Prompt
 ```
 Read CLAUDE.md in the project root first. That file is the source of truth for this project.
 
-Your job is to continue building SkillSwap — a skill-exchange web platform. The stack is plain HTML/CSS/Vanilla JS with Supabase as the backend.
+Your job is to continue building SkillSwap — a skill-exchange web platform. Stack: plain HTML/CSS/Vanilla JS + Supabase backend.
 
-Rules for this session:
-1. Build pages in the priority order listed in CLAUDE.md
-2. Pick up from wherever the status table says (first ⬜ page = what to build next)
-3. After every meaningful change or completed page, run: git add . && git commit -m "descriptive message"
-4. Keep code consistent with the existing pages in style and structure
-5. At the END of this session, update the CLAUDE.md Session Log with what was done today, and update the status table for any pages completed
+Rules:
+1. After every meaningful change: git add . && git commit -m "descriptive message"
+2. Keep code consistent with existing pages in style and structure
+3. At END of session: update CLAUDE.md — add a brief session entry (5-10 lines max) to the Session Log below, and update the Pages table if anything changed
 
-Start by telling me: what's the current status per CLAUDE.md, and what are you going to build this session?
+Start by telling me: what's the current state per CLAUDE.md, and what are we building this session?
+```
+
+---
+
+## Session Log
+
+### [Session 13 — 2026-04-09]
+- Persistent calls: tab close no longer ends call; `ss_active_call` localStorage key stores call state; Messages shows green "Rejoin" banner for ongoing calls
+- Voice call cam-off: `#localCamOff` PiP overlay with initials; waiting bg stays visible in voice-only mode
+- Sidebar scrollbar: custom webkit scrollbar on all 9 pages (no white line)
+- Desktop hamburger toggle: always visible, collapses sidebar with slide animation, state in `ss_sidebar` localStorage
+
+### [Session 12 — 2026-04-09]
+- Messages: separate voice + video call buttons; emoji picker (80+ emojis, cursor-insert); read receipts ("Seen")
+- videocall: screen share (replaceTrack), recording (pro/creator, .webm), end redirects to messages, voice-only mode (?voice=1)
+- call-notify.js: detects VOICE_ prefix, shows correct overlay title, adds &voice=1 to accept URL
+
+### [Session 11 — 2026-04-08]
+- Built webinar-host.html: full-screen host room, named tab, BroadcastChannel dup detection, HUD + controls + 3-tab side panel (participants/chat/raised hands), recording, end webinar with summary modal
+- webinars.html: Go Live opens host tab; fallback quick-controls dropdown on live cards; participant chat panel in overlay
+
+### [Session 10 — 2026-04-07]
+- webinars.html: replaced Jitsi with built-in WebRTC star-topology; host/participant channels; screen share via replaceTrack; ended webinars filtered; participant redirect on end
+- videocall.html: ICE restart on 8s timeout; offer/answer wait for full ICE gather; auto-teardown+retry on failure
+- Removed Video Call sidebar nav link from all 9 pages
+
+### [Session 9 — 2026-04-07]
+- webinars.html: full host control overlay (pre/live controls, participant panel, raise hand, end with summary)
+- analytics.html: 6 stat cards, Chart.js activity chart, skills table, global rank, 8 badges, creator section
+
+### [Session 8 — 2026-04-06]
+- Replaced globe on index/login/signup with premium dot-matrix version
+- messages.html: mobile input fix (sticky, 100dvh, FAB hides in chat)
+- videocall.html: ICE race condition fix (safeSetRemoteDescription, handleIncomingCandidate, state reset)
+- call-notify.js: switched from broadcast to call_invites DB table for reliable delivery; polls missed invites on subscribe
+
+### [Sessions 1–7 — 2026-04-01 to 2026-04-06]
+- Built all pages from scratch; black/glass design system applied to all
+- Replaced Daily.co with custom WebRTC; replaced Jitsi in videocall with WebRTC
+- Fixed auth bugs (login, signup, OAuth); Google OAuth + auto-profile creation
+- Mobile sidebar fix on all 9 pages; various UX polish across pages
