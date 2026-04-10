@@ -317,6 +317,7 @@ body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;cursor:non
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-client.js"></script>
 <script src="input-validation.js"></script>
+<script src="rate-limiter.js"></script>
 <script>
 
 // Custom cursor
@@ -493,6 +494,8 @@ function startTimer(){
 // ── Go Live ───────────────────────────────────────────────────────────────────
 async function goLive(){
   const btn=document.getElementById('goLiveBtn');
+  const rl=RateLimiter.check('webinar_live');
+  if(!rl.allowed){showToast(`Too many attempts. Try again in ${rl.wait} min.`);return;}
   btn.disabled=true;btn.textContent='Going live...';
   const{error}=await sb.from('webinars').update({is_live:true,status:'live'}).eq('id',webinarId);
   if(error){
@@ -752,6 +755,8 @@ function confirmEnd(){
 }
 
 async function endWebinar(){
+  const rl=RateLimiter.check('webinar_end');
+  if(!rl.allowed){showToast(`Too many attempts. Try again in ${rl.wait} min.`);return;}
   const elapsed=hostStartTime?Math.floor((Date.now()-hostStartTime)/60000):0;
   const attCount=Object.keys(attendeeMap).length;
   if(ctrlChannel)await ctrlChannel.send({type:'broadcast',event:'host_command',payload:{cmd:'end_webinar'}});

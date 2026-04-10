@@ -913,6 +913,7 @@ body::before {
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-client.js"></script>
 <script src="input-validation.js"></script>
+<script src="rate-limiter.js"></script>
 <script>
 
 // Cursor (legacy — targets hidden elements)
@@ -1088,6 +1089,9 @@ async function submitSignup() {
   if (!InputValidator.email(email)) return showAlert('error', 'Invalid email address.');
   if (!InputValidator.password(password)) return showAlert('error', 'Password must be 8–128 characters.');
   if (bio.length > 500) return showAlert('error', 'Bio must be under 500 characters.');
+
+  const rl = RateLimiter.check('signup');
+  if (!rl.allowed) return showAlert('error', `Too many attempts. Try again in ${rl.wait} minute${rl.wait !== 1 ? 's' : ''}.`);
 
   setLoading('btn3', true);
 

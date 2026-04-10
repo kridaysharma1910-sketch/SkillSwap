@@ -31,6 +31,18 @@
   if (window.__ssCallNotifyInit) return;
   window.__ssCallNotifyInit = true;
 
+  // Inline rate limiter — max 5 per 15 min per key (mirrors rate-limiter.js)
+  function rlCheck(key) {
+    const MAX = 5, WINDOW = 15 * 60 * 1000, now = Date.now();
+    let s;
+    try { s = JSON.parse(localStorage.getItem('rl_' + key)); } catch(e) { s = null; }
+    if (!s || now - s.start >= WINDOW) s = { count: 0, start: now };
+    if (s.count >= MAX) return { allowed: false, wait: Math.ceil((WINDOW - (now - s.start)) / 60000) };
+    s.count++;
+    try { localStorage.setItem('rl_' + key, JSON.stringify(s)); } catch(e) {}
+    return { allowed: true };
+  }
+
   const ACTIVE_CALL_KEY = 'ss_active_call';
 
   let notifyClient, notifyChannel;
@@ -197,6 +209,8 @@
 
     // Accept
     document.getElementById('__ssCallAccept').onclick = async () => {
+      const rlA = rlCheck('call_accept');
+      if (!rlA.allowed) { alert(`Too many attempts. Try again in ${rlA.wait} min.`); return; }
       clearTimeout(dismissTimer);
       // Broadcast 'accepted' on signal channel so caller's ringing screen transitions
       await broadcastSignal(roomId, 'accepted');
@@ -213,6 +227,8 @@
 
     // Decline
     document.getElementById('__ssCallDecline').onclick = async () => {
+      const rlD = rlCheck('call_decline');
+      if (!rlD.allowed) { hideOverlay(); return; } // silently hide if rate-limited
       clearTimeout(dismissTimer);
       // Broadcast 'declined' so caller's ringing screen shows "Call declined"
       broadcastSignal(roomId, 'declined'); // fire-and-forget, don't await

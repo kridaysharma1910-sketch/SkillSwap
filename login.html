@@ -751,6 +751,7 @@ body {
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-client.js"></script>
 <script src="input-validation.js"></script>
+<script src="rate-limiter.js"></script>
 <script>
 
 // Already logged in? redirect
@@ -798,6 +799,9 @@ async function handleLogin() {
   if (!InputValidator.email(email)) return showAlert('alertBox', 'error', 'Please enter a valid email address.');
   if (password.length > 128) return showAlert('alertBox', 'error', 'Password is too long.');
 
+  const rl = RateLimiter.check('login');
+  if (!rl.allowed) return showAlert('alertBox', 'error', `Too many attempts. Try again in ${rl.wait} minute${rl.wait !== 1 ? 's' : ''}.`);
+
   const btn = document.getElementById('loginBtn');
   btn.disabled = true;
   btn.classList.add('loading');
@@ -828,6 +832,9 @@ async function handleReset() {
   const email = document.getElementById('resetEmail').value.trim();
   if (!email) return showAlert('resetAlert', 'error', 'Please enter your email.');
   if (!InputValidator.email(email)) return showAlert('resetAlert', 'error', 'Please enter a valid email address.');
+
+  const rl = RateLimiter.check('reset');
+  if (!rl.allowed) return showAlert('resetAlert', 'error', `Too many attempts. Try again in ${rl.wait} minute${rl.wait !== 1 ? 's' : ''}.`);
 
   const btn = document.getElementById('resetBtn');
   btn.disabled = true;

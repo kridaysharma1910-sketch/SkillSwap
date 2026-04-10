@@ -226,6 +226,7 @@ body{background:#000;color:#fff;font-family:'DM Sans',sans-serif;height:100vh;di
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-client.js"></script>
 <script src="input-validation.js"></script>
+<script src="rate-limiter.js"></script>
 <script>
 
 // ── cursor ──
@@ -750,6 +751,16 @@ async function init() {
   }
   // Drop a malformed matchId so it doesn't reach DB queries
   if (matchId && !InputValidator.uuid(matchId)) { matchId = null; }
+
+  // Rate limit call initiations
+  const rl = RateLimiter.check('call_init');
+  if (!rl.allowed) {
+    const noRoom = document.getElementById('noRoomState');
+    noRoom.querySelector('h2').textContent = 'Too many attempts';
+    noRoom.querySelector('p').textContent = `You've made too many call attempts. Try again in ${rl.wait} minute${rl.wait !== 1 ? 's' : ''}.`;
+    noRoom.style.display = 'flex';
+    return;
+  }
 
   // Resolve partner info for the join/waiting screens
   let peerName = 'Partner', peerInitials = '?';
