@@ -106,7 +106,7 @@ body{background:#000;color:#fff;font-family:'DM Sans',sans-serif;height:100vh;di
   .join-screen{margin-left:0;}
 }
 /* ── RINGING SCREEN (caller waits for callee to accept) ── */
-.ringing-screen{position:fixed;inset:0;margin-left:var(--sidebar-w);z-index:300;background:radial-gradient(ellipse at center,rgba(139,92,246,0.1) 0%,#000 70%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:32px;}
+.ringing-screen{position:fixed;inset:0;margin-left:var(--sidebar-w);z-index:300;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:32px;}
 .ringing-screen.hidden{display:none;}
 .ringing-avatar{width:88px;height:88px;border-radius:50%;background:rgba(139,92,246,0.12);border:2px solid rgba(139,92,246,0.3);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:700;color:rgba(167,139,250,0.8);overflow:hidden;animation:ringPulse 1.5s ease-in-out infinite;}
 @keyframes ringPulse{0%,100%{box-shadow:0 0 0 0 rgba(139,92,246,0.35);}50%{box-shadow:0 0 0 28px rgba(139,92,246,0);}}
@@ -799,6 +799,8 @@ async function init() {
     document.getElementById('ringSub').textContent = 'Ringing...';
     document.getElementById('ringingScreen').classList.remove('hidden');
     document.getElementById('callStage').style.display = 'block';
+    // Hide the waiting-bg so its avatar/name doesn't show through the ringing screen
+    document.getElementById('waitingBg').style.display = 'none';
     callActive = true;
     saveCallState();
     // 30s no-answer timeout
