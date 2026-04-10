@@ -78,6 +78,8 @@ Skill-exchange platform: users list skills they offer/want, get matched, swap se
 - All Supabase calls use async/await
 - Supabase JS client loaded via CDN
 - All 9 sidebar pages share same sidebar pattern with `#sidebar-overlay` for mobile
+- `input-validation.js` loaded on every page that handles user input (after `supabase-client.js`)
+- All user-controlled values rendered into the DOM use `.textContent` / `setAttribute` — never `innerHTML` with raw input
 
 ---
 
@@ -125,6 +127,13 @@ Skill-exchange platform: users list skills they offer/want, get matched, swap se
 - Google OAuth enabled; dashboard.html auto-creates profile on first OAuth login (detects PGRST116)
 - `profiles` saves to both `skills_offering/wanting` (new) and `skills_offered/wanted` (legacy) for compatibility
 
+### Input Validation (input-validation.js)
+- Shared `InputValidator` module loaded on all pages with user input
+- Validators: `email` (RFC-5321, ≤254), `password` (8–128 chars), `name` (≤100), `username` (alphanum+underscore, ≤50), `text(v, max)`, `url` (https:// only, ≤300), `uuid` (v4), `roomId` (alphanum/dash/underscore, 4–64), `skill` (2–80), `int(v, min, max)`, `price(v, max)`
+- Per-page limits: messages ≤5000 chars; chat ≤500; webinar title ≤200, desc ≤2000, duration 1–480 min, attendees 1–1000, price $0–9999, date must be future; profile bio ≤500, location ≤100
+- `call-notify.js` has inline equivalents (no external dependency): validates `roomId` format before rendering overlay, strips HTML chars from `callerName`, rejects non-https avatar URLs, enforces UUID format on `inviteId`/`matchId`
+- `videocall.html` validates `?room=` param format and silently drops a malformed `?match=` UUID
+
 ---
 
 ## Known Issues / Pending
@@ -171,6 +180,18 @@ Start by telling me: what's the current state per CLAUDE.md, and what are we bui
 ---
 
 ## Session Log
+
+### [Session 15 — 2026-04-10]
+- Created `input-validation.js`: shared `InputValidator` module with helpers for email, password, name, username, text, url, uuid, roomId, skill, int, price
+- login.html: email format + password length cap on login and password-reset flows
+- signup.html: email format, password 8–128 chars, first/last name ≤50, username format, bio ≤500; skill tags capped at 80 chars and 20 per array
+- profile.html: fullName ≤100, username format, bio ≤500, location ≤100, website https:// URL; skill tags max 80 chars
+- messages.html: outgoing message content capped at 5000 chars
+- webinars.html: createWebinar validates title ≤200, desc ≤2000, duration 1–480, attendees 1–1000, price $0–9999, date must be future; savePreSession same title/desc checks; attendee chat ≤500 chars
+- webinar-host.html: host chat messages capped at 500 chars
+- videocall.html: URL param `?room=` validated against roomId format; malformed `?match=` UUID dropped silently
+- call-notify.js: inline validators added — roomId format checked before overlay renders; callerName HTML-stripped and capped at 100 chars; callerAvatar must be https://; inviteId/matchId enforced as UUIDs
+- XSS hardening (prior session): all user-controlled data rendered via `.textContent` / safe DOM methods across all pages
 
 ### [Session 14 — 2026-04-10]
 - videocall.html: WhatsApp-style ringing screen for caller (pulsing avatar, "Ringing...", red cancel button); callee auto-starts WebRTC directly (no join screen); iOS fallback join screen if getUserMedia throws NotAllowedError
