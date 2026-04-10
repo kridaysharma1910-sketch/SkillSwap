@@ -316,6 +316,7 @@ body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;cursor:non
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-client.js"></script>
+<script src="input-validation.js"></script>
 <script>
 
 // Custom cursor
@@ -649,6 +650,7 @@ function sendChat(){
   const input=document.getElementById('chatInput');
   const text=input.value.trim();
   if(!text||!ctrlChannel)return;
+  if(!InputValidator.text(text,500))return;
   input.value='';
   const payload={userId:currentUserId,name:myName,text,ts:Date.now()};
   ctrlChannel.send({type:'broadcast',event:'chat_msg',payload});

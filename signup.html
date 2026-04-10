@@ -912,6 +912,7 @@ body::before {
 <!-- Supabase -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-client.js"></script>
+<script src="input-validation.js"></script>
 <script>
 
 // Cursor (legacy — targets hidden elements)
@@ -962,6 +963,8 @@ function setupTagInput(inputId, wrapId, tagsArr) {
     if ((e.key === 'Enter' || e.key === ',') && this.value.trim()) {
       e.preventDefault();
       const val = this.value.trim().replace(',', '');
+      if (!InputValidator.skill(val)) { this.value = ''; return; }
+      if (tagsArr.length >= 20) { this.value = ''; return; }
       if (!tagsArr.includes(val)) {
         tagsArr.push(val);
         renderTags(wrapId, inputId, tagsArr);
@@ -1040,8 +1043,11 @@ async function nextStep(from) {
     const pw = document.getElementById('password').value;
 
     if (!fn || !ln || !un || !em || !pw) return showAlert('error', 'Please fill in all fields.');
-    if (pw.length < 8) return showAlert('error', 'Password must be at least 8 characters.');
-    if (!/^[a-zA-Z0-9_]+$/.test(un)) return showAlert('error', 'Username can only contain letters, numbers, and underscores.');
+    if (fn.length > 50) return showAlert('error', 'First name is too long (max 50 characters).');
+    if (ln.length > 50) return showAlert('error', 'Last name is too long (max 50 characters).');
+    if (!InputValidator.email(em)) return showAlert('error', 'Please enter a valid email address.');
+    if (!InputValidator.password(pw)) return showAlert('error', 'Password must be 8–128 characters.');
+    if (!InputValidator.username(un)) return showAlert('error', 'Username: 1–50 characters, letters/numbers/underscores only.');
 
     setLoading('btn1', true);
     const { data: existing } = await sb.from('profiles').select('id').eq('username', un).single();
@@ -1078,6 +1084,10 @@ async function submitSignup() {
   const username = document.getElementById('username').value.trim();
   const bio = document.getElementById('bio').value.trim();
   const plan = document.querySelector('input[name="plan"]:checked').value;
+
+  if (!InputValidator.email(email)) return showAlert('error', 'Invalid email address.');
+  if (!InputValidator.password(password)) return showAlert('error', 'Password must be 8–128 characters.');
+  if (bio.length > 500) return showAlert('error', 'Bio must be under 500 characters.');
 
   setLoading('btn3', true);
 

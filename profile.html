@@ -286,6 +286,7 @@ body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;min-height
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-client.js"></script>
+<script src="input-validation.js"></script>
 <script>
 
 // Cursor
@@ -391,7 +392,7 @@ function renderTags(type){
 
 function addSkill(type,value){
   const v=value.trim().replace(/,+$/,'');
-  if(!v||v.length<2)return;
+  if(!InputValidator.skill(v))return;
   const arr=type==='offered'?offeredSkills:wantedSkills;
   if(arr.includes(v)||arr.length>=15)return;
   arr.push(v);
@@ -440,10 +441,13 @@ async function saveProfile(){
   const website=document.getElementById('website').value.trim();
   const hoursPerWeek=document.getElementById('hoursPerWeek').value;
   const sessionFormat=document.getElementById('sessionFormat').value;
-  if(!fullName){
-    btn.disabled=false;btn.innerHTML='<svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Save Profile';
-    return showAlert('error','Please enter your full name.');
-  }
+  const resetBtn=()=>{btn.disabled=false;btn.innerHTML='<svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Save Profile';};
+  if(!fullName){resetBtn();return showAlert('error','Please enter your full name.');}
+  if(fullName.length>100){resetBtn();return showAlert('error','Full name is too long (max 100 characters).');}
+  if(username&&!InputValidator.username(username)){resetBtn();return showAlert('error','Username: 1–50 characters, letters/numbers/underscores only.');}
+  if(!InputValidator.text(bio,500)){resetBtn();return showAlert('error','Bio must be under 500 characters.');}
+  if(!InputValidator.text(location,100)){resetBtn();return showAlert('error','Location is too long (max 100 characters).');}
+  if(!InputValidator.url(website)){resetBtn();return showAlert('error','Website must be a valid https:// URL (max 300 characters).');}
   // Upload avatar if new file selected
   let avatarUrl=currentAvatarUrl;
   if(avatarFileToUpload){

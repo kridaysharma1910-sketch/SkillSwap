@@ -491,6 +491,7 @@ body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;min-height
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-client.js"></script>
+<script src="input-validation.js"></script>
 <script>
 
 const cur=document.getElementById('ss-cursor'),ring=document.getElementById('ss-ring');
@@ -707,8 +708,15 @@ async function createWebinar(){
   const isPaid=document.getElementById('wPaid').value==='paid';
   const price=isPaid?parseFloat(document.getElementById('wPrice').value)||0:0;
   const alertEl=document.getElementById('hostAlert');
-  if(!title){alertEl.className='modal-alert error';alertEl.textContent='Please enter a title.';return;}
-  if(!dateVal){alertEl.className='modal-alert error';alertEl.textContent='Please set a date and time.';return;}
+  function wErr(msg){alertEl.className='modal-alert error';alertEl.textContent=msg;}
+  if(!title){wErr('Please enter a title.');return;}
+  if(!InputValidator.text(title,200)){wErr('Title is too long (max 200 characters).');return;}
+  if(!InputValidator.text(desc,2000)){wErr('Description is too long (max 2000 characters).');return;}
+  if(!dateVal){wErr('Please set a date and time.');return;}
+  if(new Date(dateVal)<=new Date()){wErr('Scheduled time must be in the future.');return;}
+  if(!InputValidator.int(duration,1,480)){wErr('Duration must be between 1 and 480 minutes.');return;}
+  if(!InputValidator.int(maxAtt,1,1000)){wErr('Max attendees must be between 1 and 1000.');return;}
+  if(isPaid&&!InputValidator.price(price,9999)){wErr('Price must be between $0 and $9999.');return;}
   alertEl.className='modal-alert';
   const btn=document.getElementById('createBtn');
   btn.disabled=true;btn.textContent='Creating...';
@@ -1050,7 +1058,10 @@ async function savePreSession(){
   const desc=document.getElementById('psDesc').value.trim();
   const dateVal=document.getElementById('psDate').value;
   const alertEl=document.getElementById('psAlert');
-  if(!title){alertEl.className='modal-alert error';alertEl.style.display='block';alertEl.textContent='Title is required.';return;}
+  function psErr(msg){alertEl.className='modal-alert error';alertEl.style.display='block';alertEl.textContent=msg;}
+  if(!title){psErr('Title is required.');return;}
+  if(!InputValidator.text(title,200)){psErr('Title is too long (max 200 characters).');return;}
+  if(!InputValidator.text(desc,2000)){psErr('Description is too long (max 2000 characters).');return;}
   alertEl.style.display='none';
   const payload={title,description:desc||null};
   if(dateVal)payload.scheduled_at=new Date(dateVal).toISOString();
@@ -1100,6 +1111,7 @@ function sendPartChat(){
   const input=document.getElementById('partChatInput');
   const text=input?.value.trim();
   if(!text||!currentParticipantWebinarId)return;
+  if(!InputValidator.text(text,500))return;
   input.value='';
   const ch=attendeeChannels[currentParticipantWebinarId];
   if(!ch)return;

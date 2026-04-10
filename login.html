@@ -750,6 +750,7 @@ body {
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-client.js"></script>
+<script src="input-validation.js"></script>
 <script>
 
 // Already logged in? redirect
@@ -794,6 +795,8 @@ async function handleLogin() {
   const password = document.getElementById('password').value;
 
   if (!email || !password) return showAlert('alertBox', 'error', 'Please fill in all fields.');
+  if (!InputValidator.email(email)) return showAlert('alertBox', 'error', 'Please enter a valid email address.');
+  if (password.length > 128) return showAlert('alertBox', 'error', 'Password is too long.');
 
   const btn = document.getElementById('loginBtn');
   btn.disabled = true;
@@ -824,6 +827,7 @@ async function handleReset() {
   hideAlert('resetAlert');
   const email = document.getElementById('resetEmail').value.trim();
   if (!email) return showAlert('resetAlert', 'error', 'Please enter your email.');
+  if (!InputValidator.email(email)) return showAlert('resetAlert', 'error', 'Please enter a valid email address.');
 
   const btn = document.getElementById('resetBtn');
   btn.disabled = true;

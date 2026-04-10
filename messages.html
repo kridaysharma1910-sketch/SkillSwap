@@ -230,6 +230,7 @@ body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;display:fl
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-client.js"></script>
+<script src="input-validation.js"></script>
 <script>
 
 const cur=document.getElementById('ss-cursor'),ring=document.getElementById('ss-ring');
@@ -514,6 +515,7 @@ async function sendMessage(){
   const input=document.getElementById('msgInput');
   const content=input.value.trim();
   if(!content||!currentMatchId)return;
+  if(!InputValidator.text(content,5000))return;
   input.value='';input.style.height='auto';
   const{error}=await sb.from('messages').insert({match_id:currentMatchId,sender_id:currentUserId,content});
   if(error){console.error('Send message error:',error);return;}

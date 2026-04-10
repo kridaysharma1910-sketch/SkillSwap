@@ -116,9 +116,24 @@
     });
   }
 
+  /* ── Inline validation helpers (no external dependency) ── */
+  const _ROOM_ID_RE = /^[a-zA-Z0-9_\-]{4,64}$/;
+  const _UUID_RE    = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const _HTTPS_RE   = /^https:\/\/[^\s<>'"]{1,400}$/;
+
+  function _validRoomId(v) { return typeof v === 'string' && _ROOM_ID_RE.test(v); }
+  function _validUuid(v)   { return typeof v === 'string' && _UUID_RE.test(v); }
+  /** Sanitise a caller-supplied display name: strip to plain text, cap at 100 chars */
+  function _safeName(v)    { return (typeof v === 'string' ? v : '').replace(/[<>"']/g, '').slice(0, 100) || 'Someone'; }
+  /** Only allow https:// avatar URLs; reject data: and javascript: URIs */
+  function _safeAvatar(v)  { return (typeof v === 'string' && _HTTPS_RE.test(v)) ? v : null; }
+
   /* ── Show overlay ── */
   function showOverlay(payload) {
     if (window.location.pathname.includes('videocall')) return;
+
+    // Validate the room ID before doing anything with the payload
+    if (!_validRoomId(payload.roomId)) return;
 
     // Deduplicate: ignore same invite shown twice (e.g. page open in two tabs)
     const dedupKey = '__ssCall_' + payload.roomId;
@@ -129,11 +144,17 @@
     injectStyles();
     injectOverlay();
     const overlay = document.getElementById('__ssCallOverlay');
-    const { callerName, callerAvatar, roomId, matchId, inviteId } = payload;
-    currentInviteId = inviteId || null;
-    currentRoomId = roomId || null;
-    currentMatchId = matchId || null;
-    const isVoice = roomId && roomId.startsWith('VOICE_');
+    const rawInviteId  = payload.inviteId  || null;
+    const rawMatchId   = payload.matchId   || null;
+    const roomId       = payload.roomId;
+    const callerName   = _safeName(payload.callerName);
+    const callerAvatar = _safeAvatar(payload.callerAvatar);
+    const inviteId  = (rawInviteId  && _validUuid(rawInviteId))  ? rawInviteId  : null;
+    const matchId   = (rawMatchId   && _validUuid(rawMatchId))   ? rawMatchId   : null;
+    currentInviteId = inviteId;
+    currentRoomId   = roomId;
+    currentMatchId  = matchId;
+    const isVoice = roomId.startsWith('VOICE_');
     const typeEl = document.getElementById('__ssCallType');
     if (typeEl) typeEl.textContent = isVoice ? 'Incoming voice call' : 'Incoming video call';
 
@@ -146,10 +167,10 @@
       avatarEl.innerHTML = '';
       avatarEl.appendChild(img);
     } else {
-      avatarEl.textContent = (callerName || '?')
+      avatarEl.textContent = callerName
         .split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
     }
-    document.getElementById('__ssCallName').textContent = callerName || 'Someone';
+    document.getElementById('__ssCallName').textContent = callerName;
 
     // 30-second countdown bar
     const bar = document.getElementById('__ssCallBar');

@@ -225,6 +225,7 @@ body{background:#000;color:#fff;font-family:'DM Sans',sans-serif;height:100vh;di
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-client.js"></script>
+<script src="input-validation.js"></script>
 <script>
 
 // ── cursor ──
@@ -743,10 +744,12 @@ async function init() {
   isCaller = params.get('caller') === '1';
   isVoiceOnly = params.get('voice') === '1';
 
-  if (!roomId) {
+  if (!roomId || !InputValidator.roomId(roomId)) {
     document.getElementById('noRoomState').style.display = 'flex';
     return;
   }
+  // Drop a malformed matchId so it doesn't reach DB queries
+  if (matchId && !InputValidator.uuid(matchId)) { matchId = null; }
 
   // Resolve partner info for the join/waiting screens
   let peerName = 'Partner', peerInitials = '?';
