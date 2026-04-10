@@ -375,14 +375,60 @@ function bubbleContent(content,isMine,matchId){
     const icon=isVoice
       ?`<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.45 2 2 0 0 1 3.58 1.27h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9a16 16 0 0 0 6.06 6.06l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>`
       :`<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>`;
-    return`<div style="display:flex;flex-direction:column;gap:8px;">
+    // data-call-room used by updateCallBubbleStatuses() to patch in ended/declined state
+    return`<div data-call-room="${roomId}" style="display:flex;flex-direction:column;gap:8px;">
       <span style="font-size:.8rem;opacity:.7;">${label}</span>
-      <a href="${href}" style="display:inline-flex;align-items:center;gap:6px;background:#fff;color:#080808;padding:8px 14px;border-radius:9px;font-family:'Syne',sans-serif;font-size:.8rem;font-weight:700;text-decoration:none;width:fit-content;">
+      <a class="call-join-btn" href="${href}" style="display:inline-flex;align-items:center;gap:6px;background:#fff;color:#080808;padding:8px 14px;border-radius:9px;font-family:'Syne',sans-serif;font-size:.8rem;font-weight:700;text-decoration:none;width:fit-content;">
         ${icon}${isVoice?'Join Voice Call':'Join Call'}
       </a>
+      <span class="call-ended-label" style="display:none;font-size:.78rem;color:rgba(255,255,255,.32);"></span>
     </div>`;
   }
   return content||'';
+}
+
+// Async: after rendering messages, check call_invites statuses and update call bubbles
+async function updateCallBubbleStatuses(){
+  const bubbles=document.querySelectorAll('[data-call-room]');
+  if(!bubbles.length)return;
+  const roomIds=[...bubbles].map(b=>b.dataset.callRoom);
+  const{data}=await sb.from('call_invites')
+    .select('room_id,status,created_at')
+    .in('room_id',roomIds)
+    .order('created_at',{ascending:false});
+  if(!data||!data.length)return;
+  // Latest status per roomId
+  const statusMap={},timeMap={};
+  data.forEach(inv=>{
+    if(!statusMap[inv.room_id]){statusMap[inv.room_id]=inv.status;timeMap[inv.room_id]=inv.created_at;}
+  });
+  bubbles.forEach(bubble=>{
+    const rId=bubble.dataset.callRoom;
+    const status=statusMap[rId];
+    if(!status)return;
+    const joinBtn=bubble.querySelector('.call-join-btn');
+    const endedLabel=bubble.querySelector('.call-ended-label');
+    const ENDED=['ended','declined','cancelled','expired'];
+    if(ENDED.includes(status)){
+      if(joinBtn)joinBtn.style.display='none';
+      if(endedLabel){
+        let txt='Call ended';
+        if(status==='declined')txt='Call declined';
+        else if(status==='cancelled')txt='Call cancelled';
+        else if(status==='expired')txt='No answer';
+        endedLabel.textContent=txt;
+        endedLabel.style.display='inline';
+      }
+    } else if(status==='pending'||status==='accepted'){
+      // If older than 4 hours treat as expired
+      const ageH=(Date.now()-new Date(timeMap[rId]).getTime())/3600000;
+      if(ageH>4){
+        if(joinBtn)joinBtn.style.display='none';
+        if(endedLabel){endedLabel.textContent='Call expired';endedLabel.style.display='inline';}
+      }
+      // else: keep showing the Join button
+    }
+  });
 }
 
 function renderMessages(msgs){
@@ -412,6 +458,8 @@ function renderMessages(msgs){
   });
   area.innerHTML=html;
   area.scrollTop=area.scrollHeight;
+  // Async: patch call bubbles with ended/declined status from DB
+  updateCallBubbleStatuses();
 }
 
 function appendMessage(msg){
@@ -425,6 +473,10 @@ function appendMessage(msg){
   div.innerHTML=`<div class="msg-av">${av}</div><div><div class="msg-bubble">${bubbleContent(msg.content,isMine,currentMatchId)}</div><div class="msg-time">${t}</div></div>`;
   area.appendChild(div);
   area.scrollTop=area.scrollHeight;
+  // Update call bubble status if this was a call invite
+  if(msg.content&&(msg.content.startsWith('CALL_INVITE::')||msg.content.startsWith('VOICE_INVITE::'))) {
+    updateCallBubbleStatuses();
+  }
 }
 
 function subscribeToMessages(matchId){
