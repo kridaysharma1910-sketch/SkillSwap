@@ -404,7 +404,7 @@ function buildSkillsTable(skillsOffering,allMatches){
         const pct=s.requests>0?Math.round((s.completed/s.requests)*100):0;
         const barPct=Math.round((s.requests/maxReq)*100);
         return`<tr>
-          <td><div class="skill-name-cell"><div class="skill-dot ${i%2===0?'skill-dot-v':'skill-dot-c'}"></div><div><div>${s.skill}</div><div class="skill-mini-bar"><div class="skill-mini-fill" style="width:${barPct}%;"></div></div></div></div></td>
+          <td><div class="skill-name-cell"><div class="skill-dot ${i%2===0?'skill-dot-v':'skill-dot-c'}"></div><div><div>${escHtml(s.skill)}</div><div class="skill-mini-bar"><div class="skill-mini-fill" style="width:${barPct}%;"></div></div></div></div></td>
           <td>${s.requests||'—'}</td>
           <td>${s.completed||'—'}</td>
           <td>${s.requests>0?pct+'%':'—'}</td>
@@ -412,7 +412,7 @@ function buildSkillsTable(skillsOffering,allMatches){
       }).join('')}</tbody>
     </table>
     ${zeroSkills.length>0&&hasActivity?`<div style="margin-top:12px;padding:10px 12px;background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:10px;font-size:.78rem;color:var(--text-muted);">
-      <strong style="color:rgba(255,255,255,.4);">Tip:</strong> ${zeroSkills.length} skill${zeroSkills.length!==1?'s have':'has'} 0 activity (${zeroSkills.map(s=>s.skill).join(', ')}). Consider refreshing your profile description to attract more swaps.
+      <strong style="color:rgba(255,255,255,.4);">Tip:</strong> ${zeroSkills.length} skill${zeroSkills.length!==1?'s have':'has'} 0 activity (${zeroSkills.map(s=>escHtml(s.skill)).join(', ')}). Consider refreshing your profile description to attract more swaps.
     </div>`:''}
   `;
 }
@@ -457,6 +457,8 @@ async function loadCreatorStats(userId){
     document.getElementById('bestWebinarSub').textContent=`${best.attendee_count} attendees — your top performing webinar`;
   }
 }
+
+function escHtml(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 
 async function init(){
   if(window.innerWidth>900&&localStorage.getItem('ss_sidebar')==='0')document.body.classList.add('sidebar-collapsed');

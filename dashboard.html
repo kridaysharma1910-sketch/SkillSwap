@@ -404,6 +404,8 @@ async function handleLogout(){
   window.location.href='index.html';
 }
 
+function escHtml(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+
 async function init(){
   if(window.innerWidth>900&&localStorage.getItem('ss_sidebar')==='0')document.body.classList.add('sidebar-collapsed');
   const { data:{ session } } = await sb.auth.getSession();
@@ -451,10 +453,10 @@ async function init(){
   const offered = profile?.skills_offering || profile?.skills_offered || [];
   const wanted = profile?.skills_wanting || profile?.skills_wanted || [];
   if(offered.length > 0){
-    document.getElementById('offeredSkills').innerHTML = offered.map(s=>`<span class="skill-tag-v">${s}</span>`).join('');
+    document.getElementById('offeredSkills').innerHTML = offered.map(s=>`<span class="skill-tag-v">${escHtml(s)}</span>`).join('');
   }
   if(wanted.length > 0){
-    document.getElementById('wantedSkills').innerHTML = wanted.map(s=>`<span class="skill-tag-c">${s}</span>`).join('');
+    document.getElementById('wantedSkills').innerHTML = wanted.map(s=>`<span class="skill-tag-c">${escHtml(s)}</span>`).join('');
   }
 
   // Profile completion banner
@@ -516,17 +518,17 @@ async function init(){
       const peerName = peer?.full_name || 'Skill Swapper';
       const initials = peerName.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
       const avatarHtml = peer?.avatar_url
-        ? `<img src="${peer.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
+        ? `<img src="${escHtml(peer.avatar_url)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
         : initials;
       const statusMap = {pending:'Pending',accepted:'Active',rejected:'Declined',completed:'Done'};
       const badgeMap = {pending:'badge-pending',accepted:'badge-active',rejected:'',completed:'badge-active'};
       const swap = isSender
-        ? `${m.skill_offered||'?'} → ${m.skill_wanted||'?'}`
-        : `${m.skill_wanted||'?'} → ${m.skill_offered||'?'}`;
+        ? `${escHtml(m.skill_offered||'?')} → ${escHtml(m.skill_wanted||'?')}`
+        : `${escHtml(m.skill_wanted||'?')} → ${escHtml(m.skill_offered||'?')}`;
       return `<div class="match-item" onclick="window.location.href='messages.html?match=${m.id}'" style="cursor:none;">
         <div class="match-avatar">${avatarHtml}</div>
         <div class="match-info">
-          <div class="match-name">${peerName}</div>
+          <div class="match-name">${escHtml(peerName)}</div>
           <div class="match-swap">${swap}</div>
         </div>
         <span class="match-badge ${badgeMap[m.status]||'badge-pending'}">${statusMap[m.status]||m.status}</span>

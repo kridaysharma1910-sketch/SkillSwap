@@ -142,8 +142,11 @@
     // Avatar
     const avatarEl = document.getElementById('__ssCallAvatar');
     if (callerAvatar) {
-      avatarEl.innerHTML = `<img src="${callerAvatar}"
-        style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+      const img = document.createElement('img');
+      img.src = callerAvatar;
+      img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:50%;';
+      avatarEl.innerHTML = '';
+      avatarEl.appendChild(img);
     } else {
       avatarEl.textContent = (callerName || '?')
         .split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);

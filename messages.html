@@ -312,16 +312,17 @@ function renderConvosList(convos){
     const av=avatarHtml(peer);
     const name=peer?.full_name||peer?.username||'Skill Swapper';
     const lastMsg=c.last_msg||'';
-    const preview=lastMsg.startsWith('CALL_INVITE::')
+    const rawPreview=lastMsg.startsWith('CALL_INVITE::')
       ? '📹 Video call'
       : lastMsg.startsWith('VOICE_INVITE::')
         ? '📞 Voice call'
         : lastMsg.slice(0,36)+(lastMsg.length>36?'...':'') || 'No messages yet';
+    const preview=escHtml(rawPreview);
     const t=c.last_ts?timeAgo(c.last_ts):'';
     const isActive=c.id===currentMatchId;
     return`<div class="convo-item${isActive?' active':''}" onclick="openConvo('${c.id}')">
       <div class="convo-avatar">${av}</div>
-      <div class="convo-info"><div class="convo-name">${name}</div><div class="convo-preview">${preview}</div></div>
+      <div class="convo-info"><div class="convo-name">${escHtml(name)}</div><div class="convo-preview">${preview}</div></div>
       <span class="convo-time">${t}</span>
     </div>`;
   }).join('');
@@ -391,6 +392,8 @@ async function fetchCallStatuses(msgs){
   });
 }
 
+function escHtml(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+
 // Synchronous — uses cachedCallStatuses populated before render
 function bubbleContent(content,isMine,matchId){
   if(content&&(content.startsWith('CALL_INVITE::')||content.startsWith('VOICE_INVITE::'))) {
@@ -436,7 +439,7 @@ function bubbleContent(content,isMine,matchId){
       </a>
     </div>`;
   }
-  return content||'';
+  return escHtml(content);
 }
 
 function renderMessages(msgs){

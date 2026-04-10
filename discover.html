@@ -176,6 +176,7 @@ document.querySelectorAll('a,button,select,input').forEach(el=>{el.addEventListe
 function toggleSidebar(){if(window.innerWidth<=900){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebar-overlay').classList.toggle('show');}else{const c=document.body.classList.toggle('sidebar-collapsed');localStorage.setItem('ss_sidebar',c?'0':'1');}}
 async function handleLogout(){await sb.auth.signOut();window.location.href='index.html';}
 
+function escHtml(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 function showToast(msg,type='success'){const t=document.createElement('div');t.className='toast'+(type==='error'?' error':'');t.textContent=msg;document.body.appendChild(t);setTimeout(()=>{t.style.opacity='0';setTimeout(()=>t.remove(),300);},3000);}
 
 let currentUserId=null,mySkillsWanting=[],mySkillsOffering=[],allProfiles=[],filtered=[],sentRequests=new Set();
@@ -195,8 +196,8 @@ function matchScore(p){
 function renderCard(p,idx){
   const name=p.full_name||p.username||'Skill Swapper';
   const initials=name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
-  const avatarHtml=p.avatar_url?`<img src="${p.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`:(p.avatar_emoji||initials);
-  const bio=(p.bio||'').slice(0,100)||'No bio yet.';
+  const avatarHtml=p.avatar_url?`<img src="${escHtml(p.avatar_url)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`:(p.avatar_emoji||escHtml(initials));
+  const bio=escHtml((p.bio||'').slice(0,100)||'No bio yet.');
   const offered=(p.skills_offering||p.skills_offered||[]).slice(0,4);
   const wanted=(p.skills_wanting||p.skills_wanted||[]).slice(0,3);
   const score=matchScore(p);
@@ -207,15 +208,15 @@ function renderCard(p,idx){
     <div class="card-top">
       <div class="card-avatar">${avatarHtml}</div>
       <div class="card-meta">
-        <div class="card-name">${name}</div>
-        ${p.location?`<div class="card-location">${p.location}</div>`:''}
+        <div class="card-name">${escHtml(name)}</div>
+        ${p.location?`<div class="card-location">${escHtml(p.location)}</div>`:''}
       </div>
     </div>
     ${scorePct>0?`<div class="match-score"><span>${scorePct}% match</span><div class="score-bar"><div class="score-fill" style="width:${scorePct}%"></div></div></div>`:''}
     <div class="card-bio">${bio}</div>
     <div class="skills-section">
-      ${offered.length?`<div class="skill-section-label">Offers</div><div class="skill-tags">${offered.map(s=>`<span class="skill-tag">${s}</span>`).join('')}</div>`:''}
-      ${wanted.length?`<div class="skill-section-label">Wants to learn</div><div class="skill-tags">${wanted.map(s=>`<span class="skill-tag want">${s}</span>`).join('')}</div>`:''}
+      ${offered.length?`<div class="skill-section-label">Offers</div><div class="skill-tags">${offered.map(s=>`<span class="skill-tag">${escHtml(s)}</span>`).join('')}</div>`:''}
+      ${wanted.length?`<div class="skill-section-label">Wants to learn</div><div class="skill-tags">${wanted.map(s=>`<span class="skill-tag want">${escHtml(s)}</span>`).join('')}</div>`:''}
     </div>
     <div class="card-actions">
       <button class="btn-request${isSent?' sent':''}" id="btn-${p.id}" onclick="sendRequest('${p.id}',this)" ${isSent?'disabled':''}>

@@ -179,6 +179,7 @@ async function startWebRTCCall(matchId,partnerId){
   window.location.href='videocall.html?room='+encodeURIComponent(roomId)+'&match='+matchId+'&caller=1';
 }
 
+function escHtml(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 function showToast(msg){const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>{t.style.opacity='0';setTimeout(()=>t.remove(),300);},3000);}
 
 let currentUserId=null;
@@ -213,7 +214,7 @@ function renderTab(tab){
     const peer=isSender?m.receiver:m.sender;
     const peerName=peer?.full_name||peer?.username||'Skill Swapper';
     const offered=(peer?.skills_offering||peer?.skills_offered||[]).slice(0,3);
-    const swap=`${m.skill_offered||'?'} ↔ ${m.skill_wanted||'?'}`;
+    const swap=`${escHtml(m.skill_offered||'?')} ↔ ${escHtml(m.skill_wanted||'?')}`;
     const statusLabels={pending:'Pending',accepted:'Active',rejected:'Declined',completed:'Done'};
     const statusClasses={pending:'s-pending',accepted:'s-accepted',rejected:'s-rejected',completed:'s-completed'};
     let actionsHtml='';
@@ -226,9 +227,9 @@ function renderTab(tab){
     return`<div class="match-card" style="animation-delay:${i*.04}s">
       <div class="match-avatar">${avatarHtml(peer)}</div>
       <div class="match-body">
-        <div class="match-name">${peerName}</div>
+        <div class="match-name">${escHtml(peerName)}</div>
         <div class="match-swap">${swap}</div>
-        <div class="match-tags">${offered.map(s=>`<span class="mtag mtag-v">${s}</span>`).join('')}</div>
+        <div class="match-tags">${offered.map(s=>`<span class="mtag mtag-v">${escHtml(s)}</span>`).join('')}</div>
       </div>
       <div class="match-meta">
         <span class="match-date">${formatDate(m.created_at)}</span>
