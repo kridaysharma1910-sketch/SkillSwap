@@ -527,30 +527,34 @@ async function endCall(sendHangup) {
 
 // ── WebRTC ──
 async function initWebRTC() {
-  // Reset ICE buffering state before each fresh initialization
+  // ── Clean up any previous attempt (reconnect / re-init) ──
+  clearInterval(readyInterval);
+  clearTimeout(connectionTimeout);
+  if (signalChannel) {
+    try { sb.removeChannel(signalChannel); } catch(e) {}
+    signalChannel = null;
+  }
   iceCandidateQueue = [];
   remoteDescSet = false;
   offerSent = false;
 
-  // Get local media (voice-only mode skips video)
+  // ── Get local media ──
   try {
     localStream = await navigator.mediaDevices.getUserMedia({video: !isVoiceOnly, audio: true});
     if (isVoiceOnly) setStatus('Voice call — camera off', 2500);
   } catch(e) {
     console.error('getUserMedia error:', e);
-    // Propagate permission errors — caller of initWebRTC() shows iOS fallback join screen
+    // Propagate permission errors so caller can show iOS tap-to-join fallback
     if (e.name === 'NotAllowedError' || e.name === 'SecurityError') throw e;
     try {
       localStream = await navigator.mediaDevices.getUserMedia({video: false, audio: true});
       setStatus('Camera unavailable — audio only', 2500);
     } catch(e2) {
-      console.error('Audio-only getUserMedia error:', e2);
       setStatus('Camera & mic access denied. Check browser permissions.');
       return;
     }
   }
   document.getElementById('localVideo').srcObject = localStream;
-  // Voice-only or no video track → show cam-off placeholder immediately
   if (isVoiceOnly || localStream.getVideoTracks().length === 0) {
     camOff = true;
     document.getElementById('localVideo').style.display = 'none';
@@ -559,24 +563,21 @@ async function initWebRTC() {
     document.getElementById('waitingSub').textContent = 'Voice call — camera off';
   }
 
-  // Create peer connection
-  pc = new RTCPeerConnection({iceServers: ICE_SERVERS});
+  // ── Create peer connection ──
+  pc = new RTCPeerConnection({iceServers: ICE_SERVERS, iceTransportPolicy: 'all'});
   localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
 
-  // Remote track → show video; only hide name plate when real video arrives
   pc.ontrack = (e) => {
     const remoteVid = document.getElementById('remoteVideo');
     remoteVid.srcObject = e.streams[0];
     remoteVid.play().catch(()=>{});
-    // Hide ringing screen — call is live
     document.getElementById('ringingScreen').classList.add('hidden');
     clearTimeout(ringingTimeout);
-    // Only hide the waiting name plate if the stream actually has a live video track
+    clearTimeout(connectionTimeout);
     const hasVideo = e.streams[0].getVideoTracks().some(t => t.readyState === 'live' && t.enabled);
     if (hasVideo) {
       document.getElementById('waitingBg').style.display = 'none';
     } else {
-      // Voice call or cam-off — keep name visible, update sub text
       document.getElementById('waitingSub').textContent = 'Connected — camera off';
     }
     const dot = document.getElementById('liveDot');
@@ -587,22 +588,18 @@ async function initWebRTC() {
     if (!callStartTime) startTimer();
   };
 
-  // ICE candidate to send
   pc.onicecandidate = ({candidate}) => {
     if (candidate && signalChannel) {
       signalChannel.send({type:'broadcast', event:'ice', payload:{candidate: candidate.toJSON()}});
     }
   };
 
-  // Connection state
   pc.onconnectionstatechange = () => {
     console.log('PC state:', pc.connectionState);
     if (pc.connectionState === 'connected') {
       clearTimeout(connectionTimeout);
       clearTimeout(ringingTimeout);
-      // Hide ringing screen — call is live
       document.getElementById('ringingScreen').classList.add('hidden');
-      // Only hide name plate if there's live video
       const remoteVid = document.getElementById('remoteVideo');
       const hasVideo = remoteVid.srcObject && remoteVid.srcObject.getVideoTracks().some(t => t.readyState === 'live' && t.enabled);
       if (hasVideo) document.getElementById('waitingBg').style.display = 'none';
@@ -613,36 +610,17 @@ async function initWebRTC() {
       setStatus('Partner disconnected');
     }
     if (pc.connectionState === 'failed') {
-      // Fix C — fully tear down and recreate on failure
       clearTimeout(connectionTimeout);
-      pc.close();
-      pc = null;
-      remoteDescSet = false;
-      iceCandidateQueue = [];
-      offerSent = false;
+      pc.close(); pc = null;
       setStatus('Reconnecting...');
       document.getElementById('waitingSub').textContent = 'Reconnecting...';
       setTimeout(initWebRTC, 1500);
     }
   };
 
-  // Fix A — connection timeout: ICE restart after 8s if not connected
-  clearTimeout(connectionTimeout);
-  connectionTimeout = setTimeout(async () => {
-    if (pc && pc.connectionState !== 'connected' && isCaller) {
-      console.warn('Connection timeout — restarting ICE');
-      try {
-        const offer = await pc.createOffer({ iceRestart: true });
-        await pc.setLocalDescription(offer);
-        signalChannel.send({ type: 'broadcast', event: 'offer', payload: { sdp: offer } });
-      } catch(e) { console.error('ICE restart failed:', e); }
-    }
-  }, 8000);
-
   // ── Supabase Realtime signaling ──
   signalChannel = sb.channel(`call-${roomId}`, {config: {broadcast: {self: false}}});
 
-  // Offer (callee receives)
   signalChannel.on('broadcast', {event:'offer'}, async ({payload}) => {
     if (isCaller) return;
     try {
@@ -653,7 +631,6 @@ async function initWebRTC() {
     } catch(e) { console.error('Handle offer error:', e); }
   });
 
-  // Answer (caller receives)
   signalChannel.on('broadcast', {event:'answer'}, async ({payload}) => {
     if (!isCaller) return;
     try {
@@ -661,13 +638,11 @@ async function initWebRTC() {
     } catch(e) { console.error('Handle answer error:', e); }
   });
 
-  // ICE candidates — buffered until remote description is set
   signalChannel.on('broadcast', {event:'ice'}, async ({payload}) => {
     if (!payload.candidate) return;
     await handleIncomingCandidate(payload.candidate);
   });
 
-  // Ready — callee tells caller it joined → caller creates offer
   signalChannel.on('broadcast', {event:'ready'}, async ({payload}) => {
     if (isCaller && !offerSent) {
       offerSent = true;
@@ -676,21 +651,32 @@ async function initWebRTC() {
       try {
         const offer = await createOfferAndWaitForICE();
         signalChannel.send({type:'broadcast', event:'offer', payload:{sdp: offer}});
+        // ── ICE restart timeout — starts ONLY after the offer is sent ──
+        // (Not at initWebRTC() start, to avoid sending premature restart offers
+        //  before the callee has even accepted)
+        clearTimeout(connectionTimeout);
+        connectionTimeout = setTimeout(async () => {
+          if (pc && pc.connectionState !== 'connected') {
+            console.warn('Connection timeout — restarting ICE');
+            try {
+              const restartOffer = await pc.createOffer({iceRestart: true});
+              await pc.setLocalDescription(restartOffer);
+              if (signalChannel) signalChannel.send({type:'broadcast', event:'offer', payload:{sdp: restartOffer}});
+            } catch(e) {}
+          }
+        }, 8000);
       } catch(e) { console.error('Create offer error:', e); offerSent = false; }
     }
-    // Callee: echo ready back so caller can react even if order was reversed
     if (!isCaller && payload && payload.role === 'caller') {
       signalChannel.send({type:'broadcast', event:'ready', payload:{role:'callee'}});
     }
   });
 
-  // Hangup
   signalChannel.on('broadcast', {event:'hangup'}, () => {
     setStatus('Partner ended the call');
     setTimeout(() => endCall(false), 1800);
   });
 
-  // Callee accepted — update caller's ringing screen to "Connecting..."
   signalChannel.on('broadcast', {event:'accepted'}, () => {
     if (!isCaller) return;
     const subEl = document.getElementById('ringSub');
@@ -700,26 +686,21 @@ async function initWebRTC() {
     document.getElementById('waitingSub').textContent = 'Connecting...';
   });
 
-  // Callee declined — show reason and redirect
   signalChannel.on('broadcast', {event:'declined'}, () => {
     if (!isCaller) return;
     showCallEnded('Call declined');
   });
 
-  // Caller cancelled — callee's page cleans up
   signalChannel.on('broadcast', {event:'cancelled'}, () => {
     if (isCaller) return;
     setStatus('Call was cancelled');
     setTimeout(() => endCall(false), 2000);
   });
 
-  // Subscribe → then broadcast presence
   signalChannel.subscribe((status) => {
     console.log('Signal channel status:', status);
     if (status !== 'SUBSCRIBED') return;
-
     if (isCaller) {
-      // Send ready signal to callee, retry every 2s until offer is sent
       signalChannel.send({type:'broadcast', event:'ready', payload:{role:'caller'}});
       readyInterval = setInterval(() => {
         if (!offerSent && signalChannel) {
@@ -729,7 +710,6 @@ async function initWebRTC() {
         }
       }, 2000);
     } else {
-      // Callee: announce presence (triggers caller to create offer)
       signalChannel.send({type:'broadcast', event:'ready', payload:{role:'callee'}});
     }
   });

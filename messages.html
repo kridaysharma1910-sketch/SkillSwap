@@ -276,6 +276,8 @@ function dismissCallBanner(){
 
 function genRoomId(){return Math.random().toString(36).slice(2,9)+Math.random().toString(36).slice(2,9);}
 let currentUserId=null,currentMatchId=null,conversations=[],realtimeSub=null,pollInterval=null;
+// Cache of call invite statuses — populated before render so bubbleContent() is synchronous
+let cachedCallStatuses={}; // roomId → {status, created_at}
 
 function avatarHtml(p){
   if(p?.avatar_url)return`<img src="${p.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
@@ -327,6 +329,7 @@ function renderConvosList(convos){
 
 async function openConvo(matchId){
   currentMatchId=matchId;
+  cachedCallStatuses={}; // clear cache when switching conversations
   const match=conversations.find(c=>c.id===matchId);
   if(!match)return;
   const peer=match.sender_id===currentUserId?match.receiver:match.sender;
@@ -360,9 +363,35 @@ async function loadMessages(matchId){
     .eq('match_id',matchId)
     .order('created_at',{ascending:true});
   if(error){console.error('Load messages error:',error);return;}
-  renderMessages(data||[]);
+  const msgs=data||[];
+  // Pre-fetch call invite statuses so bubbleContent() renders final state in one pass
+  await fetchCallStatuses(msgs);
+  renderMessages(msgs);
 }
 
+// Fetch call invite statuses for all call-invite messages and populate the cache.
+// Must be called BEFORE renderMessages() so bubbleContent() renders the correct state
+// synchronously — no DOM patching, no flicker.
+async function fetchCallStatuses(msgs){
+  const roomIds=msgs
+    .filter(m=>m.content&&(m.content.startsWith('CALL_INVITE::')||m.content.startsWith('VOICE_INVITE::')))
+    .map(m=>m.content.replace(/^(CALL_INVITE::|VOICE_INVITE::)/,''));
+  if(!roomIds.length)return;
+  const{data}=await sb.from('call_invites')
+    .select('room_id,status,created_at')
+    .in('room_id',roomIds)
+    .order('created_at',{ascending:false});
+  if(!data)return;
+  // Keep the most recent entry per roomId
+  data.forEach(inv=>{
+    if(!cachedCallStatuses[inv.room_id]||
+       new Date(inv.created_at)>new Date((cachedCallStatuses[inv.room_id]||{}).created_at||0)){
+      cachedCallStatuses[inv.room_id]={status:inv.status,created_at:inv.created_at};
+    }
+  });
+}
+
+// Synchronous — uses cachedCallStatuses populated before render
 function bubbleContent(content,isMine,matchId){
   if(content&&(content.startsWith('CALL_INVITE::')||content.startsWith('VOICE_INVITE::'))) {
     const isVoice=content.startsWith('VOICE_INVITE::');
@@ -375,60 +404,39 @@ function bubbleContent(content,isMine,matchId){
     const icon=isVoice
       ?`<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.45 2 2 0 0 1 3.58 1.27h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9a16 16 0 0 0 6.06 6.06l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>`
       :`<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>`;
-    // data-call-room used by updateCallBubbleStatuses() to patch in ended/declined state
-    return`<div data-call-room="${roomId}" style="display:flex;flex-direction:column;gap:8px;">
+
+    // Check cached status — render final state immediately, no async patching
+    const cached=cachedCallStatuses[roomId];
+    const status=cached?.status;
+    const ENDED=['ended','declined','cancelled','expired'];
+    if(status&&ENDED.includes(status)){
+      let endedTxt='Call ended';
+      if(status==='declined')endedTxt='Call declined';
+      else if(status==='cancelled')endedTxt='Call cancelled';
+      else if(status==='expired')endedTxt='No answer';
+      return`<div style="display:flex;flex-direction:column;gap:6px;">
+        <span style="font-size:.8rem;opacity:.5;">${label}</span>
+        <span style="font-size:.78rem;color:rgba(255,255,255,.32);">${isVoice?'📞':'📹'} ${endedTxt}</span>
+      </div>`;
+    }
+    if(status==='pending'||status==='accepted'){
+      const ageH=cached?.created_at?(Date.now()-new Date(cached.created_at).getTime())/3600000:0;
+      if(ageH>4){
+        return`<div style="display:flex;flex-direction:column;gap:6px;">
+          <span style="font-size:.8rem;opacity:.5;">${label}</span>
+          <span style="font-size:.78rem;color:rgba(255,255,255,.32);">${isVoice?'📞':'📹'} Call expired</span>
+        </div>`;
+      }
+    }
+    // Active / no status yet — show join button
+    return`<div style="display:flex;flex-direction:column;gap:8px;">
       <span style="font-size:.8rem;opacity:.7;">${label}</span>
-      <a class="call-join-btn" href="${href}" style="display:inline-flex;align-items:center;gap:6px;background:#fff;color:#080808;padding:8px 14px;border-radius:9px;font-family:'Syne',sans-serif;font-size:.8rem;font-weight:700;text-decoration:none;width:fit-content;">
+      <a href="${href}" style="display:inline-flex;align-items:center;gap:6px;background:#fff;color:#080808;padding:8px 14px;border-radius:9px;font-family:'Syne',sans-serif;font-size:.8rem;font-weight:700;text-decoration:none;width:fit-content;">
         ${icon}${isVoice?'Join Voice Call':'Join Call'}
       </a>
-      <span class="call-ended-label" style="display:none;font-size:.78rem;color:rgba(255,255,255,.32);"></span>
     </div>`;
   }
   return content||'';
-}
-
-// Async: after rendering messages, check call_invites statuses and update call bubbles
-async function updateCallBubbleStatuses(){
-  const bubbles=document.querySelectorAll('[data-call-room]');
-  if(!bubbles.length)return;
-  const roomIds=[...bubbles].map(b=>b.dataset.callRoom);
-  const{data}=await sb.from('call_invites')
-    .select('room_id,status,created_at')
-    .in('room_id',roomIds)
-    .order('created_at',{ascending:false});
-  if(!data||!data.length)return;
-  // Latest status per roomId
-  const statusMap={},timeMap={};
-  data.forEach(inv=>{
-    if(!statusMap[inv.room_id]){statusMap[inv.room_id]=inv.status;timeMap[inv.room_id]=inv.created_at;}
-  });
-  bubbles.forEach(bubble=>{
-    const rId=bubble.dataset.callRoom;
-    const status=statusMap[rId];
-    if(!status)return;
-    const joinBtn=bubble.querySelector('.call-join-btn');
-    const endedLabel=bubble.querySelector('.call-ended-label');
-    const ENDED=['ended','declined','cancelled','expired'];
-    if(ENDED.includes(status)){
-      if(joinBtn)joinBtn.style.display='none';
-      if(endedLabel){
-        let txt='Call ended';
-        if(status==='declined')txt='Call declined';
-        else if(status==='cancelled')txt='Call cancelled';
-        else if(status==='expired')txt='No answer';
-        endedLabel.textContent=txt;
-        endedLabel.style.display='inline';
-      }
-    } else if(status==='pending'||status==='accepted'){
-      // If older than 4 hours treat as expired
-      const ageH=(Date.now()-new Date(timeMap[rId]).getTime())/3600000;
-      if(ageH>4){
-        if(joinBtn)joinBtn.style.display='none';
-        if(endedLabel){endedLabel.textContent='Call expired';endedLabel.style.display='inline';}
-      }
-      // else: keep showing the Join button
-    }
-  });
 }
 
 function renderMessages(msgs){
@@ -458,8 +466,6 @@ function renderMessages(msgs){
   });
   area.innerHTML=html;
   area.scrollTop=area.scrollHeight;
-  // Async: patch call bubbles with ended/declined status from DB
-  updateCallBubbleStatuses();
 }
 
 function appendMessage(msg){
@@ -473,10 +479,6 @@ function appendMessage(msg){
   div.innerHTML=`<div class="msg-av">${av}</div><div><div class="msg-bubble">${bubbleContent(msg.content,isMine,currentMatchId)}</div><div class="msg-time">${t}</div></div>`;
   area.appendChild(div);
   area.scrollTop=area.scrollHeight;
-  // Update call bubble status if this was a call invite
-  if(msg.content&&(msg.content.startsWith('CALL_INVITE::')||msg.content.startsWith('VOICE_INVITE::'))) {
-    updateCallBubbleStatuses();
-  }
 }
 
 function subscribeToMessages(matchId){
