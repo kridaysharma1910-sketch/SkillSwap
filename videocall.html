@@ -105,7 +105,15 @@ body{background:#000;color:#fff;font-family:'DM Sans',sans-serif;height:100vh;di
   .ctrl-end{width:48px !important;height:48px !important;}
   .join-screen{margin-left:0;}
 }
-/* ── JOIN SCREEN (tap-to-join — satisfies getUserMedia user-gesture on iOS) ── */
+/* ── RINGING SCREEN (caller waits for callee to accept) ── */
+.ringing-screen{position:fixed;inset:0;margin-left:var(--sidebar-w);z-index:300;background:radial-gradient(ellipse at center,rgba(139,92,246,0.1) 0%,#000 70%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:32px;}
+.ringing-screen.hidden{display:none;}
+.ringing-avatar{width:88px;height:88px;border-radius:50%;background:rgba(139,92,246,0.12);border:2px solid rgba(139,92,246,0.3);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:700;color:rgba(167,139,250,0.8);overflow:hidden;animation:ringPulse 1.5s ease-in-out infinite;}
+@keyframes ringPulse{0%,100%{box-shadow:0 0 0 0 rgba(139,92,246,0.35);}50%{box-shadow:0 0 0 28px rgba(139,92,246,0);}}
+.ringing-name{font-family:'Syne',sans-serif;font-weight:700;font-size:1.1rem;color:#fff;}
+.ringing-sub{font-size:.85rem;color:var(--text-muted);text-align:center;}
+@media(max-width:900px){.ringing-screen{margin-left:0;}}
+/* ── JOIN SCREEN (iOS fallback — shown only if getUserMedia auto-start is blocked) ── */
 .join-screen{position:fixed;inset:0;margin-left:var(--sidebar-w);z-index:300;background:radial-gradient(ellipse at center,rgba(139,92,246,0.1) 0%,#000 70%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:32px;}
 .join-screen.hidden{display:none;}
 .btn-join-call{background:#fff;color:#080808;border:none;border-radius:14px;padding:16px 40px;font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:10px;min-height:52px;min-width:160px;justify-content:center;transition:opacity .2s;}
@@ -137,7 +145,17 @@ body{background:#000;color:#fff;font-family:'DM Sans',sans-serif;height:100vh;di
   </div>
 </aside>
 
-<!-- ── JOIN SCREEN ── -->
+<!-- ── RINGING SCREEN (caller — shown while callee hasn't accepted yet) ── -->
+<div class="ringing-screen hidden" id="ringingScreen">
+  <div class="ringing-avatar" id="ringingAvatar">?</div>
+  <div class="ringing-name" id="ringingName">Calling...</div>
+  <div class="ringing-sub" id="ringSub">Ringing...</div>
+  <button class="ctrl-btn ctrl-end" id="btnCancelCall" onclick="cancelCall()" title="Cancel call" style="margin-top:8px;cursor:none;">
+    <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45c.98.37 2.05.58 3.14.58a2 2 0 0 1 2 2v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.42 19.42 0 0 1 3.59 12a19.79 19.79 0 0 1-3.07-8.68A2 2 0 0 1 2.5 1.17h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L6.5 9.07a16 16 0 0 0 4.18 4.24z" transform="rotate(135 12 12)"/></svg>
+  </button>
+</div>
+
+<!-- ── JOIN SCREEN (iOS fallback — only shown if getUserMedia auto-start is blocked) ── -->
 <div class="join-screen hidden" id="joinScreen">
   <div class="waiting-avatar" id="joinAvatar">?</div>
   <div class="waiting-name" id="joinName">Joining call...</div>
@@ -260,6 +278,7 @@ let recorder = null, recordingActive = false, recordingChunks = [];
 let userPlan = 'free';
 let isVoiceOnly = false;
 let savedPeerName = 'Partner';
+let ringingTimeout = null;
 
 // ── Persistent call state (localStorage) ──
 const ACTIVE_CALL_KEY = 'ss_active_call';
@@ -268,6 +287,47 @@ function saveCallState() {
 }
 function clearCallState() {
   try { localStorage.removeItem(ACTIVE_CALL_KEY); } catch(e) {}
+}
+
+// ── Cancel call (caller presses red button while ringing) ──
+async function cancelCall() {
+  clearTimeout(ringingTimeout);
+  clearInterval(readyInterval);
+  if (signalChannel) {
+    try { signalChannel.send({type:'broadcast', event:'cancelled', payload:{}}); } catch(e) {}
+    try { sb.removeChannel(signalChannel); } catch(e) {}
+    signalChannel = null;
+  }
+  try {
+    await sb.from('call_invites').update({status:'cancelled'})
+      .eq('room_id', roomId).eq('caller_id', currentUserId);
+  } catch(e) {}
+  clearCallState();
+  if (localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; }
+  if (pc) { try { pc.close(); } catch(e) {} pc = null; }
+  window.location.href = matchId ? 'messages.html?match=' + matchId : 'messages.html';
+}
+
+// ── Show ended reason on ringing screen then redirect ──
+function showCallEnded(reason) {
+  clearTimeout(ringingTimeout);
+  clearInterval(readyInterval);
+  const rScreen = document.getElementById('ringingScreen');
+  if (rScreen && !rScreen.classList.contains('hidden')) {
+    const subEl = document.getElementById('ringSub');
+    if (subEl) { subEl.textContent = reason || 'Call ended'; subEl.style.color = '#f87171'; }
+    const avatarEl = document.getElementById('ringingAvatar');
+    if (avatarEl) avatarEl.style.animation = 'none';
+    const cancelBtn = document.getElementById('btnCancelCall');
+    if (cancelBtn) cancelBtn.style.display = 'none';
+  }
+  clearCallState();
+  if (localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; }
+  if (pc) { try { pc.close(); } catch(e) {} pc = null; }
+  if (signalChannel) { try { sb.removeChannel(signalChannel); } catch(e) {} signalChannel = null; }
+  setTimeout(() => {
+    window.location.href = matchId ? 'messages.html?match=' + matchId : 'messages.html';
+  }, 2500);
 }
 
 // ── Helpers ──
@@ -317,7 +377,7 @@ async function createOfferAndWaitForICE() {
   await new Promise(resolve => {
     if (pc.iceGatheringState === 'complete') { resolve(); return; }
     pc.onicegatheringstatechange = () => { if (pc.iceGatheringState === 'complete') resolve(); };
-    setTimeout(resolve, 4000);
+    setTimeout(resolve, 2000);
   });
   return pc.localDescription;
 }
@@ -328,7 +388,7 @@ async function createAnswerAndWaitForICE() {
   await new Promise(resolve => {
     if (pc.iceGatheringState === 'complete') { resolve(); return; }
     pc.onicegatheringstatechange = () => { if (pc.iceGatheringState === 'complete') resolve(); };
-    setTimeout(resolve, 4000);
+    setTimeout(resolve, 2000);
   });
   return pc.localDescription;
 }
@@ -422,6 +482,13 @@ function toggleRecording() {
 
 // ── End Call ──
 async function endCall(sendHangup) {
+  clearTimeout(ringingTimeout);
+  // Hide ringing screen if still showing
+  document.getElementById('ringingScreen').classList.add('hidden');
+  // Mark call invite as ended in DB
+  if (roomId) {
+    try { sb.from('call_invites').update({status:'ended'}).eq('room_id', roomId).then(()=>{}); } catch(e) {}
+  }
   clearCallState(); // clear persistent state — explicit end or partner hung up
   callActive = false;
   clearInterval(callTimerInterval);
@@ -471,6 +538,8 @@ async function initWebRTC() {
     if (isVoiceOnly) setStatus('Voice call — camera off', 2500);
   } catch(e) {
     console.error('getUserMedia error:', e);
+    // Propagate permission errors — caller of initWebRTC() shows iOS fallback join screen
+    if (e.name === 'NotAllowedError' || e.name === 'SecurityError') throw e;
     try {
       localStream = await navigator.mediaDevices.getUserMedia({video: false, audio: true});
       setStatus('Camera unavailable — audio only', 2500);
@@ -499,6 +568,9 @@ async function initWebRTC() {
     const remoteVid = document.getElementById('remoteVideo');
     remoteVid.srcObject = e.streams[0];
     remoteVid.play().catch(()=>{});
+    // Hide ringing screen — call is live
+    document.getElementById('ringingScreen').classList.add('hidden');
+    clearTimeout(ringingTimeout);
     // Only hide the waiting name plate if the stream actually has a live video track
     const hasVideo = e.streams[0].getVideoTracks().some(t => t.readyState === 'live' && t.enabled);
     if (hasVideo) {
@@ -527,6 +599,9 @@ async function initWebRTC() {
     console.log('PC state:', pc.connectionState);
     if (pc.connectionState === 'connected') {
       clearTimeout(connectionTimeout);
+      clearTimeout(ringingTimeout);
+      // Hide ringing screen — call is live
+      document.getElementById('ringingScreen').classList.add('hidden');
       // Only hide name plate if there's live video
       const remoteVid = document.getElementById('remoteVideo');
       const hasVideo = remoteVid.srcObject && remoteVid.srcObject.getVideoTracks().some(t => t.readyState === 'live' && t.enabled);
@@ -615,6 +690,29 @@ async function initWebRTC() {
     setTimeout(() => endCall(false), 1800);
   });
 
+  // Callee accepted — update caller's ringing screen to "Connecting..."
+  signalChannel.on('broadcast', {event:'accepted'}, () => {
+    if (!isCaller) return;
+    const subEl = document.getElementById('ringSub');
+    if (subEl) subEl.textContent = 'Connecting...';
+    const avatarEl = document.getElementById('ringingAvatar');
+    if (avatarEl) avatarEl.style.animation = 'none';
+    document.getElementById('waitingSub').textContent = 'Connecting...';
+  });
+
+  // Callee declined — show reason and redirect
+  signalChannel.on('broadcast', {event:'declined'}, () => {
+    if (!isCaller) return;
+    showCallEnded('Call declined');
+  });
+
+  // Caller cancelled — callee's page cleans up
+  signalChannel.on('broadcast', {event:'cancelled'}, () => {
+    if (isCaller) return;
+    setStatus('Call was cancelled');
+    setTimeout(() => endCall(false), 2000);
+  });
+
   // Subscribe → then broadcast presence
   signalChannel.subscribe((status) => {
     console.log('Signal channel status:', status);
@@ -694,21 +792,53 @@ async function init() {
     }
   }
 
-  // Show join screen — getUserMedia MUST be called inside a direct user gesture
-  // (required on iOS Safari; also ensures mic/cam prompt is expected by user)
-  const joinScreen = document.getElementById('joinScreen');
-  document.getElementById('joinAvatar').textContent = peerInitials;
-  document.getElementById('joinName').textContent = isCaller ? `Calling ${peerName}...` : `${peerName} is calling`;
-  document.getElementById('joinSub').textContent = 'Tap to enable your camera & microphone';
-  joinScreen.classList.remove('hidden');
-
-  document.getElementById('joinBtn').addEventListener('click', async () => {
-    joinScreen.classList.add('hidden');
+  if (isCaller) {
+    // ── CALLER: Ringing screen + auto-start WebRTC immediately ──
+    document.getElementById('ringingAvatar').textContent = peerInitials;
+    document.getElementById('ringingName').textContent = peerName;
+    document.getElementById('ringSub').textContent = 'Ringing...';
+    document.getElementById('ringingScreen').classList.remove('hidden');
     document.getElementById('callStage').style.display = 'block';
     callActive = true;
-    saveCallState(); // persist call — cleared only on explicit End Call or partner hangup
-    await initWebRTC();
-  }, {once: true});
+    saveCallState();
+    // 30s no-answer timeout
+    ringingTimeout = setTimeout(() => {
+      if (!callStartTime) showCallEnded('No answer');
+    }, 30000);
+    try {
+      await initWebRTC();
+    } catch(e) {
+      // Shouldn't reach here normally — log and show fallback
+      console.error('Caller WebRTC init error:', e);
+    }
+  } else {
+    // ── CALLEE: Auto-start immediately (accept was user gesture) ──
+    document.getElementById('callStage').style.display = 'block';
+    callActive = true;
+    saveCallState();
+    try {
+      await initWebRTC();
+    } catch(e) {
+      // iOS: getUserMedia blocked without direct gesture — show tap-to-join fallback
+      if (e.name === 'NotAllowedError' || e.name === 'SecurityError') {
+        document.getElementById('callStage').style.display = 'none';
+        callActive = false;
+        clearCallState();
+        const joinScreen = document.getElementById('joinScreen');
+        document.getElementById('joinAvatar').textContent = peerInitials;
+        document.getElementById('joinName').textContent = `${peerName} is calling`;
+        document.getElementById('joinSub').textContent = 'Tap to enable camera & microphone';
+        joinScreen.classList.remove('hidden');
+        document.getElementById('joinBtn').addEventListener('click', async () => {
+          joinScreen.classList.add('hidden');
+          document.getElementById('callStage').style.display = 'block';
+          callActive = true;
+          saveCallState();
+          await initWebRTC();
+        }, {once: true});
+      }
+    }
+  }
 }
 
 init();
