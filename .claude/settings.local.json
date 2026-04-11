@@ -3,7 +3,10 @@
     "allow": [
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(python3 _replace_globe.py)",
+      "Bash(python _replace_globe.py)",
+      "Bash(node _replace_globe.js)"
     ]
   }
 }
