@@ -104,7 +104,7 @@ Skill-exchange platform: users list skills they offer/want, get matched, swap se
 - Subscribes to `postgres_changes INSERT` on `call_invites` filtered by `callee_id`
 - On subscribe, polls last 60s for missed pending invites
 - Included on all 8 authenticated pages EXCEPT videocall.html
-- **Requires:** `call_invites` table created + Realtime enabled (SQL in Known Issues section)
+- **Requires:** `call_invites` table + Realtime enabled (already set up in Supabase)
 
 ### Messages (messages.html)
 - Real-time via Supabase postgres_changes + 3s polling fallback
@@ -138,24 +138,6 @@ Skill-exchange platform: users list skills they offer/want, get matched, swap se
 
 ## Known Issues / Pending
 - **Payment not wired** — `selectPlan()` updates Supabase directly, no Lemon Squeezy/Paddle flow yet
-- `call_invites` table must be created manually in Supabase SQL editor:
-```sql
-create table if not exists call_invites (
-  id uuid default gen_random_uuid() primary key,
-  room_id text not null,
-  match_id uuid references matches(id),
-  caller_id uuid references profiles(id),
-  callee_id uuid references profiles(id),
-  caller_name text, caller_avatar text,
-  status text default 'pending',
-  created_at timestamptz default now()
-);
-alter table call_invites enable row level security;
-create policy "insert own" on call_invites for insert to authenticated with check (caller_id = auth.uid());
-create policy "read own" on call_invites for select to authenticated using (callee_id = auth.uid() or caller_id = auth.uid());
-create policy "update own" on call_invites for update to authenticated using (callee_id = auth.uid() or caller_id = auth.uid());
-alter publication supabase_realtime add table call_invites;
-```
 - `avatars` storage bucket must be created in Supabase dashboard
 - Realtime must be enabled for `messages` table in Supabase dashboard
 - `#hostOverlay` in webinars.html is dead code (replaced by webinar-host.html) — safe to remove
@@ -180,6 +162,11 @@ Start by telling me: what's the current state per CLAUDE.md, and what are we bui
 ---
 
 ## Session Log
+
+### [Session 16 — 2026-04-12]
+- Created `call_invites` table in Supabase: RLS policies (insert own, read own, update own), Realtime enabled via `supabase_realtime` publication
+- Removed `call_invites` setup from Known Issues — fully live in Supabase
+- Updated `call-notify.js` note in CLAUDE.md to reflect table is already set up
 
 ### [Session 15 — 2026-04-10]
 - Created `input-validation.js`: shared `InputValidator` module with helpers for email, password, name, username, text, url, uuid, roomId, skill, int, price
