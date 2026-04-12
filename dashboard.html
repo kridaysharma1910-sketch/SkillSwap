@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>SkillSwap — Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 <style>
@@ -18,7 +18,7 @@
   --sidebar-w: 240px;
 }
 * { margin:0; padding:0; box-sizing:border-box; }
-html { scroll-behavior:smooth; }
+html { scroll-behavior:smooth; max-width:100vw; overflow-x:hidden; -webkit-text-size-adjust:100%; }
 body { background:var(--bg); color:#fff; font-family:'DM Sans',sans-serif; min-height:100vh; display:flex; overflow-x:hidden; cursor:none; }
 
 /* CURSOR */
@@ -387,8 +387,9 @@ document.getElementById('greetingText').textContent=h<12?'Good morning':h<17?'Go
 // Sidebar toggle
 function toggleSidebar(){
   if(window.innerWidth<=900){
-    document.getElementById('sidebar').classList.toggle('open');
-    document.getElementById('sidebar-overlay').classList.toggle('show');
+    const s=document.getElementById('sidebar'),o=document.getElementById('sidebar-overlay');
+    s.classList.toggle('open');o.classList.toggle('show');
+    document.body.style.overflow=s.classList.contains('open')?'hidden':'';
   } else {
     const c=document.body.classList.toggle('sidebar-collapsed');
     localStorage.setItem('ss_sidebar',c?'0':'1');
