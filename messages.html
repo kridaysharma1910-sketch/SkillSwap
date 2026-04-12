@@ -309,7 +309,7 @@ function filterConvos(){
 function renderConvosList(convos){
   const list=document.getElementById('convosList');
   if(!convos.length){
-    list.innerHTML=`<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:.85rem;">No conversations yet.<br><a href="matches.html" style="color:rgba(167,139,250,.7);text-decoration:none;">Go to Matches</a></div>`;
+    list.innerHTML=`<div style="padding:32px 20px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px;"><svg width="32" height="32" fill="none" stroke="rgba(255,255,255,.18)" stroke-width="1.5" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span style="color:var(--text-muted);font-size:.85rem;">No conversations yet.</span><a href="matches.html" style="background:#fff;color:#080808;padding:8px 18px;border-radius:9px;font-family:'Syne',sans-serif;font-size:.78rem;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:6px;"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Find Matches</a></div>`;
     return;
   }
   list.innerHTML=convos.map(c=>{
