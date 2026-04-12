@@ -9,6 +9,9 @@
 :root{--bg:#080808;--bg-card:rgba(255,255,255,0.03);--border:rgba(255,255,255,0.08);--border-hover:rgba(139,92,246,0.3);--text-muted:rgba(255,255,255,0.32);--sidebar-w:240px;}
 *{margin:0;padding:0;box-sizing:border-box;}
 html{max-width:100vw;overflow-x:hidden;-webkit-text-size-adjust:100%;}
+a,button,[role=button]{touch-action:manipulation;}
+input,textarea,select{font-size:max(16px,1em);}
+@media(max-width:900px){button,a.nav-link,.icon-btn{min-height:44px;min-width:44px;}}
 html,body{height:100%;}
 body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;display:flex;overflow:hidden;cursor:none;}
 #ss-cursor{position:fixed;width:10px;height:10px;background:#fff;border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);mix-blend-mode:difference;}
@@ -223,7 +226,7 @@ body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;display:fl
         <div id="emojiPicker" class="emoji-picker"></div>
         <button class="emoji-btn" id="emojiToggle" onclick="toggleEmojiPicker(event)" title="Emoji"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9" stroke-linecap="round" stroke-width="3"/><line x1="15" y1="9" x2="15.01" y2="9" stroke-linecap="round" stroke-width="3"/></svg></button>
         <textarea class="chat-textarea" id="msgInput" placeholder="Type a message..." rows="1" onkeydown="onMsgKey(event)" oninput="autoResize(this)"></textarea>
-        <button class="btn-send" onclick="sendMessage()"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
+        <button class="btn-send" id="sendBtn" onclick="sendMessage()"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
       </div>
     </div>
   </div>
@@ -343,10 +346,15 @@ async function openConvo(matchId){
   document.getElementById('noChatState').style.display='none';
   const chatActive=document.getElementById('chatActive');
   chatActive.style.display='flex';
-  // Check for active call for this match
+  // Check for active call for this match — verify against DB before showing banner
   const activeCall=getActiveCallForMatch(matchId);
-  if(activeCall)showActiveCallBanner(activeCall,name);
-  else hideActiveCallBanner();
+  if(activeCall){
+    const{data:inv}=await sb.from('call_invites').select('status').eq('room_id',activeCall.roomId)
+      .order('created_at',{ascending:false}).limit(1).maybeSingle();
+    if(inv&&['ended','declined','cancelled','expired'].includes(inv.status)){
+      localStorage.removeItem(ACTIVE_CALL_KEY);hideActiveCallBanner();
+    } else {showActiveCallBanner(activeCall,name);}
+  } else hideActiveCallBanner();
   renderConvosList(conversations);
   await loadMessages(matchId);
   subscribeToMessages(matchId);
@@ -513,14 +521,24 @@ function startPolling(matchId){
   },3000);
 }
 
+function showToast(msg){
+  const t=document.createElement('div');
+  t.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(30,30,30,.95);border:1px solid rgba(255,255,255,.12);color:#fff;padding:10px 18px;border-radius:10px;font-size:.82rem;z-index:9999;pointer-events:none;transition:opacity .3s;max-width:280px;text-align:center;';
+  t.textContent=msg;document.body.appendChild(t);
+  setTimeout(()=>{t.style.opacity='0';setTimeout(()=>t.remove(),300);},3000);
+}
+
 async function sendMessage(){
   const input=document.getElementById('msgInput');
   const content=input.value.trim();
   if(!content||!currentMatchId)return;
   if(!InputValidator.text(content,5000))return;
+  const sendBtn=document.getElementById('sendBtn');
+  if(sendBtn){sendBtn.disabled=true;sendBtn.style.opacity='.5';}
   input.value='';input.style.height='auto';
   const{error}=await sb.from('messages').insert({match_id:currentMatchId,sender_id:currentUserId,content});
-  if(error){console.error('Send message error:',error);return;}
+  if(sendBtn){sendBtn.disabled=false;sendBtn.style.opacity='';}
+  if(error){showToast('Failed to send message. Try again.');return;}
   // Re-fetch immediately as fallback (realtime may be delayed)
   await loadMessages(currentMatchId);
 }
@@ -551,8 +569,8 @@ async function startCallFromMessages(type='video'){
   if(!currentMatchId)return;
   const voiceBtn=document.getElementById('voiceCallBtn');
   const videoBtn=document.getElementById('callBtn');
-  if(voiceBtn){voiceBtn.style.opacity='.5';voiceBtn.style.pointerEvents='none';}
-  if(videoBtn){videoBtn.style.opacity='.5';videoBtn.style.pointerEvents='none';}
+  if(voiceBtn){voiceBtn.disabled=true;voiceBtn.style.opacity='.5';}
+  if(videoBtn){videoBtn.disabled=true;videoBtn.style.opacity='.5';}
   // Encode call type in room id prefix so call-notify.js and callee side can detect it
   const baseId=genRoomId();
   const roomId=type==='voice'?'VOICE_'+baseId:baseId;
@@ -561,9 +579,9 @@ async function startCallFromMessages(type='video'){
   const msgContent=type==='voice'?'VOICE_INVITE::'+roomId:'CALL_INVITE::'+roomId;
   const{error}=await sb.from('messages').insert({match_id:currentMatchId,sender_id:currentUserId,content:msgContent});
   if(error){
-    console.error('CALL_INVITE insert error:',error);
-    if(voiceBtn){voiceBtn.style.opacity='';voiceBtn.style.pointerEvents='';}
-    if(videoBtn){videoBtn.style.opacity='';videoBtn.style.pointerEvents='';}
+    showToast('Could not start call. Try again.');
+    if(voiceBtn){voiceBtn.disabled=false;voiceBtn.style.opacity='';}
+    if(videoBtn){videoBtn.disabled=false;videoBtn.style.opacity='';}
     return;
   }
   if(peerId){
@@ -616,7 +634,7 @@ document.addEventListener('click',()=>{
 async function init(){
   if(window.innerWidth>900&&localStorage.getItem('ss_sidebar')==='0')document.body.classList.add('sidebar-collapsed');
   const{data:{session}}=await sb.auth.getSession();
-  if(!session){window.location.href='login.html';return;}
+  if(!session){window.location.replace('login.html');return;}
   currentUserId=session.user.id;
   const{data:me,error:meErr}=await sb.from('profiles').select('full_name,username,avatar_url').eq('id',currentUserId).single();
   if(meErr)console.error('Profile load error:',meErr);
