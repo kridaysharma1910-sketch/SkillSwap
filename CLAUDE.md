@@ -163,6 +163,15 @@ Start by telling me: what's the current state per CLAUDE.md, and what are we bui
 
 ## Session Log
 
+### [Session 17 — 2026-04-12]
+- **Call back-button bug fixed**: videocall.html uses replaceState+pushState sentinel; popstate intercepted to call endCall(); back_forward nav type detected on load → redirect to dashboard if no active call; all call-end navigations use window.location.replace()
+- **callEnded flag**: prevents double-execution of endCall(); hangup/cancelled signal handlers check flag; gracefulFail() wraps all setup errors with try/catch
+- **Viewport**: all 12 remaining pages updated to `maximum-scale=1.0, user-scalable=no`; html rule added with `overflow-x:hidden; -webkit-text-size-adjust:100%`
+- **Mobile stability**: `touch-action:manipulation` on all buttons/links; `font-size:max(16px,1em)` on all inputs to prevent iOS zoom; 44px min tap targets on mobile; sidebar body-lock (`overflow:hidden`) when open; videocall controls use `position:fixed; bottom:env(safe-area-inset-bottom,20px)`
+- **Auth redirects**: all `if(!session)` guards and post-login redirects use `window.location.replace()` — no garbage in history
+- **messages.html polish**: send button has disabled+opacity loading state; call start buttons disabled during initiation; error toast on send/call failure; DB-verifies active call status before showing rejoin banner; upgraded empty state to icon+CTA
+- **matches.html**: respond() accept/decline buttons show disabled state during async op
+
 ### [Session 16 — 2026-04-12]
 - Created `call_invites` table in Supabase: RLS policies (insert own, read own, update own), Realtime enabled via `supabase_realtime` publication
 - Removed `call_invites` setup from Known Issues — fully live in Supabase
