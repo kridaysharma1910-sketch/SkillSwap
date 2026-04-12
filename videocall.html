@@ -270,6 +270,7 @@ let readyInterval = null;
 let micMuted = false, camOff = false;
 let callStartTime = null, callTimerInterval = null;
 let callActive = false;
+let callEnded = false;
 let connectionTimeout = null;
 let screenShareStream = null, screenSharingActive = false;
 let recorder = null, recordingActive = false, recordingChunks = [];
@@ -303,7 +304,7 @@ async function cancelCall() {
   clearCallState();
   if (localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; }
   if (pc) { try { pc.close(); } catch(e) {} pc = null; }
-  window.location.href = matchId ? 'messages.html?match=' + matchId : 'messages.html';
+  window.location.replace(matchId ? 'messages.html?match=' + matchId : 'messages.html');
 }
 
 // ── Show ended reason on ringing screen then redirect ──
@@ -324,7 +325,7 @@ function showCallEnded(reason) {
   if (pc) { try { pc.close(); } catch(e) {} pc = null; }
   if (signalChannel) { try { sb.removeChannel(signalChannel); } catch(e) {} signalChannel = null; }
   setTimeout(() => {
-    window.location.href = matchId ? 'messages.html?match=' + matchId : 'messages.html';
+    window.location.replace(matchId ? 'messages.html?match=' + matchId : 'messages.html');
   }, 2500);
 }
 
@@ -478,8 +479,21 @@ function toggleRecording() {
   }
 }
 
+// ── Graceful fail (setup error) — clean up and redirect ──
+function gracefulFail(reason) {
+  console.warn('Call setup failed:', reason);
+  clearCallState();
+  if (localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; }
+  if (pc) { try { pc.close(); } catch(e) {} pc = null; }
+  if (signalChannel) { try { sb.removeChannel(signalChannel); } catch(e) {} signalChannel = null; }
+  window.location.replace('dashboard.html');
+}
+
 // ── End Call ──
 async function endCall(sendHangup) {
+  if (callEnded) return;
+  callEnded = true;
+  clearCallState(); // FIRST — before any async work, so back-button check sees cleared state
   clearTimeout(ringingTimeout);
   // Hide ringing screen if still showing
   document.getElementById('ringingScreen').classList.add('hidden');
@@ -487,7 +501,6 @@ async function endCall(sendHangup) {
   if (roomId) {
     try { sb.from('call_invites').update({status:'ended'}).eq('room_id', roomId).then(()=>{}); } catch(e) {}
   }
-  clearCallState(); // clear persistent state — explicit end or partner hung up
   callActive = false;
   clearInterval(callTimerInterval);
   clearInterval(readyInterval);
@@ -516,8 +529,8 @@ async function endCall(sendHangup) {
     if (error) console.error('Session log error:', error);
   }
   callStartTime = null;
-  // Redirect back to messages thread (not matches)
-  window.location.href = matchId ? 'messages.html?match=' + matchId : 'messages.html';
+  // Redirect back to messages thread (not matches) — replace() removes videocall from history
+  window.location.replace(matchId ? 'messages.html?match=' + matchId : 'messages.html');
 }
 
 // No beforeunload handler — closing/navigating away keeps the call alive in localStorage
@@ -671,6 +684,7 @@ async function initWebRTC() {
   });
 
   signalChannel.on('broadcast', {event:'hangup'}, () => {
+    if (callEnded) return;
     setStatus('Partner ended the call');
     setTimeout(() => endCall(false), 1800);
   });
@@ -691,6 +705,7 @@ async function initWebRTC() {
 
   signalChannel.on('broadcast', {event:'cancelled'}, () => {
     if (isCaller) return;
+    if (callEnded) return;
     setStatus('Call was cancelled');
     setTimeout(() => endCall(false), 2000);
   });
@@ -752,6 +767,26 @@ async function init() {
   // Drop a malformed matchId so it doesn't reach DB queries
   if (matchId && !InputValidator.uuid(matchId)) { matchId = null; }
 
+  // ── Back-button guard ──
+  // If user lands here via back_forward (e.g. pressed back after call ended), redirect away.
+  const navType = (performance.getEntriesByType && performance.getEntriesByType('navigation')[0]?.type) || '';
+  if (navType === 'back_forward') {
+    const saved = (() => { try { return JSON.parse(localStorage.getItem(ACTIVE_CALL_KEY)); } catch(e) { return null; } })();
+    if (!saved || saved.roomId !== roomId) {
+      window.location.replace('dashboard.html');
+      return;
+    }
+  }
+  // Replace current history entry so videocall.html never sits on top of messages.html
+  history.replaceState(null, '', window.location.href);
+  // Push a sentinel — if user presses back during call, popstate fires and we intercept
+  history.pushState({callActive: true}, '', window.location.href);
+  window.addEventListener('popstate', (e) => {
+    if (!callEnded) {
+      endCall(true);
+    }
+  }, {once: true});
+
   // Rate limit call initiations
   const rl = RateLimiter.check('call_init');
   if (!rl.allowed) {
@@ -800,8 +835,8 @@ async function init() {
     try {
       await initWebRTC();
     } catch(e) {
-      // Shouldn't reach here normally — log and show fallback
       console.error('Caller WebRTC init error:', e);
+      gracefulFail('WebRTC init failed: ' + e.message);
     }
   } else {
     // ── CALLEE: Auto-start immediately (accept was user gesture) ──
@@ -826,14 +861,20 @@ async function init() {
           document.getElementById('callStage').style.display = 'block';
           callActive = true;
           saveCallState();
-          await initWebRTC();
+          try {
+            await initWebRTC();
+          } catch(e2) {
+            gracefulFail('WebRTC init failed: ' + e2.message);
+          }
         }, {once: true});
+      } else {
+        gracefulFail('getUserMedia failed: ' + e.message);
       }
     }
   }
 }
 
-init();
+init().catch(e => gracefulFail('init error: ' + e.message));
 </script>
 </body>
 </html>
