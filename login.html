@@ -607,8 +607,8 @@ body {
 
 <!-- NAVBAR -->
 <nav class="ss-nav">
-  <a href="index.html" class="ss-nav-logo">SkillSwap</a>
-  <div class="ss-nav-right">Don't have an account? <a href="signup.html">Sign up →</a></div>
+  <a href="/" class="ss-nav-logo">SkillSwap</a>
+  <div class="ss-nav-right">Don't have an account? <a href="/signup">Sign up →</a></div>
 </nav>
 
 <!-- PAGE GRID -->
@@ -725,7 +725,7 @@ body {
           Continue with Google
         </button>
 
-        <div class="ss-signup-link">Don't have an account? <a href="signup.html">Create one free</a></div>
+        <div class="ss-signup-link">Don't have an account? <a href="/signup">Create one free</a></div>
       </div>
 
       <!-- RESET PASSWORD VIEW -->
@@ -758,7 +758,7 @@ body {
 
 // Already logged in? redirect
 sb.auth.getSession().then(({ data }) => {
-  if (data.session) window.location.replace('dashboard.html');
+  if (data.session) window.location.replace('/dashboard');
 });
 
 // Password toggle
@@ -819,7 +819,7 @@ async function handleLogin() {
   }
 
   if (data.user) {
-    window.location.replace('dashboard.html');
+    window.location.replace('/dashboard');
   }
 }
 
@@ -843,7 +843,7 @@ async function handleReset() {
   btn.classList.add('loading');
 
   const { error } = await sb.auth.resetPasswordForEmail(email, {
-    redirectTo: 'https://skillswap.buzz/login.html'
+    redirectTo: 'https://skillswap.buzz/login'
   });
 
   btn.disabled = false;
@@ -857,7 +857,7 @@ async function handleReset() {
 async function signInWithGoogle() {
   const { error } = await sb.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: 'https://skillswap.buzz/dashboard.html' }
+    options: { redirectTo: 'https://skillswap.buzz/dashboard' }
   });
   if (error) showAlert('alertBox', 'error', error.message);
 }

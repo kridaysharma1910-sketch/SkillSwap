@@ -710,8 +710,8 @@ body::before {
 
 <!-- NAVBAR -->
 <nav id="ss-nav">
-  <a href="index.html" class="ss-nav-logo">SkillSwap</a>
-  <div class="ss-nav-right">Already have an account? <a href="login.html">Sign in →</a></div>
+  <a href="/" class="ss-nav-logo">SkillSwap</a>
+  <div class="ss-nav-right">Already have an account? <a href="/login">Sign in →</a></div>
 </nav>
 
 <!-- GRID LAYOUT -->
@@ -769,7 +769,7 @@ body::before {
 
       <div id="mainForm">
         <div class="form-title">Create your account</div>
-        <div class="form-subtitle">Already have one? <a href="login.html">Sign in →</a></div>
+        <div class="form-subtitle">Already have one? <a href="/login">Sign in →</a></div>
 
         <!-- Step bars -->
         <div class="steps">
@@ -903,7 +903,7 @@ body::before {
         <div class="success-icon">✓</div>
         <h2>You're in.</h2>
         <p>Check your email to verify your account, then start swapping skills with people around the world.</p>
-        <a href="login.html" class="btn-primary" style="display:block; text-align:center; text-decoration:none; padding:14px;">Go to login →</a>
+        <a href="/login" class="btn-primary" style="display:block; text-align:center; text-decoration:none; padding:14px;">Go to login →</a>
       </div>
 
     </div>
@@ -1133,7 +1133,7 @@ async function submitSignup() {
 async function signInWithGoogle() {
   const { error } = await sb.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: window.location.origin + '/dashboard.html' }
+    options: { redirectTo: window.location.origin + '/dashboard' }
   });
   if (error) showAlert('error', error.message);
 }

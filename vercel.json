@@ -1,0 +1,30 @@
+{
+  "rewrites": [
+    { "source": "/signup",       "destination": "/signup.html" },
+    { "source": "/login",        "destination": "/login.html" },
+    { "source": "/dashboard",    "destination": "/dashboard.html" },
+    { "source": "/profile",      "destination": "/profile.html" },
+    { "source": "/discover",     "destination": "/discover.html" },
+    { "source": "/matches",      "destination": "/matches.html" },
+    { "source": "/messages",     "destination": "/messages.html" },
+    { "source": "/videocall",    "destination": "/videocall.html" },
+    { "source": "/pricing",      "destination": "/pricing.html" },
+    { "source": "/webinars",     "destination": "/webinars.html" },
+    { "source": "/analytics",    "destination": "/analytics.html" },
+    { "source": "/webinar-host", "destination": "/webinar-host.html" }
+  ],
+  "redirects": [
+    { "source": "/signup.html",       "destination": "/signup",       "permanent": true },
+    { "source": "/login.html",        "destination": "/login",        "permanent": true },
+    { "source": "/dashboard.html",    "destination": "/dashboard",    "permanent": true },
+    { "source": "/profile.html",      "destination": "/profile",      "permanent": true },
+    { "source": "/discover.html",     "destination": "/discover",     "permanent": true },
+    { "source": "/matches.html",      "destination": "/matches",      "permanent": true },
+    { "source": "/messages.html",     "destination": "/messages",     "permanent": true },
+    { "source": "/videocall.html",    "destination": "/videocall",    "permanent": true },
+    { "source": "/pricing.html",      "destination": "/pricing",      "permanent": true },
+    { "source": "/webinars.html",     "destination": "/webinars",     "permanent": true },
+    { "source": "/analytics.html",    "destination": "/analytics",    "permanent": true },
+    { "source": "/webinar-host.html", "destination": "/webinar-host", "permanent": true }
+  ]
+}

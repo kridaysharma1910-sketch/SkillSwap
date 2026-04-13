@@ -193,7 +193,7 @@ body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;cursor:non
 <div id="appRoot" style="display:flex;flex-direction:column;height:100vh;">
   <!-- HUD -->
   <div class="hud">
-    <a href="webinars.html" class="hud-logo"><div class="logo-sq"></div>SkillSwap</a>
+    <a href="/webinars" class="hud-logo"><div class="logo-sq"></div>SkillSwap</a>
     <div class="hud-sep"></div>
     <div class="hud-title" id="hudTitle">Loading...</div>
     <div class="live-pill" id="livePill" style="display:none;"><div class="live-dot"></div><div class="live-text">LIVE</div></div>
@@ -787,7 +787,7 @@ async function endWebinar(){
 
 function finishAndClose(){
   if(bc)bc.close();
-  window.location.href='webinars.html';
+  window.location.href='/webinars';
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -796,11 +796,11 @@ function showToast(msg){const t=document.createElement('div');t.className='toast
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 async function init(){
-  if(!webinarId){window.location.href='webinars.html';return;}
+  if(!webinarId){window.location.href='/webinars';return;}
   setupBroadcastChannel();
 
   const{data:{session}}=await sb.auth.getSession();
-  if(!session){window.location.replace('login.html');return;}
+  if(!session){window.location.replace('/login');return;}
   currentUserId=session.user.id;
 
   const{data:profile}=await sb.from('profiles').select('full_name,username,plan').eq('id',currentUserId).single();
@@ -810,8 +810,8 @@ async function init(){
   document.getElementById('camOffInitials').textContent=initials;
 
   const{data:w,error:we}=await sb.from('webinars').select('*').eq('id',webinarId).single();
-  if(we||!w){showToast('Webinar not found.');setTimeout(()=>{window.location.href='webinars.html';},2000);return;}
-  if(w.host_id!==currentUserId){showToast('You are not the host of this webinar.');setTimeout(()=>{window.location.href='webinars.html';},2000);return;}
+  if(we||!w){showToast('Webinar not found.');setTimeout(()=>{window.location.href='/webinars';},2000);return;}
+  if(w.host_id!==currentUserId){showToast('You are not the host of this webinar.');setTimeout(()=>{window.location.href='/webinars';},2000);return;}
   webinarData=w;
   document.getElementById('hudTitle').textContent=w.title||'Webinar';
   document.title='Host: '+(w.title||'Webinar')+' — SkillSwap';
