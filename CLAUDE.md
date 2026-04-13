@@ -163,6 +163,14 @@ Start by telling me: what's the current state per CLAUDE.md, and what are we bui
 
 ## Session Log
 
+### [Session 18 — 2026-04-13]
+- **Custom domain**: connected `skillswap.buzz` to Vercel; updated CLAUDE.md live URL
+- **OAuth domain fix**: updated hardcoded `skill-swap-chi-gules.vercel.app` → `skillswap.buzz` in `login.html` (resetPasswordForEmail + signInWithOAuth redirectTo)
+- **Clean URLs**: created `vercel.json` with rewrites (`/dashboard` → `dashboard.html`) and 301 redirects (`/dashboard.html` → `/dashboard`); all 13 HTML files updated — every `href`, `window.location`, template-literal nav, and query-string concat stripped of `.html`
+- **Google Cloud Console**: Authorized JavaScript Origins = `https://skillswap.buzz`; Authorized Redirect URIs = `https://vgndpvkywvcnezvjuueq.supabase.co/auth/v1/callback` (Supabase handles OAuth callback, not the app directly)
+- **Supabase Auth config**: Site URL = `https://skillswap.buzz`; Redirect URLs = `https://skillswap.buzz/dashboard` + `https://skillswap.buzz/login`
+- Google OAuth confirmed working on new domain
+
 ### [Session 17 — 2026-04-12]
 - **Call back-button bug fixed**: videocall.html uses replaceState+pushState sentinel; popstate intercepted to call endCall(); back_forward nav type detected on load → redirect to dashboard if no active call; all call-end navigations use window.location.replace()
 - **callEnded flag**: prevents double-execution of endCall(); hangup/cancelled signal handlers check flag; gracefulFail() wraps all setup errors with try/catch
