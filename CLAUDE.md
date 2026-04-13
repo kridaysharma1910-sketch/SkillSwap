@@ -3,7 +3,7 @@
 ## Project
 Skill-exchange platform: users list skills they offer/want, get matched, swap sessions.
 
-**Live:** https://skill-swap-chi-gules.vercel.app  
+**Live:** https://skillswap.buzz  
 **GitHub:** https://github.com/kridaysharma1910-sketch/SkillSwap  
 **Supabase ID:** vgndpvkywvcnezvjuueq  
 **Deploy:** Vercel (auto from main)

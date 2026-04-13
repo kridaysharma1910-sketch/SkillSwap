@@ -843,7 +843,7 @@ async function handleReset() {
   btn.classList.add('loading');
 
   const { error } = await sb.auth.resetPasswordForEmail(email, {
-    redirectTo: 'https://skill-swap-chi-gules.vercel.app/login.html'
+    redirectTo: 'https://skillswap.buzz/login.html'
   });
 
   btn.disabled = false;
@@ -857,7 +857,7 @@ async function handleReset() {
 async function signInWithGoogle() {
   const { error } = await sb.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: 'https://skill-swap-chi-gules.vercel.app/dashboard.html' }
+    options: { redirectTo: 'https://skillswap.buzz/dashboard.html' }
   });
   if (error) showAlert('alertBox', 'error', error.message);
 }
