@@ -86,12 +86,14 @@ body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;min-height
 .skill-tags{display:flex;flex-wrap:wrap;gap:5px;}
 .skill-tag{border:1px solid rgba(139,92,246,0.35);color:rgba(167,139,250,0.7);padding:3px 9px;border-radius:100px;font-size:.72rem;}
 .skill-tag.want{border-color:rgba(34,211,238,0.28);color:rgba(103,232,249,0.65);}
-.card-actions{margin-top:auto;}
-.btn-request{width:100%;background:#fff;color:#080808;border:none;border-radius:10px;padding:10px;font-family:'Syne',sans-serif;font-size:.82rem;font-weight:700;cursor:none;transition:opacity .2s;display:flex;align-items:center;justify-content:center;gap:7px;}
+.card-actions{margin-top:auto;display:flex;gap:8px;}
+.btn-request{flex:1;background:#fff;color:#080808;border:none;border-radius:10px;padding:10px;font-family:'Syne',sans-serif;font-size:.82rem;font-weight:700;cursor:none;transition:opacity .2s;display:flex;align-items:center;justify-content:center;gap:7px;}
 .btn-request:hover{opacity:.88;}
 .btn-request.sent{background:rgba(34,197,94,0.1);color:#86efac;border:1px solid rgba(34,197,94,0.2);font-weight:500;}
 .btn-request:disabled{opacity:.6;cursor:default;}
 .btn-request svg{width:13px;height:13px;}
+.btn-view-profile{background:rgba(255,255,255,0.04);border:1px solid var(--border);color:rgba(255,255,255,0.5);border-radius:10px;padding:10px 14px;font-family:'DM Sans',sans-serif;font-size:.82rem;cursor:none;transition:all .2s;text-decoration:none;display:flex;align-items:center;white-space:nowrap;}
+.btn-view-profile:hover{border-color:rgba(255,255,255,0.15);color:#fff;}
 
 /* LOAD MORE */
 .load-more-wrap{text-align:center;margin-top:28px;}
@@ -225,6 +227,7 @@ function renderCard(p,idx){
       <button class="btn-request${isSent?' sent':''}" id="btn-${p.id}" onclick="sendRequest('${p.id}',this)" ${isSent?'disabled':''}>
         ${isSent?'<svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Requested':'<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Send Request'}
       </button>
+      <a href="/user?id=${p.id}" class="btn-view-profile">View</a>
     </div>
   </div>`;
 }
@@ -342,6 +345,7 @@ async function init(){
 
 init();
 </script>
+<script src="notif-bell.js"></script>
 <script src="call-notify.js"></script>
 </body>
 </html>

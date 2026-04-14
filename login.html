@@ -843,7 +843,7 @@ async function handleReset() {
   btn.classList.add('loading');
 
   const { error } = await sb.auth.resetPasswordForEmail(email, {
-    redirectTo: 'https://skillswap.buzz/login'
+    redirectTo: 'https://skillswap.buzz/reset-password'
   });
 
   btn.disabled = false;

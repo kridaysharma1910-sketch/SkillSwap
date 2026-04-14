@@ -267,6 +267,7 @@ const ICE_SERVERS = [
 // ── State ──
 let currentUserId = null;
 let roomId = null, matchId = null, isCaller = false;
+let matchPartnerId = null, matchSkillOffered = null, matchSkillWanted = null;
 let pc = null, localStream = null, signalChannel = null;
 let iceCandidateQueue = [];
 let remoteDescSet = false;
@@ -530,6 +531,10 @@ async function endCall(sendHangup) {
     const durationMinutes = Math.max(1, Math.floor((Date.now() - callStartTime) / 60000));
     const data = {user_id: currentUserId, duration_minutes: durationMinutes};
     if (matchId) data.match_id = matchId;
+    if (matchPartnerId) data.partner_id = matchPartnerId;
+    // isCaller teaches their offered skill; callee teaches what caller wanted
+    if (matchSkillOffered) data.skill_taught = isCaller ? matchSkillOffered : matchSkillWanted;
+    if (matchSkillWanted) data.skill_learned = isCaller ? matchSkillWanted : matchSkillOffered;
     const {error} = await sb.from('sessions').insert(data);
     if (error) console.error('Session log error:', error);
   }
@@ -806,9 +811,13 @@ async function init() {
   let peerName = 'Partner', peerInitials = '?';
   if (matchId) {
     const {data:matchData} = await sb.from('matches')
-      .select(`sender:profiles!matches_sender_id_fkey(full_name,username,avatar_url,avatar_emoji), receiver:profiles!matches_receiver_id_fkey(full_name,username,avatar_url,avatar_emoji)`)
+      .select(`skill_offered,skill_wanted,sender_id,receiver_id,sender:profiles!matches_sender_id_fkey(full_name,username,avatar_url,avatar_emoji), receiver:profiles!matches_receiver_id_fkey(full_name,username,avatar_url,avatar_emoji)`)
       .eq('id', matchId).single();
     if (matchData) {
+      // Store for session logging
+      matchPartnerId = isCaller ? matchData.receiver_id : matchData.sender_id;
+      matchSkillOffered = matchData.skill_offered || null;
+      matchSkillWanted = matchData.skill_wanted || null;
       const peerData = isCaller ? matchData.receiver : matchData.sender;
       if (peerData) {
         peerName = peerData.full_name || peerData.username || 'Partner';

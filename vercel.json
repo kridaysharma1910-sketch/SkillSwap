@@ -11,7 +11,9 @@
     { "source": "/pricing",      "destination": "/pricing.html" },
     { "source": "/webinars",     "destination": "/webinars.html" },
     { "source": "/analytics",    "destination": "/analytics.html" },
-    { "source": "/webinar-host", "destination": "/webinar-host.html" }
+    { "source": "/webinar-host",    "destination": "/webinar-host.html" },
+    { "source": "/reset-password",  "destination": "/reset-password.html" },
+    { "source": "/user",            "destination": "/user.html" }
   ],
   "redirects": [
     { "source": "/signup.html",       "destination": "/signup",       "permanent": true },
@@ -25,6 +27,8 @@
     { "source": "/pricing.html",      "destination": "/pricing",      "permanent": true },
     { "source": "/webinars.html",     "destination": "/webinars",     "permanent": true },
     { "source": "/analytics.html",    "destination": "/analytics",    "permanent": true },
-    { "source": "/webinar-host.html", "destination": "/webinar-host", "permanent": true }
+    { "source": "/webinar-host.html",   "destination": "/webinar-host",   "permanent": true },
+    { "source": "/reset-password.html", "destination": "/reset-password", "permanent": true },
+    { "source": "/user.html",           "destination": "/user",           "permanent": true }
   ]
 }

@@ -87,6 +87,29 @@ body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;min-height
 .btn-white:hover{opacity:.88;}
 .toast{position:fixed;bottom:24px;right:24px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);color:#fff;padding:12px 20px;border-radius:12px;font-size:.85rem;z-index:9000;animation:fadeUp .3s ease;backdrop-filter:blur(12px);}
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+/* REVIEW MODAL */
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(6px);z-index:400;display:none;align-items:center;justify-content:center;padding:20px;}
+.modal-backdrop.open{display:flex;}
+.modal-box{background:#111;border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:32px 36px;width:100%;max-width:420px;animation:fadeUp .3s ease;}
+.modal-title{font-family:'Syne',sans-serif;font-weight:800;font-size:1.2rem;margin-bottom:6px;}
+.modal-sub{font-size:.83rem;color:var(--text-muted);margin-bottom:24px;line-height:1.5;}
+.stars-row{display:flex;gap:6px;margin-bottom:20px;}
+.star-btn{background:none;border:none;font-size:1.8rem;cursor:none;color:rgba(255,255,255,0.15);transition:color .15s,transform .1s;line-height:1;}
+.star-btn:hover,.star-btn.lit{color:#fbbf24;}
+.star-btn:active{transform:scale(.85);}
+.review-textarea{width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.09);border-radius:12px;padding:12px 14px;color:#fff;font-family:'DM Sans',sans-serif;font-size:.88rem;resize:vertical;min-height:80px;outline:none;transition:border-color .2s;}
+.review-textarea:focus{border-color:rgba(139,92,246,0.45);}
+.review-textarea::placeholder{color:rgba(255,255,255,0.2);}
+.modal-actions{display:flex;gap:10px;margin-top:18px;}
+.btn-submit-review{flex:1;background:#fff;color:#080808;border:none;border-radius:10px;padding:11px;font-family:'Syne',sans-serif;font-size:.88rem;font-weight:700;cursor:none;transition:opacity .2s;}
+.btn-submit-review:hover{opacity:.88;}
+.btn-submit-review:disabled{opacity:.45;}
+.btn-skip{flex:1;background:transparent;border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.45);border-radius:10px;padding:11px;font-family:'DM Sans',sans-serif;font-size:.88rem;cursor:none;transition:all .2s;}
+.btn-skip:hover{border-color:rgba(255,255,255,0.18);color:rgba(255,255,255,0.7);}
+.btn-view-profile{background:transparent;border:1px solid var(--border);color:rgba(255,255,255,0.5);padding:8px 14px;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:.8rem;cursor:none;transition:all .2s;text-decoration:none;display:inline-flex;align-items:center;gap:5px;}
+.btn-view-profile:hover{border-color:rgba(255,255,255,0.14);color:#fff;}
+.btn-view-profile svg{width:12px;height:12px;}
 @media(max-width:900px){.sidebar{transform:translateX(-100%);transition:transform .3s;background:#0e0e0e !important;border-right:1px solid rgba(255,255,255,0.1) !important;}.sidebar.open{transform:translateX(0);}.sidebar .nav-link{color:#fff;opacity:1;}.main{margin-left:0;padding:24px 20px;padding-top:56px;}.hamburger{display:flex;}.match-card{flex-wrap:wrap;}.match-meta{width:100%;flex-direction:row;justify-content:space-between;align-items:center;}}
 </style>
 </head>
@@ -138,6 +161,26 @@ body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;min-height
     <div class="match-list" id="matchList"></div>
   </div>
 </main>
+
+<!-- REVIEW MODAL -->
+<div class="modal-backdrop" id="reviewModal">
+  <div class="modal-box">
+    <div class="modal-title">Rate your swap</div>
+    <div class="modal-sub" id="reviewModalSub">How was your session?</div>
+    <div class="stars-row" id="starsRow">
+      <button class="star-btn" data-v="1" onclick="setRating(1)">★</button>
+      <button class="star-btn" data-v="2" onclick="setRating(2)">★</button>
+      <button class="star-btn" data-v="3" onclick="setRating(3)">★</button>
+      <button class="star-btn" data-v="4" onclick="setRating(4)">★</button>
+      <button class="star-btn" data-v="5" onclick="setRating(5)">★</button>
+    </div>
+    <textarea class="review-textarea" id="reviewComment" placeholder="Leave a note (optional) — e.g. great teacher, patient, clear explanations..." maxlength="500"></textarea>
+    <div class="modal-actions">
+      <button class="btn-skip" onclick="skipReview()">Skip</button>
+      <button class="btn-submit-review" id="submitReviewBtn" onclick="submitReview()">Submit</button>
+    </div>
+  </div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-client.js"></script>
@@ -225,7 +268,10 @@ function renderTab(tab){
       actionsHtml=`<button class="btn-accept" onclick="respond('${m.id}','accepted',this)">Accept</button><button class="btn-decline" onclick="respond('${m.id}','rejected',this)">Decline</button>`;
     } else if(tab==='active'){
       const peerId=m.sender_id===currentUserId?m.receiver_id:m.sender_id;
-      actionsHtml=`<a href="/messages?match=${m.id}" class="btn-action"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Message</a><button class="btn-action" id="call-btn-${m.id}" onclick="startWebRTCCall('${m.id}','${peerId}')"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>Start Call</button><button class="btn-action" onclick="complete('${m.id}')">Mark Done</button>`;
+      actionsHtml=`<a href="/messages?match=${m.id}" class="btn-action"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Message</a><button class="btn-action" id="call-btn-${m.id}" onclick="startWebRTCCall('${m.id}','${peerId}')"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>Start Call</button><button class="btn-action" onclick="complete('${m.id}','${peerId}','${escHtml(peerName)}')">Mark Done</button>`;
+    } else if(tab==='completed'){
+      const peerId=m.sender_id===currentUserId?m.receiver_id:m.sender_id;
+      actionsHtml=`<a href="/messages?match=${m.id}" class="btn-action"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Message</a><a href="/user?id=${peerId}" class="btn-view-profile"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>View Profile</a>`;
     }
     return`<div class="match-card" style="animation-delay:${i*.04}s">
       <div class="match-avatar">${avatarHtml(peer)}</div>
@@ -250,10 +296,65 @@ async function respond(matchId,action,btn){
   else{showToast(action==='accepted'?'Match accepted!':'Request declined.');await loadMatches();}
 }
 
-async function complete(matchId){
+async function complete(matchId,peerId,peerName){
   const{error}=await sb.from('matches').update({status:'completed',updated_at:new Date().toISOString()}).eq('id',matchId);
-  if(error){console.error('Complete error:',error);showToast('Error: '+error.message);}
-  else{showToast('Swap marked as completed!');await loadMatches();}
+  if(error){console.error('Complete error:',error);showToast('Error: '+error.message);return;}
+  showToast('Swap marked as completed!');
+  await loadMatches();
+  openReviewModal(peerId,peerName,matchId);
+}
+
+// ── REVIEW MODAL ──────────────────────────────────────────────────────────────
+let reviewState={rating:0,peerId:null,peerName:null,matchId:null};
+
+function openReviewModal(peerId,peerName,matchId){
+  reviewState={rating:0,peerId,peerName,matchId};
+  document.getElementById('reviewModalSub').textContent=`How was your swap with ${peerName}?`;
+  document.getElementById('reviewComment').value='';
+  document.querySelectorAll('.star-btn').forEach(b=>b.classList.remove('lit'));
+  document.getElementById('reviewModal').classList.add('open');
+}
+
+function setRating(v){
+  reviewState.rating=v;
+  document.querySelectorAll('.star-btn').forEach(b=>{
+    b.classList.toggle('lit',parseInt(b.dataset.v)<=v);
+  });
+}
+
+function skipReview(){
+  document.getElementById('reviewModal').classList.remove('open');
+}
+
+async function submitReview(){
+  if(!reviewState.rating){showToast('Pick a star rating first.');return;}
+  const comment=document.getElementById('reviewComment').value.trim().slice(0,500);
+  const btn=document.getElementById('submitReviewBtn');
+  btn.disabled=true;btn.textContent='Saving…';
+
+  // Insert review row
+  const{error:rErr}=await sb.from('reviews').insert({
+    match_id:reviewState.matchId,
+    reviewer_id:currentUserId,
+    reviewee_id:reviewState.peerId,
+    rating:reviewState.rating,
+    comment:comment||null
+  });
+  if(rErr){
+    // If reviews table doesn't exist yet, fail gracefully
+    console.error('Review insert error:',rErr);
+  } else {
+    // Recalculate reviewee's average rating from all their reviews
+    const{data:revs}=await sb.from('reviews').select('rating').eq('reviewee_id',reviewState.peerId);
+    if(revs&&revs.length){
+      const avg=revs.reduce((s,r)=>s+r.rating,0)/revs.length;
+      await sb.from('profiles').update({rating:Math.round(avg*10)/10}).eq('id',reviewState.peerId);
+    }
+  }
+
+  document.getElementById('reviewModal').classList.remove('open');
+  showToast(rErr?'Swap completed! (Reviews table not set up yet)':'Review submitted — thanks!');
+  btn.disabled=false;btn.textContent='Submit';
 }
 
 async function loadMatches(){
@@ -290,6 +391,7 @@ async function init(){
 
 init();
 </script>
+<script src="notif-bell.js"></script>
 <script src="call-notify.js"></script>
 </body>
 </html>
