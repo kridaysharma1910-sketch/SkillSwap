@@ -20,7 +20,7 @@ Skill-exchange platform: users list skills they offer/want, get matched, swap se
 
 ## Supabase Tables
 - `profiles` — id, full_name, username, bio, location, website, avatar_url, avatar_emoji, plan, rating, rank, rewards[], skills_offering[], skills_wanting[], skills_offered[], skills_wanted[], hours_per_week, session_format, updated_at
-- `matches` — id, sender_id→profiles, receiver_id→profiles, status (pending/accepted/rejected/completed), skill_offered, skill_wanted, created_at, updated_at
+- `matches` — id, sender_id→profiles, receiver_id→profiles, status (pending/accepted/rejected/completed), skill_offered, skill_wanted, end_requested_by→profiles (nullable), end_requested_at (timestamptz, nullable), created_at, updated_at
 - `messages` — id, match_id→matches, sender_id→profiles, content, read, created_at
 - `sessions` — id, match_id→matches, user_id→profiles, partner_id→profiles, duration_minutes, skill_taught, skill_learned, completed_at
 - `webinars` — id, host_id→profiles, title, description, category, cover_emoji, jitsi_room, is_free, price, scheduled_at, duration_minutes, max_attendees, attendee_count, earnings, is_live, status, created_at
@@ -165,6 +165,13 @@ Start by telling me: what's the current state per CLAUDE.md, and what are we bui
 ---
 
 ## Session Log
+
+### [Session 20 — 2026-04-14]
+- **matches.html — mutual-consent end match**: removed unilateral "Mark Done"; active matches now have "End Match" button → sets `end_requested_by` + `end_requested_at` on the row; partner sees yellow warning banner ("X wants to end this swap") with Accept End / Keep Going buttons; requester sees clock label + Cancel End option; auto-expires to `completed` on next page load after 24 hrs without a response
+- **matches.html — cancel sent request**: Sent tab now has "Cancel Request" button (confirms → deletes the pending match row)
+- **matches.html — active tab states**: 3 distinct render paths (normal / I-requested-end / partner-requested-end) with appropriate status badges (Active / Ending... / End Requested)
+- **notif-bell.js**: new notification type when partner sets `end_requested_by` — appears in bell dropdown linking to /matches
+- **Supabase migration**: `ALTER TABLE matches ADD COLUMN end_requested_by uuid REFERENCES profiles(id) ON DELETE SET NULL, ADD COLUMN end_requested_at timestamptz` — already applied
 
 ### [Session 19 — 2026-04-14]
 - **reset-password.html**: new page handles Supabase PASSWORD_RECOVERY magic link — strength meter, show/hide, confirm field, auto-redirect to dashboard; `login.html` redirectTo updated to `/reset-password`
