@@ -110,6 +110,13 @@ body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;min-height
 .btn-view-profile{background:transparent;border:1px solid var(--border);color:rgba(255,255,255,0.5);padding:8px 14px;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:.8rem;cursor:none;transition:all .2s;text-decoration:none;display:inline-flex;align-items:center;gap:5px;}
 .btn-view-profile:hover{border-color:rgba(255,255,255,0.14);color:#fff;}
 .btn-view-profile svg{width:12px;height:12px;}
+.s-ending{background:rgba(251,191,36,0.1);color:#fcd34d;border:1px solid rgba(251,191,36,0.25);}
+.s-cancelled{background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.35);border:1px solid rgba(255,255,255,0.1);}
+.end-req-label{display:flex;align-items:center;gap:6px;font-size:.74rem;color:rgba(252,211,77,0.6);margin-top:9px;}
+.end-req-label svg{width:12px;height:12px;flex-shrink:0;}
+.end-req-warn{background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.18);border-radius:9px;padding:9px 12px;font-size:.78rem;color:rgba(252,211,77,0.85);margin-top:10px;line-height:1.45;}
+.btn-end-match{background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.18);color:rgba(239,68,68,0.6);padding:8px 14px;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:.8rem;cursor:none;transition:all .2s;}
+.btn-end-match:hover{background:rgba(239,68,68,0.12);border-color:rgba(239,68,68,0.3);color:#f87171;}
 @media(max-width:900px){.sidebar{transform:translateX(-100%);transition:transform .3s;background:#0e0e0e !important;border-right:1px solid rgba(255,255,255,0.1) !important;}.sidebar.open{transform:translateX(0);}.sidebar .nav-link{color:#fff;opacity:1;}.main{margin-left:0;padding:24px 20px;padding-top:56px;}.hamburger{display:flex;}.match-card{flex-wrap:wrap;}.match-meta{width:100%;flex-direction:row;justify-content:space-between;align-items:center;}}
 </style>
 </head>
@@ -264,25 +271,46 @@ function renderTab(tab){
     const statusLabels={pending:'Pending',accepted:'Active',rejected:'Declined',completed:'Done'};
     const statusClasses={pending:'s-pending',accepted:'s-accepted',rejected:'s-rejected',completed:'s-completed'};
     let actionsHtml='';
+    let bodyExtra='';
+    let statusBadge=`<span class="status-badge ${statusClasses[m.status]||'s-pending'}">${statusLabels[m.status]||m.status}</span>`;
+
     if(tab==='requests'){
       actionsHtml=`<button class="btn-accept" onclick="respond('${m.id}','accepted',this)">Accept</button><button class="btn-decline" onclick="respond('${m.id}','rejected',this)">Decline</button>`;
+    } else if(tab==='sent'){
+      actionsHtml=`<button class="btn-decline" style="font-size:.75rem;padding:6px 12px;" onclick="cancelSentRequest('${m.id}',this)">Cancel Request</button>`;
     } else if(tab==='active'){
       const peerId=m.sender_id===currentUserId?m.receiver_id:m.sender_id;
-      actionsHtml=`<a href="/messages?match=${m.id}" class="btn-action"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Message</a><button class="btn-action" id="call-btn-${m.id}" onclick="startWebRTCCall('${m.id}','${peerId}')"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>Start Call</button><button class="btn-action" onclick="complete('${m.id}','${peerId}','${escHtml(peerName)}')">Mark Done</button>`;
+      const endBy=m.end_requested_by;
+      if(endBy===currentUserId){
+        // I requested end — waiting for partner
+        statusBadge=`<span class="status-badge s-ending">Ending...</span>`;
+        bodyExtra=`<div class="end-req-label"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Waiting for ${escHtml(peerName)} to respond — auto-ends in 24 hrs</div>`;
+        actionsHtml=`<a href="/messages?match=${m.id}" class="btn-action"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Message</a><button class="btn-action" onclick="cancelEndRequest('${m.id}',this)">Cancel End</button>`;
+      } else if(endBy&&endBy!==currentUserId){
+        // Partner requested end
+        statusBadge=`<span class="status-badge s-ending">End Requested</span>`;
+        bodyExtra=`<div class="end-req-warn">⚠️ <strong>${escHtml(peerName)}</strong> wants to end this swap. You have 24 hours to respond — if you don't, the match ends automatically.</div>`;
+        actionsHtml=`<button class="btn-accept" onclick="acceptEnd('${m.id}','${peerId}','${escHtml(peerName)}')">Accept End</button><button class="btn-decline" onclick="declineEnd('${m.id}',this)">Keep Going</button>`;
+      } else {
+        // Normal active state
+        actionsHtml=`<a href="/messages?match=${m.id}" class="btn-action"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Message</a><button class="btn-action" id="call-btn-${m.id}" onclick="startWebRTCCall('${m.id}','${peerId}')"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>Start Call</button><button class="btn-end-match" onclick="requestEnd('${m.id}',this)">End Match</button>`;
+      }
     } else if(tab==='completed'){
       const peerId=m.sender_id===currentUserId?m.receiver_id:m.sender_id;
       actionsHtml=`<a href="/messages?match=${m.id}" class="btn-action"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Message</a><a href="/user?id=${peerId}" class="btn-view-profile"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>View Profile</a>`;
     }
+
     return`<div class="match-card" style="animation-delay:${i*.04}s">
       <div class="match-avatar">${avatarHtml(peer)}</div>
       <div class="match-body">
         <div class="match-name">${escHtml(peerName)}</div>
         <div class="match-swap">${swap}</div>
         <div class="match-tags">${offered.map(s=>`<span class="mtag mtag-v">${escHtml(s)}</span>`).join('')}</div>
+        ${bodyExtra}
       </div>
       <div class="match-meta">
         <span class="match-date">${formatDate(m.created_at)}</span>
-        <span class="status-badge ${statusClasses[m.status]||'s-pending'}">${statusLabels[m.status]||m.status}</span>
+        ${statusBadge}
         <div class="match-actions">${actionsHtml}</div>
       </div>
     </div>`;
@@ -296,12 +324,43 @@ async function respond(matchId,action,btn){
   else{showToast(action==='accepted'?'Match accepted!':'Request declined.');await loadMatches();}
 }
 
-async function complete(matchId,peerId,peerName){
-  const{error}=await sb.from('matches').update({status:'completed',updated_at:new Date().toISOString()}).eq('id',matchId);
-  if(error){console.error('Complete error:',error);showToast('Error: '+error.message);return;}
-  showToast('Swap marked as completed!');
+// ── END MATCH (mutual consent) ────────────────────────────────────────────────
+async function requestEnd(matchId,btn){
+  if(!confirm('Request to end this swap? Your partner will have 24 hours to accept. If they don\'t respond, the match ends automatically.'))return;
+  if(btn){btn.disabled=true;btn.textContent='...';}
+  const{error}=await sb.from('matches').update({end_requested_by:currentUserId,end_requested_at:new Date().toISOString(),updated_at:new Date().toISOString()}).eq('id',matchId);
+  if(error){console.error('requestEnd error:',error);showToast('Error: '+error.message);if(btn){btn.disabled=false;btn.textContent='End Match';}}
+  else{showToast('End request sent — partner has 24 hrs to respond.');await loadMatches();}
+}
+
+async function cancelEndRequest(matchId,btn){
+  if(btn){btn.disabled=true;}
+  const{error}=await sb.from('matches').update({end_requested_by:null,end_requested_at:null,updated_at:new Date().toISOString()}).eq('id',matchId);
+  if(error){console.error('cancelEndRequest error:',error);showToast('Error: '+error.message);if(btn)btn.disabled=false;}
+  else{showToast('End request cancelled — swap continues.');await loadMatches();}
+}
+
+async function acceptEnd(matchId,peerId,peerName){
+  const{error}=await sb.from('matches').update({status:'completed',end_requested_by:null,end_requested_at:null,updated_at:new Date().toISOString()}).eq('id',matchId);
+  if(error){console.error('acceptEnd error:',error);showToast('Error: '+error.message);return;}
+  showToast('Swap ended — great work!');
   await loadMatches();
   openReviewModal(peerId,peerName,matchId);
+}
+
+async function declineEnd(matchId,btn){
+  if(btn){btn.disabled=true;}
+  const{error}=await sb.from('matches').update({end_requested_by:null,end_requested_at:null,updated_at:new Date().toISOString()}).eq('id',matchId);
+  if(error){console.error('declineEnd error:',error);showToast('Error: '+error.message);if(btn)btn.disabled=false;}
+  else{showToast('You chose to keep the swap going!');await loadMatches();}
+}
+
+async function cancelSentRequest(matchId,btn){
+  if(!confirm('Cancel this swap request?'))return;
+  if(btn){btn.disabled=true;btn.style.opacity='.5';}
+  const{error}=await sb.from('matches').delete().eq('id',matchId).eq('sender_id',currentUserId).eq('status','pending');
+  if(error){console.error('cancelSentRequest error:',error);showToast('Error: '+error.message);if(btn){btn.disabled=false;btn.style.opacity='';}}
+  else{showToast('Request cancelled.');await loadMatches();}
 }
 
 // ── REVIEW MODAL ──────────────────────────────────────────────────────────────
@@ -364,6 +423,19 @@ async function loadMatches(){
     .order('created_at',{ascending:false});
   if(error){console.error('Load matches error:',error);}
   const matches=data||[];
+
+  // Auto-complete matches where end was requested >24 hours ago and partner didn't respond
+  const expireAt=Date.now()-86400000;
+  let expired=false;
+  for(const m of matches){
+    if(m.status==='accepted'&&m.end_requested_at&&new Date(m.end_requested_at).getTime()<expireAt){
+      await sb.from('matches').update({status:'completed',end_requested_by:null,end_requested_at:null,updated_at:new Date().toISOString()}).eq('id',m.id);
+      m.status='completed';m.end_requested_by=null;m.end_requested_at=null;
+      expired=true;
+    }
+  }
+  if(expired)showToast('A match expired after 24 hrs without a response.');
+
   allData.requests=matches.filter(m=>m.receiver_id===currentUserId&&m.status==='pending');
   allData.sent=matches.filter(m=>m.sender_id===currentUserId&&m.status==='pending');
   allData.active=matches.filter(m=>m.status==='accepted');

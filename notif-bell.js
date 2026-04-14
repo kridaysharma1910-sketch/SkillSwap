@@ -143,7 +143,7 @@
 
     const[matchRes,msgRes]=await Promise.all([
       sb.from('matches')
-        .select(`id,status,created_at,updated_at,skill_offered,skill_wanted,sender_id,receiver_id,
+        .select(`id,status,created_at,updated_at,skill_offered,skill_wanted,sender_id,receiver_id,end_requested_by,end_requested_at,
           sender:profiles!matches_sender_id_fkey(full_name,username,avatar_url),
           receiver:profiles!matches_receiver_id_fkey(full_name,username,avatar_url)`)
         .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`)
@@ -175,6 +175,11 @@
         const peer=m.sender_id===userId?m.receiver:m.sender;
         const name=peer?.full_name||peer?.username||'Someone';
         items.push({id:'match-done-'+m.id,href:'/matches',actor:peer,html:`Swap with <strong>${escHtml(name)}</strong> marked as completed`,time:m.updated_at});
+      } else if(m.status==='accepted'&&m.end_requested_by&&m.end_requested_by!==userId){
+        // Partner requested to end the match
+        const peer=m.sender_id===userId?m.receiver:m.sender;
+        const name=peer?.full_name||peer?.username||'Someone';
+        items.push({id:'match-endreq-'+m.id,href:'/matches',actor:peer,html:`<strong>${escHtml(name)}</strong> wants to end your swap — go to Matches to respond`,time:m.end_requested_at||m.updated_at});
       }
     }
 
