@@ -27,6 +27,7 @@ Skill-exchange platform: users list skills they offer/want, get matched, swap se
 - `webinar_attendees` — id, webinar_id→webinars, user_id→profiles, paid, amount_paid, joined_at
 - `analytics` — id, user_id→profiles (unique), skills_taught_count, skills_learned_count, total_video_minutes, webinars_watched, webinars_hosted, total_earnings, global_rank, updated_at
 - `call_invites` — id, room_id, match_id→matches, caller_id→profiles, callee_id→profiles, caller_name, caller_avatar, status (pending/accepted/declined/expired), created_at
+- `reviews` — id, match_id→matches, reviewer_id→profiles, reviewee_id→profiles, rating (1-5), comment, created_at
 - Storage: `avatars` bucket (public) — `{user_id}/avatar.{ext}`
 
 ---
@@ -140,7 +141,7 @@ Skill-exchange platform: users list skills they offer/want, get matched, swap se
 
 ## Known Issues / Pending
 - **Payment not wired** — `selectPlan()` updates Supabase directly, no Lemon Squeezy/Paddle flow yet
-- **`reviews` table** — run this SQL in Supabase before ratings work: `CREATE TABLE reviews (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), match_id uuid REFERENCES matches(id), reviewer_id uuid REFERENCES profiles(id), reviewee_id uuid REFERENCES profiles(id), rating int2 CHECK (rating BETWEEN 1 AND 5), comment text, created_at timestamptz DEFAULT now()); ALTER TABLE reviews ENABLE ROW LEVEL SECURITY; CREATE POLICY "insert own" ON reviews FOR INSERT WITH CHECK (auth.uid()=reviewer_id); CREATE POLICY "read all" ON reviews FOR SELECT USING (true);`
+- `reviews` table — **live in Supabase** (id, match_id, reviewer_id, reviewee_id, rating 1-5, comment, created_at; RLS: insert own, read all)
 - `avatars` storage bucket must be created in Supabase dashboard
 - Realtime must be enabled for `messages` table in Supabase dashboard
 - Webinar cloud recording not implemented — local .webm download only
