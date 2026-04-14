@@ -38,8 +38,10 @@ Skill-exchange platform: users list skills they offer/want, get matched, swap se
 | Landing | index.html | ✅ |
 | Sign Up | signup.html | ✅ |
 | Login | login.html | ✅ |
+| Reset Password | reset-password.html | ✅ |
 | Dashboard | dashboard.html | ✅ |
 | Profile | profile.html | ✅ |
+| Public User Profile | user.html | ✅ |
 | Discover | discover.html | ✅ |
 | Matches | matches.html | ✅ |
 | Messages | messages.html | ✅ |
@@ -77,7 +79,7 @@ Skill-exchange platform: users list skills they offer/want, get matched, swap se
 - Each page handles its own auth check (redirect to login if not logged in)
 - All Supabase calls use async/await
 - Supabase JS client loaded via CDN
-- All 9 sidebar pages share same sidebar pattern with `#sidebar-overlay` for mobile
+- All 10 sidebar pages share same sidebar pattern with `#sidebar-overlay` for mobile
 - `input-validation.js` loaded on every page that handles user input (after `supabase-client.js`)
 - All user-controlled values rendered into the DOM use `.textContent` / `setAttribute` — never `innerHTML` with raw input
 
@@ -138,9 +140,9 @@ Skill-exchange platform: users list skills they offer/want, get matched, swap se
 
 ## Known Issues / Pending
 - **Payment not wired** — `selectPlan()` updates Supabase directly, no Lemon Squeezy/Paddle flow yet
+- **`reviews` table** — run this SQL in Supabase before ratings work: `CREATE TABLE reviews (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), match_id uuid REFERENCES matches(id), reviewer_id uuid REFERENCES profiles(id), reviewee_id uuid REFERENCES profiles(id), rating int2 CHECK (rating BETWEEN 1 AND 5), comment text, created_at timestamptz DEFAULT now()); ALTER TABLE reviews ENABLE ROW LEVEL SECURITY; CREATE POLICY "insert own" ON reviews FOR INSERT WITH CHECK (auth.uid()=reviewer_id); CREATE POLICY "read all" ON reviews FOR SELECT USING (true);`
 - `avatars` storage bucket must be created in Supabase dashboard
 - Realtime must be enabled for `messages` table in Supabase dashboard
-- `#hostOverlay` in webinars.html is dead code (replaced by webinar-host.html) — safe to remove
 - Webinar cloud recording not implemented — local .webm download only
 
 ---
@@ -162,6 +164,17 @@ Start by telling me: what's the current state per CLAUDE.md, and what are we bui
 ---
 
 ## Session Log
+
+### [Session 19 — 2026-04-14]
+- **reset-password.html**: new page handles Supabase PASSWORD_RECOVERY magic link — strength meter, show/hide, confirm field, auto-redirect to dashboard; `login.html` redirectTo updated to `/reset-password`
+- **user.html**: public profile page (`/user?id=X`) — avatar, name, bio, location, rating, plan badge, skills offered/wanted, session stats, reviews list, Send Request / Message / Past Messages CTA based on match state; linked from discover cards
+- **discover.html**: added "View" button on every user card linking to `/user?id=X`
+- **matches.html**: post-completion 5-star review modal — writes to `reviews` table, recalculates `profiles.rating` as running average; graceful fallback if table not yet created; "View Profile" button on completed matches
+- **videocall.html**: session logging now also saves `partner_id`, `skill_taught`, `skill_learned` (from match data fetched on init)
+- **notif-bell.js**: new shared script injected on all 9 authenticated pages — bell icon above user pill, badge count of unseen, dropdown listing new match requests, acceptances, completions, unread messages; 45s polling; seen state in localStorage
+- **webinars.html**: removed dead `#hostOverlay` HTML (55 lines), 40 lines of dead CSS, and 230 lines of dead JS (enterHostMode + 12 helper functions) — fully replaced by webinar-host.html
+- **vercel.json**: added rewrites + redirects for `/reset-password` and `/user`
+- **reviews table SQL**: added to Known Issues/Pending with ready-to-run CREATE TABLE + RLS statement
 
 ### [Session 18 — 2026-04-13]
 - **Custom domain**: connected `skillswap.buzz` to Vercel; updated CLAUDE.md live URL
