@@ -555,13 +555,21 @@ function gatePlanFeatures(plan){
 async function loadAnalytics(){
   const { data:{ session } } = await sb.auth.getSession();
   if(!session) return;
-  const { data:analytics, error } = await sb.from('analytics').select('*').eq('user_id',session.user.id).single();
-  if(error) console.error('Analytics load error:', error);
-  if(analytics){
-    document.getElementById('aSkillsTaught').textContent = analytics.skills_taught_count || 0;
-    document.getElementById('aSkillsLearned').textContent = analytics.skills_learned_count || 0;
-    document.getElementById('aRank').textContent = analytics.global_rank ? '#'+analytics.global_rank : '—';
-  }
+  const userId = session.user.id;
+  const [
+    {data:sessions},
+    {data:analyticsRow},
+  ] = await Promise.all([
+    sb.from('sessions').select('skill_taught,skill_learned').eq('user_id',userId),
+    sb.from('analytics').select('global_rank').eq('user_id',userId).maybeSingle(),
+  ]);
+  const skillsTaught = new Set((sessions||[]).map(s=>s.skill_taught).filter(Boolean)).size;
+  const skillsLearned = new Set((sessions||[]).map(s=>s.skill_learned).filter(Boolean)).size;
+  document.getElementById('aSkillsTaught').textContent = skillsTaught;
+  document.getElementById('aSkillsLearned').textContent = skillsLearned;
+  document.getElementById('aRank').textContent = analyticsRow?.global_rank ? '#'+analyticsRow.global_rank : '—';
+  // Keep analytics row in sync
+  sb.from('analytics').upsert({user_id:userId,skills_taught_count:skillsTaught,skills_learned_count:skillsLearned,updated_at:new Date().toISOString()},{onConflict:'user_id'});
 }
 
 init();

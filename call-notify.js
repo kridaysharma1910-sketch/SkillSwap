@@ -361,7 +361,6 @@
         }
       })
       .subscribe(async (status) => {
-        console.log('[call-notify] channel status:', status);
         if (status !== 'SUBSCRIBED') return;
 
         // On subscribe, check for any pending invite inserted in the last 60s

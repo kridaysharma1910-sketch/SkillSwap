@@ -524,6 +524,7 @@ function setupChannels(){
   ctrlChannel=sb.channel('webinar_ctrl:'+webinarId);
   ctrlChannel
     .on('broadcast',{event:'raise_hand'},({payload})=>onRaiseHand(payload))
+    .on('broadcast',{event:'lower_hand'},({payload})=>{raiseHandQueue=raiseHandQueue.filter(x=>x.userId!==payload.user_id);renderHands();syncBadges();})
     .on('broadcast',{event:'chat_msg'},({payload})=>onChatMsg(payload,false))
     .subscribe();
 
