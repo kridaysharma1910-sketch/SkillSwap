@@ -166,6 +166,12 @@ Start by telling me: what's the current state per CLAUDE.md, and what are we bui
 
 ## Session Log
 
+### [Session 21 — 2026-04-15]
+- **dashboard.html**: `loadAnalytics` now queries `sessions` + `analytics` tables directly — the `analytics` table was never auto-populated so stats always showed `—`; also upserts analytics row to keep it in sync going forward
+- **webinars.html**: added raise hand button (hand icon, amber when active) to participant overlay controls; sends `raise_hand` / `lower_hand` broadcasts to host channel; persisted webinar reminders to localStorage (`ss_reminders`) so they survive page reload; `remindedIds` Set loaded from storage before webinar cards render so bell button correctly hidden
+- **webinar-host.html**: added `lower_hand` broadcast handler — removes attendee from raised-hand queue and re-renders panel + badge
+- **call-notify.js**: removed debug `console.log('[call-notify] channel status:', status)` left in production code
+
 ### [Session 20 — 2026-04-14]
 - **matches.html — mutual-consent end match**: removed unilateral "Mark Done"; active matches now have "End Match" button → sets `end_requested_by` + `end_requested_at` on the row; partner sees yellow warning banner ("X wants to end this swap") with Accept End / Keep Going buttons; requester sees clock label + Cancel End option; auto-expires to `completed` on next page load after 24 hrs without a response
 - **matches.html — cancel sent request**: Sent tab now has "Cancel Request" button (confirms → deletes the pending match row)
