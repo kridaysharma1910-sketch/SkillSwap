@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Allow: /index.html
+Disallow: /dashboard
+Disallow: /login.html
+Disallow: /signup.html
+Disallow: /webinar-host.html
+
+Sitemap: https://skill-swap-chi-gules.vercel.app/sitemap.xml
