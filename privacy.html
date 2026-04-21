@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>SkillSwap — Privacy Policy</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#080808;--bg-card:rgba(255,255,255,0.03);--border:rgba(255,255,255,0.08);--border-hover:rgba(139,92,246,0.3);--text-muted:rgba(255,255,255,0.32);}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{max-width:100vw;overflow-x:hidden;-webkit-text-size-adjust:100%;}
+a,button,[role=button]{touch-action:manipulation;}
+body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;flex-direction:column;overflow-x:hidden;cursor:none;}
+#ss-cursor{position:fixed;width:10px;height:10px;background:#fff;border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);mix-blend-mode:difference;}
+#ss-ring{position:fixed;width:34px;height:34px;border:1px solid rgba(255,255,255,0.5);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:all .2s;}
+.top-nav{display:flex;align-items:center;justify-content:space-between;padding:18px 48px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(8,8,8,0.92);backdrop-filter:blur(12px);z-index:100;}
+.nav-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.1rem;color:#fff;text-decoration:none;display:flex;align-items:center;gap:8px;}
+.logo-sq{width:9px;height:9px;background:#fff;border-radius:2px;flex-shrink:0;}
+.nav-links{display:flex;align-items:center;gap:24px;}
+.nav-links a{color:rgba(255,255,255,0.42);text-decoration:none;font-size:.875rem;transition:color .15s;}
+.nav-links a:hover{color:#fff;}
+.nav-btn{background:#fff;color:#080808;border:none;border-radius:9px;padding:8px 18px;font-family:'Syne',sans-serif;font-weight:700;font-size:.82rem;cursor:none;transition:opacity .2s;}
+.nav-btn:hover{opacity:.88;}
+.hero{text-align:center;padding:64px 24px 40px;}
+.hero-label{display:inline-block;background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.2);color:rgba(167,139,250,0.9);font-size:.72rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:4px 14px;border-radius:100px;margin-bottom:18px;}
+.hero h1{font-family:'Syne',sans-serif;font-weight:800;font-size:2.4rem;letter-spacing:-.03em;margin-bottom:12px;}
+.hero-meta{color:var(--text-muted);font-size:.875rem;}
+.hero-meta strong{color:rgba(255,255,255,0.5);}
+.content-wrap{max-width:760px;margin:0 auto;padding:0 24px 80px;}
+.toc{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:22px 26px;margin-bottom:40px;}
+.toc-title{font-family:'Syne',sans-serif;font-weight:700;font-size:.85rem;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px;}
+.toc ol{padding-left:18px;display:flex;flex-direction:column;gap:6px;}
+.toc ol li a{color:rgba(255,255,255,0.45);font-size:.85rem;text-decoration:none;transition:color .15s;}
+.toc ol li a:hover{color:rgba(167,139,250,0.9);}
+.section{margin-bottom:36px;}
+.section h2{font-family:'Syne',sans-serif;font-weight:700;font-size:1.1rem;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.section-num{width:24px;height:24px;background:rgba(139,92,246,0.12);border:1px solid rgba(139,92,246,0.2);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;color:rgba(167,139,250,0.8);flex-shrink:0;}
+.section p{color:rgba(255,255,255,0.58);font-size:.9rem;line-height:1.75;margin-bottom:10px;}
+.section ul{padding-left:20px;display:flex;flex-direction:column;gap:7px;margin-bottom:10px;}
+.section ul li{color:rgba(255,255,255,0.58);font-size:.9rem;line-height:1.65;}
+.section ul li::marker{color:rgba(139,92,246,0.5);}
+.section a{color:rgba(167,139,250,0.8);text-decoration:none;}
+.section a:hover{text-decoration:underline;}
+.highlight-box{background:rgba(139,92,246,0.06);border:1px solid rgba(139,92,246,0.15);border-radius:12px;padding:16px 20px;margin:14px 0;}
+.highlight-box p{color:rgba(255,255,255,0.65) !important;margin-bottom:0 !important;}
+.data-table{width:100%;border-collapse:collapse;margin:14px 0 10px;}
+.data-table th{text-align:left;font-family:'Syne',sans-serif;font-weight:700;font-size:.78rem;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:.07em;padding:10px 14px;border-bottom:1px solid var(--border);}
+.data-table td{padding:11px 14px;font-size:.87rem;color:rgba(255,255,255,0.55);border-bottom:1px solid rgba(255,255,255,0.04);vertical-align:top;line-height:1.55;}
+.data-table tr:last-child td{border-bottom:none;}
+.page-footer{border-top:1px solid var(--border);padding:28px 48px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;}
+.footer-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:.95rem;color:rgba(255,255,255,0.3);text-decoration:none;display:flex;align-items:center;gap:7px;}
+.footer-links{display:flex;gap:20px;flex-wrap:wrap;}
+.footer-links a{color:var(--text-muted);font-size:.82rem;text-decoration:none;transition:color .15s;}
+.footer-links a:hover{color:#fff;}
+@media(max-width:700px){.top-nav{padding:14px 20px;}.nav-links{gap:14px;}.hero{padding:44px 20px 28px;}.hero h1{font-size:1.7rem;}.content-wrap{padding:0 20px 60px;}.page-footer{padding:20px;}.data-table{font-size:.8rem;}}
+</style>
+</head>
+<body>
+<div id="ss-cursor"></div><div id="ss-ring"></div>
+
+<nav class="top-nav">
+  <a href="/" class="nav-logo"><div class="logo-sq"></div>SkillSwap</a>
+  <div class="nav-links">
+    <a href="/pricing">Pricing</a>
+    <a href="/login">Log in</a>
+    <a href="/signup" class="nav-btn">Get started</a>
+  </div>
+</nav>
+
+<div class="hero">
+  <div class="hero-label">Legal</div>
+  <h1>Privacy Policy</h1>
+  <p class="hero-meta">Last updated: <strong>April 21, 2026</strong> &nbsp;·&nbsp; Effective: <strong>April 21, 2026</strong></p>
+</div>
+
+<div class="content-wrap">
+
+  <div class="toc">
+    <div class="toc-title">Table of Contents</div>
+    <ol>
+      <li><a href="#overview">Overview</a></li>
+      <li><a href="#data-we-collect">Data We Collect</a></li>
+      <li><a href="#how-we-use">How We Use Your Data</a></li>
+      <li><a href="#sharing">Sharing & Disclosure</a></li>
+      <li><a href="#cookies">Cookies & Local Storage</a></li>
+      <li><a href="#retention">Data Retention</a></li>
+      <li><a href="#security">Security</a></li>
+      <li><a href="#your-rights">Your Rights</a></li>
+      <li><a href="#children">Children's Privacy</a></li>
+      <li><a href="#international">International Transfers</a></li>
+      <li><a href="#changes">Changes to This Policy</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ol>
+  </div>
+
+  <div class="section" id="overview">
+    <h2><span class="section-num">1</span>Overview</h2>
+    <p>SkillSwap ("we", "us", "our") is committed to protecting your privacy. This Privacy Policy explains what personal data we collect, why we collect it, how we use it, and your rights in relation to it.</p>
+    <p>This policy applies to all users of <a href="https://skillswap.buzz">skillswap.buzz</a> and any related services.</p>
+    <div class="highlight-box"><p>We do not sell your personal data to third parties. Ever.</p></div>
+  </div>
+
+  <div class="section" id="data-we-collect">
+    <h2><span class="section-num">2</span>Data We Collect</h2>
+    <p>We collect data in three ways: data you provide directly, data generated by your use of the platform, and data from third-party services.</p>
+
+    <p><strong style="color:rgba(255,255,255,0.75);">Data you provide:</strong></p>
+    <table class="data-table">
+      <thead><tr><th>Data</th><th>When collected</th></tr></thead>
+      <tbody>
+        <tr><td>Name, email address, password</td><td>Registration</td></tr>
+        <tr><td>Username, bio, location, website</td><td>Profile setup</td></tr>
+        <tr><td>Profile photo or avatar emoji</td><td>Profile setup</td></tr>
+        <tr><td>Skills offered and skills wanted</td><td>Profile setup</td></tr>
+        <tr><td>Messages sent to other users</td><td>Using messaging</td></tr>
+        <tr><td>Webinar titles, descriptions, and content</td><td>Hosting webinars (Creator plan)</td></tr>
+        <tr><td>Reviews and ratings</td><td>After completed sessions</td></tr>
+      </tbody>
+    </table>
+
+    <p><strong style="color:rgba(255,255,255,0.75);">Data generated automatically:</strong></p>
+    <ul>
+      <li>Session activity (skills taught/learned, session duration)</li>
+      <li>Analytics data (global rank, hours, webinars attended/hosted)</li>
+      <li>Call invite records (caller, callee, status, timestamps)</li>
+      <li>Browser local storage values (sidebar state, active call, notification seen-state)</li>
+    </ul>
+
+    <p><strong style="color:rgba(255,255,255,0.75);">Data from third parties:</strong></p>
+    <ul>
+      <li>Google OAuth — name and email if you sign in with Google</li>
+      <li>Paddle — subscription status and billing events (we do not receive full card details)</li>
+    </ul>
+  </div>
+
+  <div class="section" id="how-we-use">
+    <h2><span class="section-num">3</span>How We Use Your Data</h2>
+    <table class="data-table">
+      <thead><tr><th>Purpose</th><th>Legal basis</th></tr></thead>
+      <tbody>
+        <tr><td>Providing and operating the platform</td><td>Contract performance</td></tr>
+        <tr><td>Authenticating your account and securing access</td><td>Contract performance</td></tr>
+        <tr><td>Matching you with other users based on skills</td><td>Contract performance</td></tr>
+        <tr><td>Processing subscription payments via Paddle</td><td>Contract performance</td></tr>
+        <tr><td>Sending transactional emails (e.g. password reset)</td><td>Contract performance</td></tr>
+        <tr><td>Displaying your public profile to other users</td><td>Legitimate interest</td></tr>
+        <tr><td>Calculating analytics, rankings, and badges</td><td>Legitimate interest</td></tr>
+        <tr><td>Improving and debugging the platform</td><td>Legitimate interest</td></tr>
+        <tr><td>Complying with legal obligations</td><td>Legal obligation</td></tr>
+      </tbody>
+    </table>
+    <p>We do not use your data for advertising or sell it to data brokers.</p>
+  </div>
+
+  <div class="section" id="sharing">
+    <h2><span class="section-num">4</span>Sharing & Disclosure</h2>
+    <p>We share your data only in the following limited circumstances:</p>
+    <ul>
+      <li><strong style="color:rgba(255,255,255,0.7);">Supabase</strong> — our database and authentication provider. Your data is stored on Supabase infrastructure.</li>
+      <li><strong style="color:rgba(255,255,255,0.7);">Paddle</strong> — our payment processor. They handle billing and subscription management.</li>
+      <li><strong style="color:rgba(255,255,255,0.7);">Other users</strong> — your public profile (name, bio, skills, avatar, rating) is visible to other SkillSwap users. Messages are visible only to you and the recipient.</li>
+      <li><strong style="color:rgba(255,255,255,0.7);">Legal requirements</strong> — we may disclose data if required by law, court order, or to protect the rights and safety of users.</li>
+    </ul>
+    <p>We do not share your data with advertisers, analytics companies, or any other third parties not listed above.</p>
+  </div>
+
+  <div class="section" id="cookies">
+    <h2><span class="section-num">5</span>Cookies & Local Storage</h2>
+    <p>SkillSwap uses browser <strong style="color:rgba(255,255,255,0.7);">local storage</strong> (not traditional cookies) to store lightweight preferences on your device:</p>
+    <ul>
+      <li><code style="background:rgba(255,255,255,0.06);padding:1px 6px;border-radius:4px;font-size:.82rem;">ss_sidebar</code> — sidebar collapsed/expanded state</li>
+      <li><code style="background:rgba(255,255,255,0.06);padding:1px 6px;border-radius:4px;font-size:.82rem;">ss_active_call</code> — active video call state for rejoin</li>
+      <li><code style="background:rgba(255,255,255,0.06);padding:1px 6px;border-radius:4px;font-size:.82rem;">ss_reminders</code> — webinar reminder IDs</li>
+      <li><code style="background:rgba(255,255,255,0.06);padding:1px 6px;border-radius:4px;font-size:.82rem;">ss_notif_seen</code> — notification seen timestamps</li>
+    </ul>
+    <p>Supabase sets a session cookie to keep you logged in. This is strictly necessary for the service to function.</p>
+    <p>We do not use tracking cookies, advertising cookies, or third-party analytics cookies.</p>
+  </div>
+
+  <div class="section" id="retention">
+    <h2><span class="section-num">6</span>Data Retention</h2>
+    <p>We retain your data for as long as your account is active. When you delete your account:</p>
+    <ul>
+      <li>Your profile, messages, and session data are deleted</li>
+      <li>Reviews you have written or received are anonymised or removed</li>
+      <li>Billing records are retained by Paddle as required by financial regulations</li>
+    </ul>
+    <p>You can request deletion of your data at any time by emailing <a href="mailto:support@skillswap.buzz">support@skillswap.buzz</a>.</p>
+  </div>
+
+  <div class="section" id="security">
+    <h2><span class="section-num">7</span>Security</h2>
+    <p>We take reasonable technical and organisational measures to protect your data, including:</p>
+    <ul>
+      <li>All data transmitted over HTTPS/TLS</li>
+      <li>Row-level security (RLS) policies on all database tables via Supabase</li>
+      <li>Passwords are hashed — we never store them in plain text</li>
+      <li>Payment data handled entirely by Paddle — we never see your card number</li>
+    </ul>
+    <p>No method of transmission or storage is 100% secure. If you discover a security vulnerability, please report it to <a href="mailto:support@skillswap.buzz">support@skillswap.buzz</a>.</p>
+  </div>
+
+  <div class="section" id="your-rights">
+    <h2><span class="section-num">8</span>Your Rights</h2>
+    <p>Depending on your location, you may have the following rights regarding your personal data:</p>
+    <ul>
+      <li><strong style="color:rgba(255,255,255,0.7);">Access</strong> — request a copy of the data we hold about you</li>
+      <li><strong style="color:rgba(255,255,255,0.7);">Correction</strong> — update inaccurate or incomplete data via your profile settings</li>
+      <li><strong style="color:rgba(255,255,255,0.7);">Deletion</strong> — request deletion of your account and associated data</li>
+      <li><strong style="color:rgba(255,255,255,0.7);">Portability</strong> — request your data in a structured, machine-readable format</li>
+      <li><strong style="color:rgba(255,255,255,0.7);">Objection</strong> — object to processing based on legitimate interest</li>
+      <li><strong style="color:rgba(255,255,255,0.7);">Withdraw consent</strong> — where processing is based on consent, withdraw it at any time</li>
+    </ul>
+    <p>To exercise any of these rights, contact us at <a href="mailto:support@skillswap.buzz">support@skillswap.buzz</a>. We will respond within 30 days.</p>
+  </div>
+
+  <div class="section" id="children">
+    <h2><span class="section-num">9</span>Children's Privacy</h2>
+    <p>SkillSwap is not directed at children under the age of 13. We do not knowingly collect personal data from children under 13. If you believe a child has provided us with personal data, please contact us and we will delete it promptly.</p>
+  </div>
+
+  <div class="section" id="international">
+    <h2><span class="section-num">10</span>International Transfers</h2>
+    <p>Your data may be stored and processed in countries outside your own, including the United States, where Supabase infrastructure operates. By using SkillSwap, you consent to these transfers.</p>
+    <p>We ensure that any such transfers are subject to appropriate safeguards in accordance with applicable data protection law.</p>
+  </div>
+
+  <div class="section" id="changes">
+    <h2><span class="section-num">11</span>Changes to This Policy</h2>
+    <p>We may update this Privacy Policy from time to time. When we make material changes, we will update the "Last updated" date at the top of this page and notify you via email or the platform where appropriate.</p>
+    <p>Continued use of SkillSwap after changes take effect constitutes acceptance of the updated policy.</p>
+  </div>
+
+  <div class="section" id="contact">
+    <h2><span class="section-num">12</span>Contact</h2>
+    <p>For any privacy-related questions, requests, or concerns, please contact us:</p>
+    <ul>
+      <li>Email: <a href="mailto:support@skillswap.buzz">support@skillswap.buzz</a></li>
+      <li>Website: <a href="https://skillswap.buzz">skillswap.buzz</a></li>
+    </ul>
+    <p>We aim to respond to all privacy requests within 30 days.</p>
+  </div>
+
+</div>
+
+<footer class="page-footer">
+  <a href="/" class="footer-logo"><div class="logo-sq"></div>SkillSwap</a>
+  <div class="footer-links">
+    <a href="/terms">Terms of Service</a>
+    <a href="/privacy">Privacy Policy</a>
+    <a href="/refund">Refund Policy</a>
+    <a href="mailto:support@skillswap.buzz">Contact</a>
+  </div>
+</footer>
+
+<script>
+const cur=document.getElementById('ss-cursor'),ring=document.getElementById('ss-ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px';});
+document.querySelectorAll('a,button').forEach(el=>{el.addEventListener('mouseenter',()=>{ring.style.borderColor='rgba(139,92,246,0.6)';ring.style.width='44px';ring.style.height='44px';});el.addEventListener('mouseleave',()=>{ring.style.borderColor='rgba(255,255,255,0.5)';ring.style.width='34px';ring.style.height='34px';});});
+(function anim(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(anim);})();
+document.querySelectorAll('.toc a[href^="#"]').forEach(a=>{a.addEventListener('click',e=>{e.preventDefault();const t=document.querySelector(a.getAttribute('href'));if(t)t.scrollIntoView({behavior:'smooth',block:'start'});});});
+</script>
+</body>
+</html>

@@ -14,7 +14,9 @@
     { "source": "/webinar-host",    "destination": "/webinar-host.html" },
     { "source": "/reset-password",  "destination": "/reset-password.html" },
     { "source": "/user",            "destination": "/user.html" },
-    { "source": "/terms",           "destination": "/terms.html" }
+    { "source": "/terms",           "destination": "/terms.html" },
+    { "source": "/privacy",         "destination": "/privacy.html" },
+    { "source": "/refund",          "destination": "/refund.html" }
   ],
   "redirects": [
     { "source": "/signup.html",       "destination": "/signup",       "permanent": true },
@@ -31,6 +33,8 @@
     { "source": "/webinar-host.html",   "destination": "/webinar-host",   "permanent": true },
     { "source": "/reset-password.html", "destination": "/reset-password", "permanent": true },
     { "source": "/user.html",           "destination": "/user",           "permanent": true },
-    { "source": "/terms.html",          "destination": "/terms",          "permanent": true }
+    { "source": "/terms.html",          "destination": "/terms",          "permanent": true },
+    { "source": "/privacy.html",        "destination": "/privacy",        "permanent": true },
+    { "source": "/refund.html",         "destination": "/refund",         "permanent": true }
   ]
 }

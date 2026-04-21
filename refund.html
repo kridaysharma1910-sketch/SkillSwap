@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>SkillSwap — Refund Policy</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#080808;--bg-card:rgba(255,255,255,0.03);--border:rgba(255,255,255,0.08);--border-hover:rgba(139,92,246,0.3);--text-muted:rgba(255,255,255,0.32);}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{max-width:100vw;overflow-x:hidden;-webkit-text-size-adjust:100%;}
+a,button,[role=button]{touch-action:manipulation;}
+body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;flex-direction:column;overflow-x:hidden;cursor:none;}
+#ss-cursor{position:fixed;width:10px;height:10px;background:#fff;border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);mix-blend-mode:difference;}
+#ss-ring{position:fixed;width:34px;height:34px;border:1px solid rgba(255,255,255,0.5);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:all .2s;}
+.top-nav{display:flex;align-items:center;justify-content:space-between;padding:18px 48px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(8,8,8,0.92);backdrop-filter:blur(12px);z-index:100;}
+.nav-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.1rem;color:#fff;text-decoration:none;display:flex;align-items:center;gap:8px;}
+.logo-sq{width:9px;height:9px;background:#fff;border-radius:2px;flex-shrink:0;}
+.nav-links{display:flex;align-items:center;gap:24px;}
+.nav-links a{color:rgba(255,255,255,0.42);text-decoration:none;font-size:.875rem;transition:color .15s;}
+.nav-links a:hover{color:#fff;}
+.nav-btn{background:#fff;color:#080808;border:none;border-radius:9px;padding:8px 18px;font-family:'Syne',sans-serif;font-weight:700;font-size:.82rem;cursor:none;transition:opacity .2s;}
+.nav-btn:hover{opacity:.88;}
+.hero{text-align:center;padding:64px 24px 40px;}
+.hero-label{display:inline-block;background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.2);color:rgba(167,139,250,0.9);font-size:.72rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:4px 14px;border-radius:100px;margin-bottom:18px;}
+.hero h1{font-family:'Syne',sans-serif;font-weight:800;font-size:2.4rem;letter-spacing:-.03em;margin-bottom:12px;}
+.hero-meta{color:var(--text-muted);font-size:.875rem;}
+.hero-meta strong{color:rgba(255,255,255,0.5);}
+.content-wrap{max-width:760px;margin:0 auto;padding:0 24px 80px;}
+.toc{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:22px 26px;margin-bottom:40px;}
+.toc-title{font-family:'Syne',sans-serif;font-weight:700;font-size:.85rem;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px;}
+.toc ol{padding-left:18px;display:flex;flex-direction:column;gap:6px;}
+.toc ol li a{color:rgba(255,255,255,0.45);font-size:.85rem;text-decoration:none;transition:color .15s;}
+.toc ol li a:hover{color:rgba(167,139,250,0.9);}
+.section{margin-bottom:36px;}
+.section h2{font-family:'Syne',sans-serif;font-weight:700;font-size:1.1rem;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.section-num{width:24px;height:24px;background:rgba(139,92,246,0.12);border:1px solid rgba(139,92,246,0.2);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;color:rgba(167,139,250,0.8);flex-shrink:0;}
+.section p{color:rgba(255,255,255,0.58);font-size:.9rem;line-height:1.75;margin-bottom:10px;}
+.section ul{padding-left:20px;display:flex;flex-direction:column;gap:7px;margin-bottom:10px;}
+.section ul li{color:rgba(255,255,255,0.58);font-size:.9rem;line-height:1.65;}
+.section ul li::marker{color:rgba(139,92,246,0.5);}
+.section a{color:rgba(167,139,250,0.8);text-decoration:none;}
+.section a:hover{text-decoration:underline;}
+.highlight-box{background:rgba(139,92,246,0.06);border:1px solid rgba(139,92,246,0.15);border-radius:12px;padding:16px 20px;margin:14px 0;}
+.highlight-box p{color:rgba(255,255,255,0.65) !important;margin-bottom:0 !important;}
+.green-box{background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.18);border-radius:12px;padding:16px 20px;margin:14px 0;}
+.green-box p{color:rgba(255,255,255,0.65) !important;margin-bottom:0 !important;}
+.scenario-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0;}
+.scenario-card{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:16px 18px;}
+.scenario-card.eligible{border-color:rgba(34,197,94,0.2);background:rgba(34,197,94,0.04);}
+.scenario-card.not-eligible{border-color:rgba(239,68,68,0.2);background:rgba(239,68,68,0.04);}
+.scenario-label{font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;}
+.scenario-card.eligible .scenario-label{color:rgba(134,239,172,0.8);}
+.scenario-card.not-eligible .scenario-label{color:rgba(248,113,113,0.7);}
+.scenario-card ul{padding-left:16px;display:flex;flex-direction:column;gap:5px;list-style:none;padding-left:0;}
+.scenario-card ul li{font-size:.83rem;color:rgba(255,255,255,0.5);display:flex;align-items:flex-start;gap:7px;line-height:1.5;}
+.scenario-card ul li::before{content:'';flex-shrink:0;margin-top:6px;}
+.scenario-card.eligible ul li::before{content:'✓';color:rgba(134,239,172,0.7);font-size:.75rem;}
+.scenario-card.not-eligible ul li::before{content:'✕';color:rgba(248,113,113,0.6);font-size:.75rem;}
+.steps{display:flex;flex-direction:column;gap:12px;margin:14px 0;}
+.step{display:flex;align-items:flex-start;gap:14px;}
+.step-num{width:28px;height:28px;background:rgba(139,92,246,0.12);border:1px solid rgba(139,92,246,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:.75rem;font-weight:700;color:rgba(167,139,250,0.8);flex-shrink:0;margin-top:2px;}
+.step-body{flex:1;}
+.step-title{font-size:.88rem;font-weight:500;color:rgba(255,255,255,0.75);margin-bottom:3px;}
+.step-desc{font-size:.83rem;color:rgba(255,255,255,0.4);line-height:1.55;}
+.page-footer{border-top:1px solid var(--border);padding:28px 48px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;}
+.footer-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:.95rem;color:rgba(255,255,255,0.3);text-decoration:none;display:flex;align-items:center;gap:7px;}
+.footer-links{display:flex;gap:20px;flex-wrap:wrap;}
+.footer-links a{color:var(--text-muted);font-size:.82rem;text-decoration:none;transition:color .15s;}
+.footer-links a:hover{color:#fff;}
+@media(max-width:700px){.top-nav{padding:14px 20px;}.nav-links{gap:14px;}.hero{padding:44px 20px 28px;}.hero h1{font-size:1.7rem;}.content-wrap{padding:0 20px 60px;}.scenario-grid{grid-template-columns:1fr;}.page-footer{padding:20px;}}
+</style>
+</head>
+<body>
+<div id="ss-cursor"></div><div id="ss-ring"></div>
+
+<nav class="top-nav">
+  <a href="/" class="nav-logo"><div class="logo-sq"></div>SkillSwap</a>
+  <div class="nav-links">
+    <a href="/pricing">Pricing</a>
+    <a href="/login">Log in</a>
+    <a href="/signup" class="nav-btn">Get started</a>
+  </div>
+</nav>
+
+<div class="hero">
+  <div class="hero-label">Legal</div>
+  <h1>Refund Policy</h1>
+  <p class="hero-meta">Last updated: <strong>April 21, 2026</strong> &nbsp;·&nbsp; Effective: <strong>April 21, 2026</strong></p>
+</div>
+
+<div class="content-wrap">
+
+  <div class="toc">
+    <div class="toc-title">Table of Contents</div>
+    <ol>
+      <li><a href="#overview">Overview</a></li>
+      <li><a href="#subscriptions">Subscription Refunds</a></li>
+      <li><a href="#webinars">Webinar Refunds</a></li>
+      <li><a href="#eligible">What's Eligible</a></li>
+      <li><a href="#how-to-request">How to Request a Refund</a></li>
+      <li><a href="#processing">Processing Time</a></li>
+      <li><a href="#exceptions">Exceptions</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ol>
+  </div>
+
+  <div class="section" id="overview">
+    <h2><span class="section-num">1</span>Overview</h2>
+    <p>At SkillSwap, we want you to be happy with your purchase. This policy explains when refunds are available and how to request one.</p>
+    <div class="green-box"><p>We offer a <strong>7-day money-back guarantee</strong> on all new paid subscriptions (Pro and Creator). No questions asked.</p></div>
+    <p>All payments on SkillSwap are processed by Paddle, our merchant of record. Refunds are issued to the original payment method.</p>
+  </div>
+
+  <div class="section" id="subscriptions">
+    <h2><span class="section-num">2</span>Subscription Refunds</h2>
+    <p><strong style="color:rgba(255,255,255,0.75);">New subscriptions — 7-day guarantee</strong></p>
+    <p>If you subscribed to Pro or Creator and are not satisfied, you may request a full refund within 7 days of your initial charge. This applies to your first payment only.</p>
+
+    <p><strong style="color:rgba(255,255,255,0.75);">Renewals</strong></p>
+    <p>Subscription renewals are generally non-refundable. If you forgot to cancel before your renewal date, contact us within 48 hours and we will review your request on a case-by-case basis.</p>
+
+    <p><strong style="color:rgba(255,255,255,0.75);">Annual plans</strong></p>
+    <p>Annual subscriptions are eligible for a prorated refund within the first 30 days. After 30 days, annual plans are non-refundable but you retain access until the end of the billing year.</p>
+
+    <p><strong style="color:rgba(255,255,255,0.75);">Cancellations</strong></p>
+    <p>Cancelling your subscription stops future charges. You keep full access until the end of your current billing period. Cancellation alone does not trigger a refund.</p>
+  </div>
+
+  <div class="section" id="webinars">
+    <h2><span class="section-num">3</span>Webinar Refunds</h2>
+    <p>Webinar ticket purchases (paid webinars hosted by Creator members) are subject to the following:</p>
+    <ul>
+      <li>Full refund if the webinar is cancelled by the host before it begins</li>
+      <li>Full refund if the webinar does not start within 30 minutes of the scheduled time</li>
+      <li>Refunds requested more than 24 hours before the scheduled start time will be honoured</li>
+      <li>No refund for webinars you attended, even partially</li>
+      <li>No refund for no-shows (you paid but did not attend)</li>
+    </ul>
+    <p>Webinar refund requests should be submitted within 7 days of the scheduled event date.</p>
+  </div>
+
+  <div class="section" id="eligible">
+    <h2><span class="section-num">4</span>What's Eligible</h2>
+    <div class="scenario-grid">
+      <div class="scenario-card eligible">
+        <div class="scenario-label">Eligible for refund</div>
+        <ul>
+          <li>First subscription charge within 7 days</li>
+          <li>Annual plan within first 30 days</li>
+          <li>Renewal charge within 48 hours (case-by-case)</li>
+          <li>Cancelled webinar by host</li>
+          <li>Webinar that never started</li>
+          <li>Webinar ticket cancelled 24h+ before event</li>
+          <li>Duplicate charge or billing error</li>
+        </ul>
+      </div>
+      <div class="scenario-card not-eligible">
+        <div class="scenario-label">Not eligible</div>
+        <ul>
+          <li>Subscription renewals after 48 hours</li>
+          <li>Annual plans after 30 days</li>
+          <li>Partially used subscription periods</li>
+          <li>Attended webinars (even partially)</li>
+          <li>Webinar no-shows</li>
+          <li>Accounts suspended for Terms violations</li>
+          <li>Change of mind after extended use</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="section" id="how-to-request">
+    <h2><span class="section-num">5</span>How to Request a Refund</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-title">Email us</div>
+          <div class="step-desc">Send a message to <a href="mailto:support@skillswap.buzz">support@skillswap.buzz</a> with the subject line "Refund Request".</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-title">Include your details</div>
+          <div class="step-desc">Your registered email address, the charge date, the amount, and a brief reason for the request.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-title">We'll review and respond</div>
+          <div class="step-desc">We aim to respond within 2 business days. If approved, we'll initiate the refund via Paddle.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <div class="step-title">Refund issued</div>
+          <div class="step-desc">Refunds are returned to your original payment method. See Section 6 for processing times.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section" id="processing">
+    <h2><span class="section-num">6</span>Processing Time</h2>
+    <p>Once a refund is approved and initiated by us via Paddle:</p>
+    <ul>
+      <li><strong style="color:rgba(255,255,255,0.7);">Credit / debit card</strong> — 5–10 business days to appear on your statement</li>
+      <li><strong style="color:rgba(255,255,255,0.7);">PayPal</strong> — 3–5 business days</li>
+    </ul>
+    <p>Processing times are determined by your bank or payment provider and are outside our control. If your refund has not appeared after 10 business days, please contact us and we can provide a Paddle transaction reference for your bank to trace.</p>
+  </div>
+
+  <div class="section" id="exceptions">
+    <h2><span class="section-num">7</span>Exceptions</h2>
+    <p>We reserve the right to decline a refund request where:</p>
+    <ul>
+      <li>The account was suspended or terminated for violation of our <a href="/terms">Terms of Service</a></li>
+      <li>There is evidence of abuse of the refund policy (e.g. repeated subscription and refund cycles)</li>
+      <li>The request falls outside the eligible timeframes above</li>
+    </ul>
+    <div class="highlight-box"><p>Consumer protection laws in certain jurisdictions (e.g. EU, UK) may grant you additional refund rights beyond this policy. Nothing in this policy limits those statutory rights.</p></div>
+  </div>
+
+  <div class="section" id="contact">
+    <h2><span class="section-num">8</span>Contact</h2>
+    <p>For refund requests or billing questions, please reach out:</p>
+    <ul>
+      <li>Email: <a href="mailto:support@skillswap.buzz">support@skillswap.buzz</a></li>
+      <li>Website: <a href="https://skillswap.buzz">skillswap.buzz</a></li>
+    </ul>
+    <p>We aim to respond to all refund requests within 2 business days.</p>
+  </div>
+
+</div>
+
+<footer class="page-footer">
+  <a href="/" class="footer-logo"><div class="logo-sq"></div>SkillSwap</a>
+  <div class="footer-links">
+    <a href="/terms">Terms of Service</a>
+    <a href="/privacy">Privacy Policy</a>
+    <a href="/refund">Refund Policy</a>
+    <a href="mailto:support@skillswap.buzz">Contact</a>
+  </div>
+</footer>
+
+<script>
+const cur=document.getElementById('ss-cursor'),ring=document.getElementById('ss-ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px';});
+document.querySelectorAll('a,button').forEach(el=>{el.addEventListener('mouseenter',()=>{ring.style.borderColor='rgba(139,92,246,0.6)';ring.style.width='44px';ring.style.height='44px';});el.addEventListener('mouseleave',()=>{ring.style.borderColor='rgba(255,255,255,0.5)';ring.style.width='34px';ring.style.height='34px';});});
+(function anim(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(anim);})();
+document.querySelectorAll('.toc a[href^="#"]').forEach(a=>{a.addEventListener('click',e=>{e.preventDefault();const t=document.querySelector(a.getAttribute('href'));if(t)t.scrollIntoView({behavior:'smooth',block:'start'});});});
+</script>
+</body>
+</html>
