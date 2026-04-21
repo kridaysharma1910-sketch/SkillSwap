@@ -221,7 +221,7 @@
       }
       hideOverlay();
       const voiceParam = isVoice ? '&voice=1' : '';
-      window.location.href = 'videocall.html?room=' + encodeURIComponent(roomId)
+      window.location.href = '/videocall?room=' + encodeURIComponent(roomId)
         + (matchId ? '&match=' + matchId : '') + voiceParam;
     };
 
@@ -311,7 +311,7 @@
       }
       const voiceParam = d.voice ? '&voice=1' : '';
       const callerParam = d.isCaller ? '&caller=1' : '';
-      const url = `videocall.html?room=${encodeURIComponent(d.roomId)}&match=${d.matchId || ''}${callerParam}${voiceParam}`;
+      const url = `/videocall?room=${encodeURIComponent(d.roomId)}&match=${d.matchId || ''}${callerParam}${voiceParam}`;
       pill.onclick = () => { window.location.href = url; };
       pill.innerHTML = `<span style="width:7px;height:7px;background:#22c55e;border-radius:50%;flex-shrink:0;display:inline-block;animation:__ssCallPillBlink 1s infinite;"></span>Call in progress`;
     } catch(e) {

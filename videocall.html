@@ -273,6 +273,7 @@ let iceCandidateQueue = [];
 let remoteDescSet = false;
 let offerSent = false;
 let readyInterval = null;
+let calleeReadyInterval = null;
 let micMuted = false, camOff = false;
 let callStartTime = null, callTimerInterval = null;
 let callActive = false;
@@ -298,6 +299,7 @@ function clearCallState() {
 async function cancelCall() {
   clearTimeout(ringingTimeout);
   clearInterval(readyInterval);
+  clearInterval(calleeReadyInterval); calleeReadyInterval = null;
   if (signalChannel) {
     try { signalChannel.send({type:'broadcast', event:'cancelled', payload:{}}); } catch(e) {}
     try { sb.removeChannel(signalChannel); } catch(e) {}
@@ -317,6 +319,7 @@ async function cancelCall() {
 function showCallEnded(reason) {
   clearTimeout(ringingTimeout);
   clearInterval(readyInterval);
+  clearInterval(calleeReadyInterval); calleeReadyInterval = null;
   const rScreen = document.getElementById('ringingScreen');
   if (rScreen && !rScreen.classList.contains('hidden')) {
     const subEl = document.getElementById('ringSub');
@@ -489,6 +492,8 @@ function toggleRecording() {
 function gracefulFail(reason) {
   console.warn('Call setup failed:', reason);
   clearCallState();
+  clearInterval(readyInterval);
+  clearInterval(calleeReadyInterval); calleeReadyInterval = null;
   if (localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; }
   if (pc) { try { pc.close(); } catch(e) {} pc = null; }
   if (signalChannel) { try { sb.removeChannel(signalChannel); } catch(e) {} signalChannel = null; }
@@ -510,6 +515,7 @@ async function endCall(sendHangup) {
   callActive = false;
   clearInterval(callTimerInterval);
   clearInterval(readyInterval);
+  clearInterval(calleeReadyInterval); calleeReadyInterval = null;
 
   // Stop recording if active
   if (recordingActive && recorder && recorder.state !== 'inactive') {
@@ -550,6 +556,7 @@ async function endCall(sendHangup) {
 async function initWebRTC() {
   // ── Clean up any previous attempt (reconnect / re-init) ──
   clearInterval(readyInterval);
+  clearInterval(calleeReadyInterval); calleeReadyInterval = null;
   clearTimeout(connectionTimeout);
   if (signalChannel) {
     try { sb.removeChannel(signalChannel); } catch(e) {}
@@ -644,6 +651,7 @@ async function initWebRTC() {
 
   signalChannel.on('broadcast', {event:'offer'}, async ({payload}) => {
     if (isCaller) return;
+    clearInterval(calleeReadyInterval); calleeReadyInterval = null;
     try {
       await safeSetRemoteDescription(payload.sdp);
       const answer = await createAnswerAndWaitForICE();
@@ -686,7 +694,20 @@ async function initWebRTC() {
             } catch(e) {}
           }
         }, 8000);
-      } catch(e) { console.error('Create offer error:', e); offerSent = false; }
+      } catch(e) {
+        console.error('Create offer error:', e);
+        offerSent = false;
+        // Restart interval so the next callee ready can trigger a new attempt
+        if (!readyInterval && signalChannel) {
+          readyInterval = setInterval(() => {
+            if (!offerSent && signalChannel) {
+              signalChannel.send({type:'broadcast', event:'ready', payload:{role:'caller'}});
+            } else {
+              clearInterval(readyInterval);
+            }
+          }, 2000);
+        }
+      }
     }
     if (!isCaller && payload && payload.role === 'caller') {
       signalChannel.send({type:'broadcast', event:'ready', payload:{role:'callee'}});
@@ -734,6 +755,14 @@ async function initWebRTC() {
       }, 2000);
     } else {
       signalChannel.send({type:'broadcast', event:'ready', payload:{role:'callee'}});
+      // Retry every 2s until offer arrives — handles dropped broadcast
+      calleeReadyInterval = setInterval(() => {
+        if (!remoteDescSet && signalChannel) {
+          signalChannel.send({type:'broadcast', event:'ready', payload:{role:'callee'}});
+        } else {
+          clearInterval(calleeReadyInterval); calleeReadyInterval = null;
+        }
+      }, 2000);
     }
   });
 }
