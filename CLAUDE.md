@@ -166,6 +166,14 @@ Start by telling me: what's the current state per CLAUDE.md, and what are we bui
 
 ## Session Log
 
+### [Session 22 — 2026-04-21]
+- **call-notify.js**: fixed relative `videocall.html?room=` URLs → `/videocall?room=` in 2 places (accept navigation + active pill); avoids unnecessary 301 redirect
+- **videocall.html**: added `calleeReadyInterval` — callee now retries `ready` broadcast every 2s until offer arrives (Supabase broadcast is at-most-once; dropped ready = stalled call)
+- **videocall.html**: caller restarts `readyInterval` if `createOffer()` throws, enabling automatic retry instead of going silent
+- **videocall.html**: `calleeReadyInterval` cleaned up in all exit paths (`cancelCall`, `showCallEnded`, `endCall`, `gracefulFail`)
+- **.gitignore**: added `.claude/settings.local.json` to stop it showing as modified
+- **Payments**: researched Dodo Payments — their acceptable use policy restricts coaching/P2P/matchmaking platforms; drafted merchant reply email framing SkillSwap as SaaS subscription + event ticketing to maximise acceptance odds; payment still not wired (Lemon Squeezy / Paddle remain the planned providers)
+
 ### [Session 21 — 2026-04-15]
 - **dashboard.html**: `loadAnalytics` now queries `sessions` + `analytics` tables directly — the `analytics` table was never auto-populated so stats always showed `—`; also upserts analytics row to keep it in sync going forward
 - **webinars.html**: added raise hand button (hand icon, amber when active) to participant overlay controls; sends `raise_hand` / `lower_hand` broadcasts to host channel; persisted webinar reminders to localStorage (`ss_reminders`) so they survive page reload; `remindedIds` Set loaded from storage before webinar cards render so bell button correctly hidden
