@@ -51,6 +51,9 @@ Skill-exchange platform: users list skills they offer/want, get matched, swap se
 | Webinars | webinars.html | ✅ |
 | Analytics | analytics.html | ✅ |
 | Webinar Host Room | webinar-host.html | ✅ |
+| Terms of Service | terms.html | ✅ |
+| Privacy Policy | privacy.html | ✅ |
+| Refund Policy | refund.html | ✅ |
 
 ---
 
@@ -165,6 +168,16 @@ Start by telling me: what's the current state per CLAUDE.md, and what are we bui
 ---
 
 ## Session Log
+
+### [Session 23 — 2026-04-21]
+- **terms.html**: new Terms of Service page (`/terms`) — 15 sections, table of contents with smooth scroll, public layout (no sidebar)
+- **privacy.html**: new Privacy Policy page (`/privacy`) — 12 sections, data collection tables, legal basis table, cookies/localStorage list
+- **refund.html**: new Refund Policy page (`/refund`) — 7-day money-back guarantee, eligible/not-eligible grid, 4-step request flow, webinar refund rules
+- **vercel.json**: added rewrites + redirects for `/terms`, `/privacy`, `/refund`
+- **index.html**: fixed dead `#` footer links → real links to `/privacy`, `/terms`, `/refund`, `mailto:support@skillswap.buzz`
+- **pricing.html**: added legal link row below FAQ; updated "Lemon Squeezy" → "Paddle" in FAQ answer
+- **terms.html**: updated payment processor reference to Paddle
+- **Paddle**: researched setup — merchant must be 18+; Paddle chosen as payment provider over Lemon Squeezy
 
 ### [Session 22 — 2026-04-21]
 - **call-notify.js**: fixed relative `videocall.html?room=` URLs → `/videocall?room=` in 2 places (accept navigation + active pill); avoids unnecessary 301 redirect
