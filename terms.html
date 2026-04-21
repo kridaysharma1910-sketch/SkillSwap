@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>SkillSwap — Terms of Service</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#080808;--bg-card:rgba(255,255,255,0.03);--border:rgba(255,255,255,0.08);--border-hover:rgba(139,92,246,0.3);--text-muted:rgba(255,255,255,0.32);}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{max-width:100vw;overflow-x:hidden;-webkit-text-size-adjust:100%;}
+a,button,[role=button]{touch-action:manipulation;}
+body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;flex-direction:column;overflow-x:hidden;cursor:none;}
+#ss-cursor{position:fixed;width:10px;height:10px;background:#fff;border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);mix-blend-mode:difference;}
+#ss-ring{position:fixed;width:34px;height:34px;border:1px solid rgba(255,255,255,0.5);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:all .2s;}
+
+/* NAV */
+.top-nav{display:flex;align-items:center;justify-content:space-between;padding:18px 48px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(8,8,8,0.92);backdrop-filter:blur(12px);z-index:100;}
+.nav-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.1rem;color:#fff;text-decoration:none;display:flex;align-items:center;gap:8px;}
+.logo-sq{width:9px;height:9px;background:#fff;border-radius:2px;flex-shrink:0;}
+.nav-links{display:flex;align-items:center;gap:24px;}
+.nav-links a{color:rgba(255,255,255,0.42);text-decoration:none;font-size:.875rem;transition:color .15s;}
+.nav-links a:hover{color:#fff;}
+.nav-btn{background:#fff;color:#080808;border:none;border-radius:9px;padding:8px 18px;font-family:'Syne',sans-serif;font-weight:700;font-size:.82rem;cursor:none;transition:opacity .2s;}
+.nav-btn:hover{opacity:.88;}
+
+/* HERO */
+.hero{text-align:center;padding:64px 24px 40px;}
+.hero-label{display:inline-block;background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.2);color:rgba(167,139,250,0.9);font-size:.72rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:4px 14px;border-radius:100px;margin-bottom:18px;}
+.hero h1{font-family:'Syne',sans-serif;font-weight:800;font-size:2.4rem;letter-spacing:-.03em;margin-bottom:12px;}
+.hero-meta{color:var(--text-muted);font-size:.875rem;}
+.hero-meta strong{color:rgba(255,255,255,0.5);}
+
+/* CONTENT */
+.content-wrap{max-width:760px;margin:0 auto;padding:0 24px 80px;}
+
+.toc{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:22px 26px;margin-bottom:40px;}
+.toc-title{font-family:'Syne',sans-serif;font-weight:700;font-size:.85rem;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px;}
+.toc ol{padding-left:18px;display:flex;flex-direction:column;gap:6px;}
+.toc ol li a{color:rgba(255,255,255,0.45);font-size:.85rem;text-decoration:none;transition:color .15s;}
+.toc ol li a:hover{color:rgba(167,139,250,0.9);}
+
+.section{margin-bottom:36px;}
+.section h2{font-family:'Syne',sans-serif;font-weight:700;font-size:1.1rem;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.section-num{width:24px;height:24px;background:rgba(139,92,246,0.12);border:1px solid rgba(139,92,246,0.2);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;color:rgba(167,139,250,0.8);flex-shrink:0;}
+.section p{color:rgba(255,255,255,0.58);font-size:.9rem;line-height:1.75;margin-bottom:10px;}
+.section ul{padding-left:20px;display:flex;flex-direction:column;gap:7px;margin-bottom:10px;}
+.section ul li{color:rgba(255,255,255,0.58);font-size:.9rem;line-height:1.65;}
+.section ul li::marker{color:rgba(139,92,246,0.5);}
+.section a{color:rgba(167,139,250,0.8);text-decoration:none;}
+.section a:hover{text-decoration:underline;}
+
+.highlight-box{background:rgba(139,92,246,0.06);border:1px solid rgba(139,92,246,0.15);border-radius:12px;padding:16px 20px;margin:14px 0;}
+.highlight-box p{color:rgba(255,255,255,0.65) !important;margin-bottom:0 !important;}
+
+/* FOOTER */
+.page-footer{border-top:1px solid var(--border);padding:28px 48px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;}
+.footer-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:.95rem;color:rgba(255,255,255,0.3);text-decoration:none;display:flex;align-items:center;gap:7px;}
+.footer-links{display:flex;gap:20px;flex-wrap:wrap;}
+.footer-links a{color:var(--text-muted);font-size:.82rem;text-decoration:none;transition:color .15s;}
+.footer-links a:hover{color:#fff;}
+
+@media(max-width:700px){
+  .top-nav{padding:14px 20px;}
+  .nav-links{gap:14px;}
+  .hero{padding:44px 20px 28px;}
+  .hero h1{font-size:1.7rem;}
+  .content-wrap{padding:0 20px 60px;}
+  .page-footer{padding:20px;}
+}
+</style>
+</head>
+<body>
+<div id="ss-cursor"></div><div id="ss-ring"></div>
+
+<nav class="top-nav">
+  <a href="/" class="nav-logo"><div class="logo-sq"></div>SkillSwap</a>
+  <div class="nav-links">
+    <a href="/pricing">Pricing</a>
+    <a href="/login">Log in</a>
+    <a href="/signup" class="nav-btn">Get started</a>
+  </div>
+</nav>
+
+<div class="hero">
+  <div class="hero-label">Legal</div>
+  <h1>Terms of Service</h1>
+  <p class="hero-meta">Last updated: <strong>April 21, 2026</strong> &nbsp;·&nbsp; Effective: <strong>April 21, 2026</strong></p>
+</div>
+
+<div class="content-wrap">
+
+  <div class="toc">
+    <div class="toc-title">Table of Contents</div>
+    <ol>
+      <li><a href="#acceptance">Acceptance of Terms</a></li>
+      <li><a href="#eligibility">Eligibility</a></li>
+      <li><a href="#accounts">Accounts & Registration</a></li>
+      <li><a href="#platform">Platform & Services</a></li>
+      <li><a href="#subscriptions">Subscriptions & Payments</a></li>
+      <li><a href="#user-content">User Content</a></li>
+      <li><a href="#conduct">Acceptable Use</a></li>
+      <li><a href="#webinars">Webinars & Transactions</a></li>
+      <li><a href="#ip">Intellectual Property</a></li>
+      <li><a href="#privacy">Privacy</a></li>
+      <li><a href="#disclaimers">Disclaimers</a></li>
+      <li><a href="#liability">Limitation of Liability</a></li>
+      <li><a href="#termination">Termination</a></li>
+      <li><a href="#changes">Changes to Terms</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ol>
+  </div>
+
+  <div class="section" id="acceptance">
+    <h2><span class="section-num">1</span>Acceptance of Terms</h2>
+    <p>Welcome to SkillSwap. By accessing or using our website at <a href="https://skillswap.buzz">skillswap.buzz</a> or any of our services, you agree to be bound by these Terms of Service ("Terms"). Please read them carefully.</p>
+    <p>If you do not agree to these Terms, you must not access or use SkillSwap. Your continued use of the platform following any updates to these Terms constitutes acceptance of those changes.</p>
+    <div class="highlight-box"><p>These Terms form a legally binding agreement between you and SkillSwap. If you are using SkillSwap on behalf of an organisation, you represent that you have the authority to bind that organisation to these Terms.</p></div>
+  </div>
+
+  <div class="section" id="eligibility">
+    <h2><span class="section-num">2</span>Eligibility</h2>
+    <p>To use SkillSwap, you must:</p>
+    <ul>
+      <li>Be at least 13 years of age (or the minimum digital age of consent in your country, whichever is higher)</li>
+      <li>Have the legal capacity to enter into a binding agreement</li>
+      <li>Not be prohibited from using the service under applicable laws</li>
+    </ul>
+    <p>Users under the age of 18 require parental or guardian consent. By registering, you represent that you meet these eligibility requirements.</p>
+  </div>
+
+  <div class="section" id="accounts">
+    <h2><span class="section-num">3</span>Accounts & Registration</h2>
+    <p>To access most features of SkillSwap, you must create an account. When registering you agree to:</p>
+    <ul>
+      <li>Provide accurate, complete, and current information</li>
+      <li>Keep your account credentials confidential</li>
+      <li>Notify us immediately of any unauthorised use of your account</li>
+      <li>Take responsibility for all activity that occurs under your account</li>
+    </ul>
+    <p>We reserve the right to suspend or terminate accounts that contain false information, impersonate others, or violate these Terms.</p>
+  </div>
+
+  <div class="section" id="platform">
+    <h2><span class="section-num">4</span>Platform & Services</h2>
+    <p>SkillSwap is a skill-exchange platform that enables users to:</p>
+    <ul>
+      <li>Create profiles listing skills they offer and skills they want to learn</li>
+      <li>Match and connect with other users for skill-swap sessions</li>
+      <li>Conduct live video or voice sessions directly in the browser via WebRTC</li>
+      <li>Attend or host live webinars (Creator plan)</li>
+      <li>Message and collaborate with matched users</li>
+    </ul>
+    <p>SkillSwap is a technology platform only. We do not verify the qualifications, expertise, or credentials of any user. You are solely responsible for evaluating the suitability of any person you choose to engage with on the platform.</p>
+  </div>
+
+  <div class="section" id="subscriptions">
+    <h2><span class="section-num">5</span>Subscriptions & Payments</h2>
+    <p>SkillSwap offers the following subscription tiers:</p>
+    <ul>
+      <li><strong style="color:rgba(255,255,255,0.8);">Free</strong> — No charge. Access to core matching and messaging features.</li>
+      <li><strong style="color:rgba(255,255,255,0.8);">Pro</strong> — $9/month (or $86/year). Unlimited swaps, analytics, and priority placement.</li>
+      <li><strong style="color:rgba(255,255,255,0.8);">Creator</strong> — $19/month (or $182/year). All Pro features plus webinar hosting and earnings.</li>
+    </ul>
+    <p>Paid subscriptions are billed in advance on a monthly or annual basis. All payments are processed securely through our payment provider. We do not store your payment card details.</p>
+    <p>Subscriptions renew automatically until cancelled. You may cancel at any time from your account settings; you will retain access until the end of the current billing period. We do not offer refunds for partial billing periods except where required by applicable law.</p>
+    <p>We reserve the right to modify pricing with at least 30 days' notice. Continued use after a price change constitutes acceptance of the new pricing.</p>
+  </div>
+
+  <div class="section" id="user-content">
+    <h2><span class="section-num">6</span>User Content</h2>
+    <p>You retain ownership of all content you submit, post, or display on SkillSwap ("User Content"), including your profile information, messages, and webinar materials.</p>
+    <p>By submitting User Content, you grant SkillSwap a non-exclusive, worldwide, royalty-free licence to use, store, display, and distribute that content solely for the purpose of operating and improving the platform.</p>
+    <p>You represent that your User Content:</p>
+    <ul>
+      <li>Does not infringe any third-party intellectual property rights</li>
+      <li>Does not contain unlawful, harmful, defamatory, or obscene material</li>
+      <li>Is accurate and not intentionally misleading</li>
+    </ul>
+    <p>We reserve the right to remove any User Content that violates these Terms without prior notice.</p>
+  </div>
+
+  <div class="section" id="conduct">
+    <h2><span class="section-num">7</span>Acceptable Use</h2>
+    <p>You agree not to use SkillSwap to:</p>
+    <ul>
+      <li>Harass, abuse, threaten, or intimidate other users</li>
+      <li>Post or transmit spam, unsolicited messages, or chain letters</li>
+      <li>Impersonate any person or entity</li>
+      <li>Distribute malware, viruses, or harmful code</li>
+      <li>Scrape, crawl, or data-mine the platform without authorisation</li>
+      <li>Circumvent any security, access, or authentication mechanisms</li>
+      <li>Facilitate any illegal activity or violate applicable laws</li>
+      <li>Sell, trade, or transfer your account to another person</li>
+    </ul>
+    <p>Violation of this section may result in immediate account suspension or termination.</p>
+  </div>
+
+  <div class="section" id="webinars">
+    <h2><span class="section-num">8</span>Webinars & Transactions</h2>
+    <p>Creator-plan users may host webinars and charge attendees a fee. By hosting a paid webinar, you agree to:</p>
+    <ul>
+      <li>Accurately represent the content, duration, and format of your session</li>
+      <li>Deliver the session as advertised at the scheduled time</li>
+      <li>Comply with all applicable laws regarding your content and any earnings</li>
+    </ul>
+    <p>SkillSwap acts solely as the technology platform facilitating the session. We are not a party to any agreement between hosts and attendees. Disputes between users are the responsibility of the users involved.</p>
+    <p>We reserve the right to withhold or reverse earnings from webinars that violate these Terms.</p>
+  </div>
+
+  <div class="section" id="ip">
+    <h2><span class="section-num">9</span>Intellectual Property</h2>
+    <p>All content, design, code, trademarks, and materials on SkillSwap — excluding User Content — are the property of SkillSwap and are protected by applicable intellectual property laws.</p>
+    <p>You may not copy, reproduce, modify, distribute, or create derivative works from any part of the platform without our express written permission.</p>
+  </div>
+
+  <div class="section" id="privacy">
+    <h2><span class="section-num">10</span>Privacy</h2>
+    <p>Your use of SkillSwap is also governed by our Privacy Policy, which is incorporated into these Terms by reference. By using SkillSwap, you consent to the collection and use of your information as described in the Privacy Policy.</p>
+    <p>We take the security of your data seriously. Our backend infrastructure is provided by Supabase, and payment processing is handled by our payment provider. Neither we nor our providers sell your personal data to third parties.</p>
+  </div>
+
+  <div class="section" id="disclaimers">
+    <h2><span class="section-num">11</span>Disclaimers</h2>
+    <p>SkillSwap is provided on an "as is" and "as available" basis without warranties of any kind, either express or implied.</p>
+    <ul>
+      <li>We do not guarantee that the platform will be uninterrupted, error-free, or secure</li>
+      <li>We do not verify the skills, qualifications, or identity of users</li>
+      <li>We are not responsible for the quality, accuracy, or outcome of any skill-swap session or webinar</li>
+      <li>We do not endorse any user or their content</li>
+    </ul>
+    <div class="highlight-box"><p>Use of SkillSwap and any reliance on content or skills provided by other users is entirely at your own risk.</p></div>
+  </div>
+
+  <div class="section" id="liability">
+    <h2><span class="section-num">12</span>Limitation of Liability</h2>
+    <p>To the maximum extent permitted by applicable law, SkillSwap and its operators shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including but not limited to loss of profits, data, goodwill, or other intangible losses arising from:</p>
+    <ul>
+      <li>Your use of or inability to use the platform</li>
+      <li>Any content or conduct of other users</li>
+      <li>Unauthorised access to or alteration of your data</li>
+      <li>Any other matter relating to the services</li>
+    </ul>
+    <p>Our total liability to you for any claim arising out of or relating to these Terms shall not exceed the amount you paid us in the twelve months preceding the claim, or $50 USD, whichever is greater.</p>
+  </div>
+
+  <div class="section" id="termination">
+    <h2><span class="section-num">13</span>Termination</h2>
+    <p>You may delete your account at any time. Upon deletion, your profile and associated data will be removed in accordance with our Privacy Policy.</p>
+    <p>We may suspend or terminate your account at any time, with or without notice, for:</p>
+    <ul>
+      <li>Violation of these Terms</li>
+      <li>Conduct that we determine to be harmful to other users or the platform</li>
+      <li>Extended periods of inactivity (with prior notice)</li>
+      <li>Legal, regulatory, or security reasons</li>
+    </ul>
+    <p>Upon termination, your right to use SkillSwap ceases immediately. Provisions that by their nature should survive termination (including intellectual property, disclaimers, and limitation of liability) will remain in effect.</p>
+  </div>
+
+  <div class="section" id="changes">
+    <h2><span class="section-num">14</span>Changes to Terms</h2>
+    <p>We may update these Terms from time to time. When we make material changes, we will update the "Last updated" date at the top of this page and, where appropriate, notify you by email or via the platform.</p>
+    <p>Your continued use of SkillSwap after changes take effect constitutes your acceptance of the revised Terms. If you do not agree to the updated Terms, you must stop using the platform.</p>
+  </div>
+
+  <div class="section" id="contact">
+    <h2><span class="section-num">15</span>Contact</h2>
+    <p>If you have any questions about these Terms, please contact us at:</p>
+    <ul>
+      <li>Email: <a href="mailto:support@skillswap.buzz">support@skillswap.buzz</a></li>
+      <li>Website: <a href="https://skillswap.buzz">skillswap.buzz</a></li>
+    </ul>
+    <p>We aim to respond to all enquiries within 2 business days.</p>
+  </div>
+
+</div>
+
+<footer class="page-footer">
+  <a href="/" class="footer-logo"><div class="logo-sq"></div>SkillSwap</a>
+  <div class="footer-links">
+    <a href="/pricing">Pricing</a>
+    <a href="/terms">Terms of Service</a>
+    <a href="mailto:support@skillswap.buzz">Contact</a>
+  </div>
+</footer>
+
+<script>
+const cur=document.getElementById('ss-cursor'),ring=document.getElementById('ss-ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px';});
+document.querySelectorAll('a,button').forEach(el=>{el.addEventListener('mouseenter',()=>{ring.style.borderColor='rgba(139,92,246,0.6)';ring.style.width='44px';ring.style.height='44px';});el.addEventListener('mouseleave',()=>{ring.style.borderColor='rgba(255,255,255,0.5)';ring.style.width='34px';ring.style.height='34px';});});
+(function anim(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(anim);})();
+
+// Smooth scroll for TOC links
+document.querySelectorAll('.toc a[href^="#"]').forEach(a=>{
+  a.addEventListener('click',e=>{
+    e.preventDefault();
+    const target=document.querySelector(a.getAttribute('href'));
+    if(target)target.scrollIntoView({behavior:'smooth',block:'start'});
+  });
+});
+</script>
+</body>
+</html>
