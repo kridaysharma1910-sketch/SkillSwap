@@ -7,7 +7,11 @@
       "Bash(python3 _replace_globe.py)",
       "Bash(python _replace_globe.py)",
       "Bash(node _replace_globe.js)",
-      "Bash(node -e ':*)"
+      "Bash(node -e ':*)",
+      "Bash(xargs grep *)",
+      "WebFetch(domain:dodopayments.com)",
+      "WebSearch",
+      "WebFetch(domain:docs.dodopayments.com)"
     ]
   }
 }
