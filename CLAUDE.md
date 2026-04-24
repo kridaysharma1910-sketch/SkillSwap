@@ -169,6 +169,15 @@ Start by telling me: what's the current state per CLAUDE.md, and what are we bui
 
 ## Session Log
 
+### [Session 24 — 2026-04-24]
+- **signup.html**: fixed dead Terms/Privacy links → `/terms`, `/privacy`; removed `console.log` from signup/profile error paths
+- **videocall.html**: removed 2 `console.log` calls from live call path (PC state, signal channel status)
+- **messages.html**: removed `console.log` from realtime subscription handler
+- **call-notify.js**: added `showNotifyToast()` helper; replaced `alert()` with toast for rate-limit UX
+- **webinars.html**: replaced "Replay feature coming soon" with informative no-replay message
+- **notif-bell.js**: fixed operator precedence bug in `&&`/`||` on CALL_INVITE/VOICE_INVITE filter (could cause crash if `msg.content` is falsy)
+- **pricing.html**: removed leftover development placeholder comment from `selectPlan()`
+
 ### [Session 23 — 2026-04-21]
 - **terms.html**: new Terms of Service page (`/terms`) — 15 sections, table of contents with smooth scroll, public layout (no sidebar)
 - **privacy.html**: new Privacy Policy page (`/privacy`) — 12 sections, data collection tables, legal basis table, cookies/localStorage list
