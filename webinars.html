@@ -557,7 +557,7 @@ async function attendWebinar(id,status,btn){
     await joinWebinarLive(id, w?.title||'Live Webinar');
     return;
   }
-  if(status==='recorded'){showToast('Replay feature coming soon.');return;}
+  if(status==='recorded'){showToast('No replay available — recordings are saved locally by the host.');return;}
   if(registeredIds.has(id))return;
   const{error}=await sb.from('webinar_attendees').insert({webinar_id:id,user_id:currentUserId});
   if(error){console.error('Register error:',error);showToast('Error: '+error.message);return;}

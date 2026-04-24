@@ -53,6 +53,17 @@
   let cancelSignalChannel = null; // listens for caller's 'cancelled' broadcast
 
   /* ── Inject global styles (once) ── */
+  function showNotifyToast(msg) {
+    const t = document.createElement('div');
+    t.textContent = msg;
+    t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);' +
+      'background:#1a1a1a;border:1px solid rgba(255,255,255,0.12);color:#fff;' +
+      'padding:10px 20px;border-radius:10px;font-size:.85rem;z-index:999999;' +
+      "font-family:'DM Sans',sans-serif;pointer-events:none;transition:opacity .3s;";
+    document.body.appendChild(t);
+    setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 3000);
+  }
+
   function injectStyles() {
     if (document.getElementById('__ssCallStyles')) return;
     const s = document.createElement('style');
@@ -210,7 +221,7 @@
     // Accept
     document.getElementById('__ssCallAccept').onclick = async () => {
       const rlA = rlCheck('call_accept');
-      if (!rlA.allowed) { alert(`Too many attempts. Try again in ${rlA.wait} min.`); return; }
+      if (!rlA.allowed) { showNotifyToast(`Too many attempts. Try again in ${rlA.wait} min.`); return; }
       clearTimeout(dismissTimer);
       // Broadcast 'accepted' on signal channel so caller's ringing screen transitions
       await broadcastSignal(roomId, 'accepted');

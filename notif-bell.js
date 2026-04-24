@@ -188,7 +188,7 @@
     for(const msg of (msgRes.data||[])){
       if(seenConvos.has(msg.match_id))continue;
       // Skip call invite system messages
-      if(msg.content&&(msg.content.startsWith('CALL_INVITE::'))||msg.content.startsWith('VOICE_INVITE::'))continue;
+      if(msg.content&&(msg.content.startsWith('CALL_INVITE::')||msg.content.startsWith('VOICE_INVITE::')))continue;
       seenConvos.add(msg.match_id);
       const actor=msg.sender;
       const name=actor?.full_name||actor?.username||'Someone';

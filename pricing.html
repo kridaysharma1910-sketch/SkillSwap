@@ -292,7 +292,6 @@ function updateButtonStates(plan){
 async function selectPlan(plan){
   if(plan===currentPlan)return;
   if(!currentUserId)return;
-  // Payment integration placeholder — update plan directly for now
   const{error}=await sb.from('profiles').update({plan}).eq('id',currentUserId);
   if(error){console.error('Plan update error:',error);showToast('Error updating plan: '+error.message,'error');return;}
   currentPlan=plan;

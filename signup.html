@@ -829,7 +829,7 @@ body::before {
           <button class="btn-primary" onclick="nextStep(1)" id="btn1">
             <span>Continue →</span>
           </button>
-          <p class="ss-terms">By continuing you agree to our <a href="#">Terms</a> &amp; <a href="#">Privacy Policy</a></p>
+          <p class="ss-terms">By continuing you agree to our <a href="/terms">Terms</a> &amp; <a href="/privacy">Privacy Policy</a></p>
         </div>
 
         <!-- STEP 2: Skills -->
@@ -1109,13 +1109,12 @@ async function submitSignup() {
   });
 
   if (error) {
-    console.log('Signup error:', error);
     setLoading('btn3', false);
     return showAlert('error', error.message);
   }
 
   if (data.user) {
-    const { error: profileError } = await sb.from('profiles').upsert({
+    await sb.from('profiles').upsert({
       id: data.user.id,
       username,
       full_name: firstName + ' ' + lastName,
@@ -1124,7 +1123,6 @@ async function submitSignup() {
       skills_wanting: wantTags,
       plan
     });
-    if (profileError) console.log('Profile upsert error:', profileError);
   }
 
   setLoading('btn3', false);

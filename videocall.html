@@ -623,7 +623,6 @@ async function initWebRTC() {
   };
 
   pc.onconnectionstatechange = () => {
-    console.log('PC state:', pc.connectionState);
     if (pc.connectionState === 'connected') {
       clearTimeout(connectionTimeout);
       clearTimeout(ringingTimeout);
@@ -742,7 +741,6 @@ async function initWebRTC() {
   });
 
   signalChannel.subscribe((status) => {
-    console.log('Signal channel status:', status);
     if (status !== 'SUBSCRIBED') return;
     if (isCaller) {
       signalChannel.send({type:'broadcast', event:'ready', payload:{role:'caller'}});

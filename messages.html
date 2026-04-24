@@ -508,8 +508,6 @@ function subscribeToMessages(matchId){
       }
     })
     .subscribe((status)=>{
-      if(status==='SUBSCRIBED')console.log('Realtime connected for match',matchId);
-      if(status==='CLOSED'||status==='CHANNEL_ERROR')console.error('Realtime issue:',status);
     });
 }
 
