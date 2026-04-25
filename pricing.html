@@ -46,6 +46,17 @@ body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;min-height
 .page-title{font-family:'Syne',sans-serif;font-weight:800;font-size:2.2rem;letter-spacing:-.03em;margin-bottom:10px;}
 .page-sub{color:var(--text-muted);font-size:.95rem;max-width:480px;margin:0 auto;}
 
+/* LAUNCH BANNER */
+.launch-banner{max-width:960px;margin:0 auto 36px;background:linear-gradient(135deg,rgba(139,92,246,0.1),rgba(34,211,238,0.06));border:1px solid rgba(139,92,246,0.3);border-radius:20px;padding:32px 36px;text-align:center;position:relative;overflow:hidden;}
+.launch-banner::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(139,92,246,0.6),rgba(34,211,238,0.4),transparent);}
+.launch-banner-title{font-family:'Syne',sans-serif;font-weight:800;font-size:1.75rem;letter-spacing:-.03em;margin-bottom:10px;background:linear-gradient(135deg,#fff 60%,rgba(167,139,250,0.85));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.launch-banner-sub{font-size:.88rem;color:var(--text-muted);max-width:520px;margin:0 auto 0;line-height:1.6;}
+.launch-temp-note{display:inline-flex;align-items:center;gap:6px;margin-top:14px;background:rgba(251,191,36,0.07);border:1px solid rgba(251,191,36,0.2);border-radius:100px;padding:5px 14px;font-size:.76rem;color:rgba(251,191,36,0.75);}
+.launch-temp-note::before{content:'';width:6px;height:6px;border-radius:50%;background:rgba(251,191,36,0.6);flex-shrink:0;animation:pulse-amber 2s infinite;}
+@keyframes pulse-amber{0%,100%{opacity:1;}50%{opacity:.4;}}
+.plan-btn.free-now{background:rgba(255,255,255,0.04);border:1px solid rgba(139,92,246,0.25);color:rgba(167,139,250,0.85);cursor:default;font-size:.78rem;}
+.plan-btn.free-now:hover{opacity:1;}
+
 /* BILLING TOGGLE */
 .billing-toggle{display:flex;align-items:center;gap:12px;justify-content:center;margin-bottom:36px;}
 .toggle-label{font-size:.88rem;color:var(--text-muted);}
@@ -140,7 +151,13 @@ body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;min-height
     <p class="page-sub">Start free. Upgrade when you need more swaps, analytics, and hosting tools.</p>
   </div>
 
-  <div class="billing-toggle">
+  <div class="launch-banner">
+    <div class="launch-banner-title">Enjoy the full free version of SkillSwap</div>
+    <p class="launch-banner-sub">Every feature — unlimited swaps, live webinars, analytics, video calls, and more — is completely free while we're in our launch period. No credit card needed.</p>
+    <div class="launch-temp-note">This is temporary — paid plans will be introduced soon</div>
+  </div>
+
+  <div class="billing-toggle" style="display:none;">
     <span class="toggle-label">Monthly</span>
     <div class="toggle-switch" id="billingToggle" onclick="toggleBilling()"><div class="toggle-knob"></div></div>
     <span class="toggle-label">Annual <span class="save-badge">Save 20%</span></span>
@@ -148,7 +165,7 @@ body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;min-height
 
   <div class="current-banner" id="currentPlanBanner">
     <div class="current-dot"></div>
-    <span>You are on the <strong id="currentPlanName">Free</strong> plan.</span>
+    <span><strong id="currentPlanName">All Features — Free</strong> — you have full access during the launch period.</span>
   </div>
 
   <div class="plans-grid">
@@ -170,7 +187,7 @@ body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;min-height
         <li><span class="feat-x">-</span><span class="feat-x-text">Analytics dashboard</span></li>
         <li><span class="feat-x">-</span><span class="feat-x-text">Host webinars</span></li>
       </ul>
-      <button class="plan-btn outline" id="btn-free" onclick="selectPlan('free')">Get started free</button>
+      <button class="plan-btn free-now" id="btn-free">Free during launch</button>
     </div>
 
     <!-- PRO -->
@@ -191,7 +208,7 @@ body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;min-height
         <li><span class="feat-check">+</span>Global ranking &amp; leaderboard</li>
         <li><span class="feat-check">+</span>Priority placement in Discover</li>
       </ul>
-      <button class="plan-btn solid" id="btn-pro" onclick="selectPlan('pro')">Get Pro</button>
+      <button class="plan-btn free-now" id="btn-pro">Free during launch</button>
     </div>
 
     <!-- CREATOR -->
@@ -211,7 +228,7 @@ body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;min-height
         <li><span class="feat-check">+</span>Webinar results &amp; total earnings</li>
         <li><span class="feat-check">+</span>Priority support</li>
       </ul>
-      <button class="plan-btn solid" id="btn-creator" onclick="selectPlan('creator')">Get Creator</button>
+      <button class="plan-btn free-now" id="btn-creator">Free during launch</button>
     </div>
 
   </div>
@@ -275,39 +292,6 @@ function toggleBilling(){
   document.getElementById('creator-annual').textContent=isAnnual?'Billed $182/year':'Billed $228/year';
 }
 
-function updateButtonStates(plan){
-  ['free','pro','creator'].forEach(p=>{
-    const btn=document.getElementById('btn-'+p);
-    if(!btn)return;
-    if(p===plan){
-      btn.className='plan-btn current';
-      btn.textContent='Current plan';
-    } else {
-      if(p==='free'){btn.className='plan-btn outline';btn.textContent='Get started free';}
-      else{btn.className='plan-btn solid';btn.textContent='Get '+p.charAt(0).toUpperCase()+p.slice(1);}
-    }
-  });
-}
-
-async function selectPlan(plan){
-  if(plan===currentPlan)return;
-  if(!currentUserId)return;
-  const{error}=await sb.from('profiles').update({plan}).eq('id',currentUserId);
-  if(error){console.error('Plan update error:',error);showToast('Error updating plan: '+error.message,'error');return;}
-  currentPlan=plan;
-  updateButtonStates(plan);
-  const planNames={free:'Free',pro:'Pro',creator:'Creator'};
-  document.getElementById('currentPlanName').textContent=planNames[plan]||plan;
-  document.getElementById('currentPlanBanner').style.display='flex';
-  showToast('Plan updated to '+planNames[plan]+'.');
-  // Show/hide analytics link
-  if(plan==='pro'||plan==='creator'){
-    document.getElementById('analyticsNavLink').style.display='flex';
-  } else {
-    document.getElementById('analyticsNavLink').style.display='none';
-  }
-}
-
 function toggleFaq(el){el.classList.toggle('open');}
 
 function showToast(msg,type='success'){
@@ -333,13 +317,15 @@ async function init(){
   else if(profile?.avatar_emoji){avatarEl.textContent=profile.avatar_emoji;}
   else{avatarEl.textContent=name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);}
   currentPlan=profile?.plan||'free';
-  const planNames={free:'Free',pro:'Pro',creator:'Creator'};
-  document.getElementById('currentPlanName').textContent=planNames[currentPlan]||currentPlan;
-  document.getElementById('currentPlanBanner').style.display='flex';
-  updateButtonStates(currentPlan);
-  if(currentPlan==='pro'||currentPlan==='creator'){
-    document.getElementById('analyticsNavLink').style.display='flex';
+  // Launch period: auto-upgrade everyone to creator so all features are unlocked
+  if(currentPlan!=='creator'){
+    await sb.from('profiles').update({plan:'creator'}).eq('id',currentUserId);
+    currentPlan='creator';
   }
+  const planNames={free:'Free',pro:'Pro',creator:'Creator'};
+  document.getElementById('currentPlanName').textContent='All Features — Free';
+  document.getElementById('currentPlanBanner').style.display='flex';
+  document.getElementById('analyticsNavLink').style.display='flex';
 }
 
 init();
