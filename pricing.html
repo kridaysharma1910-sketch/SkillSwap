@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>SkillSwap — Pricing</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#080808;--bg-card:rgba(255,255,255,0.03);--border:rgba(255,255,255,0.08);--border-hover:rgba(139,92,246,0.3);--text-muted:rgba(255,255,255,0.32);--sidebar-w:240px;}
 *{margin:0;padding:0;box-sizing:border-box;}
@@ -47,10 +47,11 @@ body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;min-height
 .page-sub{color:var(--text-muted);font-size:.95rem;max-width:480px;margin:0 auto;}
 
 /* LAUNCH BANNER */
-.launch-banner{max-width:960px;margin:0 auto 36px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:32px 36px;text-align:center;position:relative;overflow:hidden;}
-.launch-banner::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.15),transparent);}
-.launch-banner-title{font-family:'DM Sans',sans-serif;font-weight:500;font-size:1.65rem;letter-spacing:-.01em;margin-bottom:10px;color:#fff;}
-.launch-banner-sub{font-size:.88rem;color:var(--text-muted);max-width:520px;margin:0 auto 0;line-height:1.6;}
+.launch-banner{max-width:960px;margin:0 auto 36px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:44px 36px 36px;text-align:center;position:relative;overflow:hidden;}
+.launch-banner::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.18),transparent);}
+.launch-banner-eyebrow{display:inline-block;font-family:'DM Sans',sans-serif;font-size:.68rem;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,0.35);margin-bottom:14px;}
+.launch-banner-title{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:2.6rem;letter-spacing:-.04em;line-height:1.1;margin-bottom:14px;color:#fff;}
+.launch-banner-sub{font-size:.9rem;color:var(--text-muted);max-width:500px;margin:0 auto 0;line-height:1.7;}
 .launch-temp-note{display:inline-flex;align-items:center;gap:6px;margin-top:14px;background:rgba(251,191,36,0.07);border:1px solid rgba(251,191,36,0.2);border-radius:100px;padding:5px 14px;font-size:.76rem;color:rgba(251,191,36,0.75);}
 .launch-temp-note::before{content:'';width:6px;height:6px;border-radius:50%;background:rgba(251,191,36,0.6);flex-shrink:0;animation:pulse-amber 2s infinite;}
 @keyframes pulse-amber{0%,100%{opacity:1;}50%{opacity:.4;}}
@@ -152,6 +153,7 @@ body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;min-height
   </div>
 
   <div class="launch-banner">
+    <div class="launch-banner-eyebrow">Launch offer</div>
     <div class="launch-banner-title">Enjoy the full free version of SkillSwap</div>
     <p class="launch-banner-sub">Every feature — unlimited swaps, live webinars, analytics, video calls, and more — is completely free while we're in our launch period. No credit card needed.</p>
     <div class="launch-temp-note">This is temporary — paid plans will be introduced soon</div>
