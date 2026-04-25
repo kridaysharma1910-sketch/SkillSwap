@@ -571,7 +571,7 @@ function renderAttendees(){
   list.innerHTML=uids.map(uid=>{
     const a=attendeeMap[uid];
     const initials=a.name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
-    const avHtml=a.avatarUrl?`<img src="${a.avatarUrl}" alt="">`:a.avatarEmoji||initials;
+    const avHtml=a.avatarUrl?`<img src="${escHtml(a.avatarUrl)}" alt="">`:a.avatarEmoji||initials;
     const safeName=a.name.replace(/'/g,'&#39;').replace(/"/g,'&quot;');
     return`<div class="att-row" id="att-${uid}">
       <div class="att-av">${avHtml}</div>

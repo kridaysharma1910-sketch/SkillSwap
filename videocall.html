@@ -782,7 +782,7 @@ async function init() {
   // Set local cam-off initials
   document.getElementById('localCamInitials').textContent = myName.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
   const avatarEl = document.getElementById('sidebarAvatar');
-  if (profile?.avatar_url) avatarEl.innerHTML = `<img src="${profile.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+  if (profile?.avatar_url) { const _i=document.createElement('img');_i.src=profile.avatar_url;_i.style.cssText='width:100%;height:100%;object-fit:cover;border-radius:50%;';avatarEl.appendChild(_i); }
   else if (profile?.avatar_emoji) avatarEl.textContent = profile.avatar_emoji;
   else avatarEl.textContent = myName.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
   userPlan = profile?.plan || 'free';

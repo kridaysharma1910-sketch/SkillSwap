@@ -243,7 +243,7 @@ async function init(){
   const myName=me?.full_name||me?.username||session.user.email.split('@')[0];
   document.getElementById('sidebarName').textContent=myName;
   const avEl=document.getElementById('sidebarAvatar');
-  if(me?.avatar_url){avEl.innerHTML=`<img src="${me.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;}
+  if(me?.avatar_url){avEl.innerHTML=`<img src="${escHtml(me.avatar_url)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;}
   else{avEl.textContent=myName.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);}
 
   // Get target user id

@@ -473,7 +473,7 @@ async function init(){
   const name=profile?.full_name||profile?.username||session.user.email.split('@')[0];
   document.getElementById('sidebarName').textContent=name;
   const avatarEl=document.getElementById('sidebarAvatar');
-  if(profile?.avatar_url){avatarEl.innerHTML=`<img src="${profile.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;}
+  if(profile?.avatar_url){avatarEl.innerHTML=`<img src="${escHtml(profile.avatar_url)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;}
   else if(profile?.avatar_emoji){avatarEl.textContent=profile.avatar_emoji;}
   else{avatarEl.textContent=name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);}
 

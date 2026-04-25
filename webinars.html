@@ -438,7 +438,7 @@ function renderCard(w,idx){
   const status=getStatus(w);
   const coverColor=COVER_COLORS[idx%COVER_COLORS.length];
   const hostName=w.host?.full_name||w.host?.username||'SkillSwapper';
-  const hostAv=w.host?.avatar_url?`<img src="${w.host.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`:w.host?.avatar_emoji||'?';
+  const hostAv=w.host?.avatar_url?`<img src="${escHtml(w.host.avatar_url)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`:w.host?.avatar_emoji||'?';
   const isReg=registeredIds.has(w.id);
   const isHost=w.host_id===currentUserId;
   const delay=(idx%12)*0.05;
@@ -805,6 +805,7 @@ function appendPartChatMsg({userId,name,text,ts,isSelf}){
 }
 
 function escPartHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function escHtml(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 
 // ── HOST WebRTC: handle participant joining ──────────────────────────────────
 async function handleParticipantJoin({userId,name}){
@@ -995,7 +996,7 @@ async function init(){
   const name=profile?.full_name||profile?.username||session.user.email.split('@')[0];
   document.getElementById('sidebarName').textContent=name;
   const avatarEl=document.getElementById('sidebarAvatar');
-  if(profile?.avatar_url){avatarEl.innerHTML=`<img src="${profile.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;}
+  if(profile?.avatar_url){avatarEl.innerHTML=`<img src="${escHtml(profile.avatar_url)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;}
   else if(profile?.avatar_emoji){avatarEl.textContent=profile.avatar_emoji;}
   else{avatarEl.textContent=name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);}
   userPlan=profile?.plan||'free';

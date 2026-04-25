@@ -516,11 +516,11 @@ async function init(){
     const circle=document.getElementById('avatarCircle');
     if(profile.avatar_url){
       currentAvatarUrl=profile.avatar_url;
-      circle.innerHTML=`<img src="${profile.avatar_url}" style="width:100%;height:100%;object-fit:cover;">`;
-      document.getElementById('previewAvatar').innerHTML=`<img src="${profile.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+      const _mkAv=(s)=>{const i=document.createElement('img');i.src=profile.avatar_url;i.style.cssText=s;return i;};
+      circle.innerHTML=''; circle.appendChild(_mkAv('width:100%;height:100%;object-fit:cover;'));
+      const _prevAv=document.getElementById('previewAvatar'); _prevAv.innerHTML=''; _prevAv.appendChild(_mkAv('width:100%;height:100%;object-fit:cover;border-radius:50%;'));
       document.getElementById('previewAvatarContent').textContent='';
-      const avatarEl=document.getElementById('sidebarAvatar');
-      avatarEl.innerHTML=`<img src="${profile.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+      const avatarEl=document.getElementById('sidebarAvatar'); avatarEl.innerHTML=''; avatarEl.appendChild(_mkAv('width:100%;height:100%;object-fit:cover;border-radius:50%;'));
     } else if(profile.avatar_emoji){
       selectedEmoji=profile.avatar_emoji;
       circle.innerHTML=`<span style="font-size:2rem;">${selectedEmoji}</span>`;

@@ -58,7 +58,8 @@
   function escHtml(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 
   function avatarHtml(p){
-    if(p?.avatar_url)return`<img src="${escHtml(p.avatar_url)}" alt="">`;
+    const _url=p?.avatar_url;
+    if(_url&&/^https:\/\//.test(_url))return`<img src="${escHtml(_url)}" alt="">`;
     const n=p?.full_name||p?.username||'?';
     return n.split(' ').map(x=>x[0]).join('').toUpperCase().slice(0,2);
   }
