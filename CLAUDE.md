@@ -175,6 +175,10 @@ Start by telling me: what's the current state per CLAUDE.md, and what are we bui
 - **Security hardening — XSS**: fixed unescaped `avatar_url` interpolated into `innerHTML` across all 13 locations in dashboard, discover, matches, messages, analytics, user, webinar-host, webinars, pricing, videocall, profile, notif-bell.js — wrapped with `escHtml()` or switched to DOM `createElement`; added `escHtml()` to webinars.html (previously only had partial `escPartHtml`)
 - **Security hardening — notif-bell.js**: avatar URL now validated as `https://` before rendering into DOM
 - **Security headers — vercel.json**: added `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy` (camera/mic self-only), and `Content-Security-Policy` (script/style/font/img/connect-src scoped to known origins)
+- **Launch unlock — all features free**: removed all plan-gating across dashboard, analytics, profile, webinars, videocall; `userPlan` hardcoded to `'creator'` site-wide; record button always visible; analytics always accessible; all users can host webinars
+- **signup.html**: new users always assigned `creator` plan during launch; dashboard.html OAuth new-user creation also defaults to `creator`
+- **pricing.html**: Pro ($9) and Creator ($19) price amounts hidden; prices will be re-shown when paid plans go live
+- **Supabase**: ran `UPDATE profiles SET plan = 'creator'` to upgrade all existing users; RLS verified enabled on all 9 tables; auth rate limits confirmed active
 
 ### [Session 26 — 2026-04-25]
 - **pricing.html**: launch period free access — all users auto-upgraded to `creator` plan on page load so every feature is unlocked; launch banner added ("Enjoy the full free version of SkillSwap" + amber "This is temporary" pill); billing toggle hidden; plan buttons show "Free during launch"; `selectPlan` removed
