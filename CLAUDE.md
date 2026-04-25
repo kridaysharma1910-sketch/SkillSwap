@@ -67,7 +67,7 @@ Skill-exchange platform: users list skills they offer/want, get matched, swap se
 ---
 
 ## Design System
-- **Theme:** Full black (#080808 bg), Syne (headings 800w) + DM Sans (body 300-500w)
+- **Theme:** Full black (#080808 bg), Space Grotesk 700 (headings, replaces Syne 800) + Bricolage Grotesque 800 (pricing/launch hero) + DM Sans (body 300-500w)
 - **No purple buttons** — all CTAs white bg + #080808 text
 - **Accents:** violet rgba(139,92,246) + cyan rgba(34,211,238) for borders/glows only
 - **Cards:** bg rgba(255,255,255,0.03), border rgba(255,255,255,0.08), radius 18px, backdrop-filter blur(12px)
@@ -169,6 +169,12 @@ Start by telling me: what's the current state per CLAUDE.md, and what are we bui
 ---
 
 ## Session Log
+
+### [Session 26 — 2026-04-25]
+- **pricing.html**: launch period free access — all users auto-upgraded to `creator` plan on page load so every feature is unlocked; launch banner added ("Enjoy the full free version of SkillSwap" + amber "This is temporary" pill); billing toggle hidden; plan buttons show "Free during launch"; `selectPlan` removed
+- **pricing.html**: "Plans & Pricing" heading + launch banner title switched to Bricolage Grotesque 800 for an impactful editorial feel; Bricolage Grotesque added to Google Fonts import
+- **All 18 pages**: replaced every Syne 800 heading (page titles, sidebar logo, hero headings, modal titles, stat numbers) with Space Grotesk 700; Space Grotesk added to Google Fonts import on every page; remaining Syne 700 usages (buttons, labels) left unchanged
+- **CLAUDE.md**: updated Design System font entry to reflect Space Grotesk + Bricolage Grotesque
 
 ### [Session 25 — 2026-04-25]
 - **webinar-host.html**: implemented cloud recording — `mediaRecorder.onstop` now uploads `.webm` blob to `webinar-recordings` Supabase storage bucket (`{webinarId}/{timestamp}.webm`), updates `webinars.recording_url`, and copies the public URL to clipboard; local download still happens as fallback
