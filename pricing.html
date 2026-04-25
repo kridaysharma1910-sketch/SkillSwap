@@ -47,14 +47,14 @@ body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;min-height
 .page-sub{color:var(--text-muted);font-size:.95rem;max-width:480px;margin:0 auto;}
 
 /* LAUNCH BANNER */
-.launch-banner{max-width:960px;margin:0 auto 36px;background:linear-gradient(135deg,rgba(139,92,246,0.1),rgba(34,211,238,0.06));border:1px solid rgba(139,92,246,0.3);border-radius:20px;padding:32px 36px;text-align:center;position:relative;overflow:hidden;}
-.launch-banner::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(139,92,246,0.6),rgba(34,211,238,0.4),transparent);}
-.launch-banner-title{font-family:'Syne',sans-serif;font-weight:800;font-size:1.75rem;letter-spacing:-.03em;margin-bottom:10px;background:linear-gradient(135deg,#fff 60%,rgba(167,139,250,0.85));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.launch-banner{max-width:960px;margin:0 auto 36px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:32px 36px;text-align:center;position:relative;overflow:hidden;}
+.launch-banner::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.15),transparent);}
+.launch-banner-title{font-family:'DM Sans',sans-serif;font-weight:500;font-size:1.65rem;letter-spacing:-.01em;margin-bottom:10px;color:#fff;}
 .launch-banner-sub{font-size:.88rem;color:var(--text-muted);max-width:520px;margin:0 auto 0;line-height:1.6;}
 .launch-temp-note{display:inline-flex;align-items:center;gap:6px;margin-top:14px;background:rgba(251,191,36,0.07);border:1px solid rgba(251,191,36,0.2);border-radius:100px;padding:5px 14px;font-size:.76rem;color:rgba(251,191,36,0.75);}
 .launch-temp-note::before{content:'';width:6px;height:6px;border-radius:50%;background:rgba(251,191,36,0.6);flex-shrink:0;animation:pulse-amber 2s infinite;}
 @keyframes pulse-amber{0%,100%{opacity:1;}50%{opacity:.4;}}
-.plan-btn.free-now{background:rgba(255,255,255,0.04);border:1px solid rgba(139,92,246,0.25);color:rgba(167,139,250,0.85);cursor:default;font-size:.78rem;}
+.plan-btn.free-now{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.4);cursor:default;font-size:.78rem;}
 .plan-btn.free-now:hover{opacity:1;}
 
 /* BILLING TOGGLE */
