@@ -421,7 +421,7 @@ async function init(){
       id: user.id,
       full_name: meta.full_name || meta.name || '',
       avatar_url: meta.avatar_url || meta.picture || '',
-      plan: 'free',
+      plan: 'creator',
       skills_offering: [],
       skills_wanting: [],
       skills_offered: [],
@@ -536,20 +536,11 @@ async function init(){
     }).join('');
   }
 
-  // Plan gating
-  const plan = profile?.plan || 'free';
-  gatePlanFeatures(plan);
-}
-
-function gatePlanFeatures(plan){
-  const analyticsLink = document.getElementById('analyticsNavLink');
-  if(plan === 'pro' || plan === 'creator'){
-    document.getElementById('analyticsSection').style.display='block';
-    if(analyticsLink) analyticsLink.style.display='flex';
-    loadAnalytics();
-  } else {
-    if(analyticsLink) analyticsLink.style.display='none';
-  }
+  // Launch period: all users get full access
+  document.getElementById('analyticsSection').style.display='block';
+  const analyticsLink=document.getElementById('analyticsNavLink');
+  if(analyticsLink)analyticsLink.style.display='flex';
+  loadAnalytics();
 }
 
 async function loadAnalytics(){

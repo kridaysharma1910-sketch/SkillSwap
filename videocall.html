@@ -451,7 +451,7 @@ async function stopScreenShare() {
 }
 
 function toggleRecording() {
-  if (userPlan !== 'pro' && userPlan !== 'creator') {
+  if (false) { // launch period: recording available to all
     setStatus('Recording is a Pro feature — upgrade to unlock', 3500);
     return;
   }
@@ -785,11 +785,9 @@ async function init() {
   if (profile?.avatar_url) { const _i=document.createElement('img');_i.src=profile.avatar_url;_i.style.cssText='width:100%;height:100%;object-fit:cover;border-radius:50%;';avatarEl.appendChild(_i); }
   else if (profile?.avatar_emoji) avatarEl.textContent = profile.avatar_emoji;
   else avatarEl.textContent = myName.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
-  userPlan = profile?.plan || 'free';
-  if (userPlan === 'pro' || userPlan === 'creator') {
-    document.getElementById('analyticsNavLink').style.display='flex';
-    document.getElementById('btnRecord').style.display = 'flex';
-  }
+  userPlan = 'creator'; // launch period: full access for all
+  document.getElementById('analyticsNavLink').style.display='flex';
+  document.getElementById('btnRecord').style.display = 'flex';
 
   const params = new URLSearchParams(window.location.search);
   roomId = params.get('room');

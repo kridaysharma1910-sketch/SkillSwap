@@ -477,8 +477,7 @@ async function init(){
   else if(profile?.avatar_emoji){avatarEl.textContent=profile.avatar_emoji;}
   else{avatarEl.textContent=name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);}
 
-  const plan=profile?.plan||'free';
-  if(plan==='free'){document.getElementById('upgradeGate').style.display='block';return;}
+  const plan='creator'; // launch period: full access for all
   document.getElementById('analyticsContent').style.display='block';
 
   // Fetch all data in parallel

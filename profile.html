@@ -540,10 +540,7 @@ async function init(){
     // Preview
     onNameInput();onLocationInput();onBioInput();
 
-    // Plan gating for analytics link
-    if(profile.plan==='pro'||profile.plan==='creator'){
-      document.getElementById('analyticsNavLink').style.display='flex';
-    }
+    document.getElementById('analyticsNavLink').style.display='flex';
   } else {
     const initials=name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
     document.getElementById('sidebarAvatar').textContent=initials;

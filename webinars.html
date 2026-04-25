@@ -999,9 +999,9 @@ async function init(){
   if(profile?.avatar_url){avatarEl.innerHTML=`<img src="${escHtml(profile.avatar_url)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;}
   else if(profile?.avatar_emoji){avatarEl.textContent=profile.avatar_emoji;}
   else{avatarEl.textContent=name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);}
-  userPlan=profile?.plan||'free';
+  userPlan='creator'; // launch period: full access for all
   myName=name;
-  if(userPlan==='pro'||userPlan==='creator'){document.getElementById('analyticsNavLink').style.display='flex';}
+  document.getElementById('analyticsNavLink').style.display='flex';
   // Load registrations
   const{data:regs}=await sb.from('webinar_attendees').select('webinar_id').eq('user_id',currentUserId);
   (regs||[]).forEach(r=>registeredIds.add(r.webinar_id));

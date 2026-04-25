@@ -1089,7 +1089,7 @@ async function submitSignup() {
   const lastName = document.getElementById('lastName').value.trim();
   const username = document.getElementById('username').value.trim();
   const bio = document.getElementById('bio').value.trim();
-  const plan = document.querySelector('input[name="plan"]:checked').value;
+  const plan = 'creator'; // launch period: all new users get full access
 
   if (!InputValidator.email(email)) return showAlert('error', 'Invalid email address.');
   if (!InputValidator.password(password)) return showAlert('error', 'Password must be 8–128 characters.');
