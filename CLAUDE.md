@@ -28,7 +28,9 @@ Skill-exchange platform: users list skills they offer/want, get matched, swap se
 - `analytics` — id, user_id→profiles (unique), skills_taught_count, skills_learned_count, total_video_minutes, webinars_watched, webinars_hosted, total_earnings, global_rank, updated_at
 - `call_invites` — id, room_id, match_id→matches, caller_id→profiles, callee_id→profiles, caller_name, caller_avatar, status (pending/accepted/declined/expired), created_at
 - `reviews` — id, match_id→matches, reviewer_id→profiles, reviewee_id→profiles, rating (1-5), comment, created_at
+- `webinars` — also has `recording_url TEXT` column (add via Supabase: `ALTER TABLE webinars ADD COLUMN recording_url text`)
 - Storage: `avatars` bucket (public) — `{user_id}/avatar.{ext}`
+- Storage: `webinar-recordings` bucket (public) — `{webinar_id}/{timestamp}.webm`
 
 ---
 
@@ -145,9 +147,8 @@ Skill-exchange platform: users list skills they offer/want, get matched, swap se
 ## Known Issues / Pending
 - **Payment not wired** — `selectPlan()` updates Supabase directly, no Lemon Squeezy/Paddle flow yet
 - `reviews` table — **live in Supabase** (id, match_id, reviewer_id, reviewee_id, rating 1-5, comment, created_at; RLS: insert own, read all)
-- `avatars` storage bucket must be created in Supabase dashboard
 - Realtime must be enabled for `messages` table in Supabase dashboard
-- Webinar cloud recording not implemented — local .webm download only
+- **Webinar cloud recording**: `webinar-recordings` bucket must be created in Supabase dashboard (public); run `ALTER TABLE webinars ADD COLUMN recording_url text` in SQL editor
 
 ---
 
@@ -168,6 +169,10 @@ Start by telling me: what's the current state per CLAUDE.md, and what are we bui
 ---
 
 ## Session Log
+
+### [Session 25 — 2026-04-25]
+- **webinar-host.html**: implemented cloud recording — `mediaRecorder.onstop` now uploads `.webm` blob to `webinar-recordings` Supabase storage bucket (`{webinarId}/{timestamp}.webm`), updates `webinars.recording_url`, and copies the public URL to clipboard; local download still happens as fallback
+- **CLAUDE.md**: removed `avatars` bucket from Known Issues (bucket created); added `webinar-recordings` bucket + `recording_url` column to Known Issues pending Supabase setup; added storage/column entries to schema docs
 
 ### [Session 24 — 2026-04-24]
 - **signup.html**: fixed dead Terms/Privacy links → `/terms`, `/privacy`; removed `console.log` from signup/profile error paths

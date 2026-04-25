@@ -460,7 +460,7 @@ function toggleRecording(){
     isRecording=false;
     btn.classList.remove('rec-active');
     btn.innerHTML=`<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4" fill="currentColor"/></svg>Record`;
-    showToast('Recording saved — check your downloads.');
+    showToast('Stopping recording...');
     return;
   }
   const stream=hostScreenStream||hostStream;
@@ -471,12 +471,23 @@ function toggleRecording(){
     mediaRecorder=new MediaRecorder(stream,{mimeType});
   }catch(e){mediaRecorder=new MediaRecorder(stream);}
   mediaRecorder.ondataavailable=e=>{if(e.data.size>0)recordedChunks.push(e.data);};
-  mediaRecorder.onstop=()=>{
+  mediaRecorder.onstop=async()=>{
     const blob=new Blob(recordedChunks,{type:'video/webm'});
-    const url=URL.createObjectURL(blob);
+    const ts=Date.now();
+    // Local download (always)
+    const localUrl=URL.createObjectURL(blob);
     const a=document.createElement('a');
-    a.href=url;a.download='webinar-recording-'+Date.now()+'.webm';a.click();
-    setTimeout(()=>URL.revokeObjectURL(url),10000);
+    a.href=localUrl;a.download='webinar-recording-'+ts+'.webm';a.click();
+    setTimeout(()=>URL.revokeObjectURL(localUrl),10000);
+    // Cloud upload
+    showToast('Uploading recording to cloud...');
+    const path=`${webinarId}/${ts}.webm`;
+    const{error:upErr}=await sb.storage.from('webinar-recordings').upload(path,blob,{contentType:'video/webm',upsert:true});
+    if(upErr){showToast('Cloud upload failed — recording saved locally.');return;}
+    const{data:urlData}=sb.storage.from('webinar-recordings').getPublicUrl(path);
+    await sb.from('webinars').update({recording_url:urlData.publicUrl}).eq('id',webinarId);
+    try{await navigator.clipboard.writeText(urlData.publicUrl);}catch(_){}
+    showToast('Recording uploaded! URL copied to clipboard.');
   };
   mediaRecorder.start(1000);
   isRecording=true;
