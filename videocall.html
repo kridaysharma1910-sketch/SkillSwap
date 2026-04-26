@@ -53,7 +53,7 @@ body{background:#000;color:#fff;font-family:'DM Sans',sans-serif;height:100vh;di
 
 /* Videos */
 #remoteVideo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#111;z-index:1;}
-#localVideo{position:absolute;bottom:88px;right:18px;width:130px;height:176px;object-fit:cover;border-radius:14px;border:2px solid rgba(255,255,255,0.18);z-index:5;background:#1a1a1a;cursor:none;}
+#localVideo{position:absolute;bottom:88px;right:18px;width:130px;height:176px;object-fit:cover;border-radius:14px;border:2px solid rgba(255,255,255,0.18);z-index:5;background:#1a1a1a;cursor:none;transform:scaleX(-1);}
 
 /* Waiting avatar (shown when remote stream not yet connected) */
 .waiting-bg{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:radial-gradient(ellipse at center,rgba(139,92,246,0.08) 0%,#000 70%);}
@@ -427,6 +427,7 @@ async function toggleScreenShare() {
       screenSharingActive = true;
       document.getElementById('btnShare').classList.add('screen-active');
       document.getElementById('localVideo').srcObject = screenShareStream;
+      document.getElementById('localVideo').style.transform = 'scaleX(1)';
       screenTrack.onended = () => stopScreenShare();
     } catch(e) {
       if (e.name !== 'NotAllowedError') console.error('Screen share error:', e);
@@ -444,6 +445,7 @@ async function stopScreenShare() {
   if (btn) btn.classList.remove('screen-active');
   if (localStream) {
     document.getElementById('localVideo').srcObject = localStream;
+    document.getElementById('localVideo').style.transform = 'scaleX(-1)';
     const camTrack = localStream.getVideoTracks()[0];
     const sender = pc && pc.getSenders().find(s => s.track && s.track.kind === 'video');
     if (sender && camTrack) await sender.replaceTrack(camTrack);
