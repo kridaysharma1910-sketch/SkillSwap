@@ -290,7 +290,7 @@ function renderTab(tab){
         // Partner requested end
         statusBadge=`<span class="status-badge s-ending">End Requested</span>`;
         bodyExtra=`<div class="end-req-warn">⚠️ <strong>${escHtml(peerName)}</strong> wants to end this swap. You have 24 hours to respond — if you don't, the match ends automatically.</div>`;
-        actionsHtml=`<button class="btn-accept" onclick="acceptEnd('${m.id}','${peerId}','${escHtml(peerName)}')">Accept End</button><button class="btn-decline" onclick="declineEnd('${m.id}',this)">Keep Going</button>`;
+        actionsHtml=`<button class="btn-accept" data-mid="${m.id}" data-pid="${peerId}" data-pname="${escHtml(peerName)}" onclick="acceptEnd(this)">Accept End</button><button class="btn-decline" onclick="declineEnd('${m.id}',this)">Keep Going</button>`;
       } else {
         // Normal active state
         actionsHtml=`<a href="/messages?match=${m.id}" class="btn-action"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Message</a><button class="btn-action" id="call-btn-${m.id}" onclick="startWebRTCCall('${m.id}','${peerId}')"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>Start Call</button><button class="btn-end-match" onclick="requestEnd('${m.id}',this)">End Match</button>`;
@@ -340,7 +340,10 @@ async function cancelEndRequest(matchId,btn){
   else{showToast('End request cancelled — swap continues.');await loadMatches();}
 }
 
-async function acceptEnd(matchId,peerId,peerName){
+async function acceptEnd(btn){
+  const matchId=btn.dataset.mid;
+  const peerId=btn.dataset.pid;
+  const peerName=btn.dataset.pname;
   const{error}=await sb.from('matches').update({status:'completed',end_requested_by:null,end_requested_at:null,updated_at:new Date().toISOString()}).eq('id',matchId);
   if(error){console.error('acceptEnd error:',error);showToast('Error: '+error.message);return;}
   showToast('Swap ended — great work!');
