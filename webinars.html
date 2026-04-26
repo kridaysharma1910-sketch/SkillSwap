@@ -302,10 +302,13 @@ body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;min-height
           <select id="wMax"><option value="10">Up to 10</option><option value="25" selected>Up to 25</option><option value="50">Up to 50</option><option value="100">Up to 100</option><option value="0">Unlimited</option></select>
         </div>
       </div>
-      <div class="field"><label>Free or Paid?</label>
-        <select id="wPaid" onchange="togglePriceField()"><option value="free">Free</option><option value="paid">Paid</option></select>
+      <div class="field">
+        <label>Paid Webinars</label>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;">
+          <span style="font-size:18px;">💳</span>
+          <span style="font-size:13px;color:rgba(255,255,255,0.5);">Paid webinars are <strong style="color:rgba(255,255,255,0.7);">coming soon</strong> — all webinars are free during launch.</span>
+        </div>
       </div>
-      <div class="field" id="priceField" style="display:none;"><label>Price ($)</label><input type="number" id="wPrice" placeholder="9.99" min="1" step="0.01"></div>
       <button class="modal-submit" id="createBtn" onclick="createWebinar()">Create Webinar</button>
     </div>
   </div>
@@ -589,9 +592,7 @@ function openHostModal(){
 
 function closeModal(){document.getElementById('hostModal').classList.remove('open');}
 
-function togglePriceField(){
-  document.getElementById('priceField').style.display=document.getElementById('wPaid').value==='paid'?'block':'none';
-}
+function togglePriceField(){}
 
 async function createWebinar(){
   const title=document.getElementById('wTitle').value.trim();
@@ -600,8 +601,8 @@ async function createWebinar(){
   const dateVal=document.getElementById('wDate').value;
   const duration=parseInt(document.getElementById('wDuration').value)||60;
   const maxAtt=parseInt(document.getElementById('wMax').value)||25;
-  const isPaid=document.getElementById('wPaid').value==='paid';
-  const price=isPaid?parseFloat(document.getElementById('wPrice').value)||0:0;
+  const isPaid=false;
+  const price=0;
   const alertEl=document.getElementById('hostAlert');
   function wErr(msg){alertEl.className='modal-alert error';alertEl.textContent=msg;}
   if(!title){wErr('Please enter a title.');return;}
@@ -611,7 +612,6 @@ async function createWebinar(){
   if(new Date(dateVal)<=new Date()){wErr('Scheduled time must be in the future.');return;}
   if(!InputValidator.int(duration,1,480)){wErr('Duration must be between 1 and 480 minutes.');return;}
   if(!InputValidator.int(maxAtt,1,1000)){wErr('Max attendees must be between 1 and 1000.');return;}
-  if(isPaid&&!InputValidator.price(price,9999)){wErr('Price must be between $0 and $9999.');return;}
   alertEl.className='modal-alert';
   const btn=document.getElementById('createBtn');
   btn.disabled=true;btn.textContent='Creating...';
