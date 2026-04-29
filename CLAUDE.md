@@ -21,7 +21,8 @@ Skill-exchange platform: users list skills they offer/want, get matched, swap se
 ## Supabase Tables
 - `profiles` — id, full_name, username, bio, location, website, avatar_url, avatar_emoji, plan, rating, rank, rewards[], skills_offering[], skills_wanting[], skills_offered[], skills_wanted[], hours_per_week, session_format, updated_at
 - `matches` — id, sender_id→profiles, receiver_id→profiles, status (pending/accepted/rejected/completed), skill_offered, skill_wanted, end_requested_by→profiles (nullable), end_requested_at (timestamptz, nullable), created_at, updated_at
-- `messages` — id, match_id→matches, sender_id→profiles, content, read, created_at
+- `messages` — id, match_id→matches, sender_id→profiles, content, read, created_at, edited_at (timestamptz nullable)
+- `message_reactions` — id, message_id→messages (ON DELETE CASCADE), user_id→profiles, emoji text, created_at; UNIQUE(message_id,user_id,emoji)
 - `sessions` — id, match_id→matches, user_id→profiles, partner_id→profiles, duration_minutes, skill_taught, skill_learned, completed_at
 - `webinars` — id, host_id→profiles, title, description, category, cover_emoji, jitsi_room, is_free, price, scheduled_at, duration_minutes, max_attendees, attendee_count, earnings, is_live, status, created_at
 - `webinar_attendees` — id, webinar_id→webinars, user_id→profiles, paid, amount_paid, joined_at
@@ -169,6 +170,21 @@ Start by telling me: what's the current state per CLAUDE.md, and what are we bui
 ---
 
 ## Session Log
+
+### [Session 29 — 2026-04-29]
+- **messages.html — long-press context menu**: press-and-hold (500ms) or right-click on any message shows a floating context menu
+- **Emoji reactions**: context menu top row shows 6 quick reactions (❤️ 😂 😮 😢 😡 👍); clicking one toggles it; reactions rendered as pills below bubble; tapping an existing pill also toggles it; mine highlighted in violet; count shown when >1
+- **Edit messages**: available for own non-call messages within 15 minutes of sending; inline textarea replaces bubble with Save / Cancel; Ctrl+Enter saves, Escape cancels; `(edited)` tag shown after save; polls blocked while editing to avoid overwriting in-progress edits
+- **Delete messages**: two-step confirm in the menu ("Delete this message?" → Delete / Cancel); removes row from DOM with fade-out animation
+- **Supabase migration required** (run in SQL editor):
+  - `ALTER TABLE messages ADD COLUMN IF NOT EXISTS edited_at timestamptz;`
+  - `CREATE TABLE message_reactions (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), message_id uuid REFERENCES messages(id) ON DELETE CASCADE, user_id uuid REFERENCES profiles(id) ON DELETE CASCADE, emoji text NOT NULL, created_at timestamptz DEFAULT now(), UNIQUE(message_id,user_id,emoji));`
+  - `ALTER TABLE message_reactions ENABLE ROW LEVEL SECURITY;`
+  - `CREATE POLICY "rxn_insert_own" ON message_reactions FOR INSERT WITH CHECK (auth.uid()=user_id);`
+  - `CREATE POLICY "rxn_read_all" ON message_reactions FOR SELECT USING (true);`
+  - `CREATE POLICY "rxn_delete_own" ON message_reactions FOR DELETE USING (auth.uid()=user_id);`
+  - `CREATE POLICY "msg_update_own" ON messages FOR UPDATE USING (auth.uid()=sender_id) WITH CHECK (auth.uid()=sender_id);`
+  - `CREATE POLICY "msg_delete_own" ON messages FOR DELETE USING (auth.uid()=sender_id);`
 
 ### [Session 28 — 2026-04-29]
 - **signup.html — mobile skill tags fix**: skill tag inputs (teach/learn) were not working on mobile — `keydown` events are unreliable on iOS/Android virtual keyboards
