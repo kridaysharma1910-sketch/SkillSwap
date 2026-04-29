@@ -492,6 +492,23 @@ body::before {
 }
 .error-msg.show { display: block; }
 
+/* ===== SKILL ADD BUTTON (mobile) ===== */
+.skill-add-btn {
+  background: rgba(139,92,246,0.15);
+  border: 1px solid rgba(139,92,246,0.35);
+  color: rgba(167,139,250,0.85);
+  padding: 3px 10px;
+  border-radius: 100px;
+  font-size: 0.78rem;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  align-items: center;
+  white-space: nowrap;
+  transition: background 0.15s;
+  touch-action: manipulation;
+}
+.skill-add-btn:hover { background: rgba(139,92,246,0.28); }
+
 /* ===== SKILLS TAGS ===== */
 .skills-input-wrap {
   background: rgba(255,255,255,0.04);
@@ -962,20 +979,48 @@ document.getElementById('password').addEventListener('input', function() {
 
 // Skills tags
 let offerTags = [], wantTags = [];
+const addBtns = {};
 
 function setupTagInput(inputId, wrapId, tagsArr) {
   const input = document.getElementById(inputId);
+  const wrap = document.getElementById(wrapId);
+
+  // "+ Add" button for mobile tap
+  const addBtn = document.createElement('button');
+  addBtn.type = 'button';
+  addBtn.className = 'skill-add-btn';
+  addBtn.textContent = '+ Add';
+  addBtn.style.display = 'none';
+  addBtns[wrapId] = addBtn;
+  wrap.appendChild(addBtn);
+
+  function addCurrentTag() {
+    const val = input.value.trim().replace(/,/g, '');
+    if (!val) return;
+    if (!InputValidator.skill(val)) { input.value = ''; addBtn.style.display = 'none'; return; }
+    if (tagsArr.length >= 20) { input.value = ''; addBtn.style.display = 'none'; return; }
+    if (!tagsArr.includes(val)) {
+      tagsArr.push(val);
+      renderTags(wrapId, inputId, tagsArr);
+    }
+    input.value = '';
+    addBtn.style.display = 'none';
+  }
+
+  addBtn.addEventListener('click', function(e) {
+    e.preventDefault();
+    addCurrentTag();
+    input.focus();
+  });
+
+  input.addEventListener('input', function() {
+    addBtn.style.display = this.value.trim() ? 'inline-flex' : 'none';
+  });
+
   input.addEventListener('keydown', function(e) {
     if ((e.key === 'Enter' || e.key === ',') && this.value.trim()) {
       e.preventDefault();
-      const val = this.value.trim().replace(',', '');
-      if (!InputValidator.skill(val)) { this.value = ''; return; }
-      if (tagsArr.length >= 20) { this.value = ''; return; }
-      if (!tagsArr.includes(val)) {
-        tagsArr.push(val);
-        renderTags(wrapId, inputId, tagsArr);
-      }
-      this.value = '';
+      addCurrentTag();
     }
     if (e.key === 'Backspace' && !this.value && tagsArr.length) {
       tagsArr.pop();
@@ -995,6 +1040,7 @@ function renderTags(wrapId, inputId, tagsArr) {
     wrap.appendChild(div);
   });
   wrap.appendChild(input);
+  if (addBtns[wrapId]) wrap.appendChild(addBtns[wrapId]);
   input.focus();
 }
 
