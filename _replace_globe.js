@@ -207,10 +207,10 @@ const NEW_FN = `function makeDotGlobe(cvId,W,H,R){
   function draw(){
     ctx.clearRect(0,0,W,H);
     const glowGrd=ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,R);
-    glowGrd.addColorStop(0,'rgba(139,92,246,0.18)');glowGrd.addColorStop(0.5,'rgba(139,92,246,0.07)');glowGrd.addColorStop(1,'rgba(139,92,246,0)');
+    glowGrd.addColorStop(0,'rgba(139,92,246,0.07)');glowGrd.addColorStop(0.5,'rgba(139,92,246,0.03)');glowGrd.addColorStop(1,'rgba(139,92,246,0)');
     ctx.beginPath();ctx.arc(W/2,H/2,R,0,Math.PI*2);ctx.fillStyle=glowGrd;ctx.fill();
     ctx.beginPath();ctx.arc(W/2,H/2,R,0,Math.PI*2);
-    ctx.strokeStyle='rgba(139,92,246,0.45)';ctx.lineWidth=1.5;ctx.stroke();
+    ctx.strokeStyle='rgba(139,92,246,0.15)';ctx.lineWidth=1;ctx.stroke();
     for(let la=-60;la<=60;la+=30){ctx.beginPath();let mv=true;
       for(let lo=-180;lo<=180;lo+=3){const p=proj(la,lo);if(p.z>0){mv?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y);mv=false;}else mv=true;}
       ctx.strokeStyle='rgba(255,255,255,0.13)';ctx.lineWidth=.5;ctx.stroke();}
