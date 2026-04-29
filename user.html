@@ -263,7 +263,7 @@ function showError(){
 async function loadProfile(){
   const[profileRes,matchRes,reviewRes]=await Promise.all([
     sb.from('profiles').select('*').eq('id',targetId).single(),
-    sb.from('matches').select('id,status').or(`sender_id.eq.${currentUserId},receiver_id.eq.${currentUserId}`).or(`sender_id.eq.${targetId},receiver_id.eq.${targetId}`),
+    sb.from('matches').select('id,status,sender_id,receiver_id').or(`sender_id.eq.${currentUserId},receiver_id.eq.${currentUserId}`).or(`sender_id.eq.${targetId},receiver_id.eq.${targetId}`),
     sb.from('reviews').select('rating,comment,reviewer_id,created_at,reviewer:reviewer_id(full_name,username)').eq('reviewee_id',targetId).order('created_at',{ascending:false}).limit(10)
   ]);
 
@@ -309,7 +309,11 @@ async function loadProfile(){
   if(!existingMatch){
     actHtml=`<button class="btn-primary" id="reqBtn" onclick="sendRequest('${targetId}',this)"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Send Request</button>`;
   } else if(existingMatch.status==='pending'){
-    actHtml=`<button class="btn-primary" disabled style="opacity:.5;">Request Pending</button>`;
+    if(existingMatch.sender_id===currentUserId){
+      actHtml=`<button class="btn-secondary" id="reqBtn" onclick="unrequest('${existingMatch.id}',this)"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/></svg>Unrequest</button>`;
+    }else{
+      actHtml=`<a href="/matches" class="btn-secondary"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>View Request</a>`;
+    }
   } else if(existingMatch.status==='accepted'){
     actHtml=`<a href="/messages?match=${existingMatch.id}" class="btn-primary"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Message</a>`;
   } else if(existingMatch.status==='completed'){
@@ -356,6 +360,18 @@ async function loadProfile(){
   document.getElementById('loadingState').style.display='none';
   document.getElementById('profileContent').style.display='block';
   document.title=`SkillSwap — ${name}`;
+}
+
+async function unrequest(matchId,btn){
+  if(btn){btn.disabled=true;btn.textContent='Withdrawing…';}
+  const{error}=await sb.from('matches').delete().eq('id',matchId).eq('sender_id',currentUserId).eq('status','pending');
+  if(error){
+    showToast('Failed to withdraw request.');
+    if(btn){btn.disabled=false;btn.textContent='Unrequest';}
+  }else{
+    showToast('Request withdrawn.');
+    await loadProfile();
+  }
 }
 
 init();
