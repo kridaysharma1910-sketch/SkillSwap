@@ -370,124 +370,118 @@ h1 {
   to { transform: translateX(-50%); }
 }
 
-/* ===== GLASS CARD MIXIN ===== */
-.step, .feature-card {
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 18px;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  position: relative;
-  overflow: hidden;
-  transition: border-color 0.3s, transform 0.3s;
-}
-.step:hover, .feature-card:hover {
-  border-color: rgba(139,92,246,0.3);
-  transform: translateY(-3px);
-}
-.step::before, .feature-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(139,92,246,0.6), transparent);
+/* ===== SCROLL REVEAL ===== */
+[data-reveal] {
   opacity: 0;
-  transition: opacity 0.3s;
-  z-index: 1;
+  transform: translateY(28px);
+  transition: opacity .9s cubic-bezier(.16,1,.3,1), transform .9s cubic-bezier(.16,1,.3,1);
 }
-.step:hover::before, .feature-card:hover::before { opacity: 1; }
+[data-reveal].visible { opacity: 1; transform: none; }
+[data-reveal][data-delay="1"] { transition-delay: .12s; }
+[data-reveal][data-delay="2"] { transition-delay: .24s; }
+[data-reveal][data-delay="3"] { transition-delay: .38s; }
+
+/* ===== SECTION PRIMITIVES ===== */
+.section-eyebrow {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.2);
+  margin-bottom: 20px;
+}
+.section-heading {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(2.2rem, 4vw, 3.6rem);
+  font-weight: 700;
+  letter-spacing: -.044em;
+  line-height: 1.04;
+  color: #fff;
+  margin-bottom: 96px;
+}
+.section-heading em {
+  font-style: normal;
+  -webkit-text-stroke: 1.5px rgba(255,255,255,0.26);
+  -webkit-text-fill-color: transparent;
+}
 
 /* ===== HOW IT WORKS ===== */
 #how {
   position: relative;
   z-index: 2;
-  padding: 120px 60px;
   background: #080808;
   border-top: 1px solid rgba(255,255,255,0.06);
-  overflow: visible;
 }
-#ss-globe-small {
-  position: absolute;
-  right: -40px;
-  top: 50%;
-  transform: translateY(-50%);
-  pointer-events: none;
-  opacity: 0.38;
-  z-index: 0;
+.how-inner {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 160px 60px;
 }
-.section-tag {
-  font-family: 'DM Sans', sans-serif;
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: rgba(255,255,255,0.25);
-  margin-bottom: 14px;
-  position: relative; z-index: 1;
-}
-.section-title {
-  font-family: 'Syne', sans-serif;
-  font-size: clamp(1.8rem, 3vw, 2.6rem);
-  font-weight: 700;
-  letter-spacing: -0.03em;
-  margin-bottom: 56px;
-  max-width: 380px;
-  line-height: 1.1;
-  color: #fff;
-  position: relative; z-index: 1;
-}
-.steps {
+.how-step {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-  max-width: 880px;
-  position: relative; z-index: 1;
+  grid-template-columns: 110px 1fr auto;
+  gap: 56px;
+  padding: 64px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  align-items: start;
+  position: relative;
+  transition: background .3s;
 }
-.step {
-  padding: 40px 32px 32px;
-}
-.step:first-child, .step:last-child { border-radius: 18px; }
-.step-num {
+.how-step:first-child { border-top: 1px solid rgba(255,255,255,0.05); }
+.hs-num {
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 52px;
+  font-size: 5.5rem;
   font-weight: 700;
-  color: rgba(255,255,255,0.05);
+  color: rgba(255,255,255,0.04);
   line-height: 1;
-  margin-bottom: 20px;
-  transition: color 0.3s;
+  user-select: none;
+  transition: color .45s;
+  letter-spacing: -.04em;
 }
-.step:hover .step-num { color: rgba(255,255,255,0.08); }
-.step-title {
-  font-family: 'Syne', sans-serif;
-  font-size: 1.1rem;
+.how-step:hover .hs-num { color: rgba(255,255,255,0.11); }
+.hs-body { padding-top: 14px; }
+.hs-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 2.1rem;
   font-weight: 700;
-  margin-bottom: 10px;
+  letter-spacing: -.038em;
   color: #fff;
+  margin-bottom: 22px;
+  line-height: 1.08;
 }
-.step-text {
-  font-size: 0.88rem;
-  color: rgba(255,255,255,0.32);
-  line-height: 1.65;
-  margin-bottom: 24px;
+.hs-bar {
+  width: 30px; height: 1px;
+  background: rgba(255,255,255,0.13);
+  margin-bottom: 22px;
+  transition: width .45s, background .45s;
 }
-.step-tag {
-  display: inline-block;
+.how-step:hover .hs-bar { width: 56px; background: rgba(255,255,255,0.3); }
+.hs-text {
+  font-size: .9rem;
+  color: rgba(255,255,255,0.28);
+  line-height: 1.78;
+  max-width: 460px;
+}
+.hs-badge {
   font-family: 'DM Sans', sans-serif;
   font-size: 10px;
-  letter-spacing: 0.06em;
+  letter-spacing: .1em;
   text-transform: uppercase;
-  padding: 3px 10px;
+  color: rgba(255,255,255,0.16);
+  border: 1px solid rgba(255,255,255,0.09);
   border-radius: 100px;
-  border: 1px solid;
+  padding: 5px 14px;
+  white-space: nowrap;
+  align-self: center;
+  transition: border-color .3s, color .3s;
 }
-.step-tag.violet { color: rgba(167,139,250,0.8); border-color: rgba(139,92,246,0.35); }
-.step-tag.cyan { color: rgba(103,232,249,0.8); border-color: rgba(34,211,238,0.3); }
-.step-tag.white { color: rgba(255,255,255,0.32); border-color: rgba(255,255,255,0.12); }
+.how-step:hover .hs-badge { color: rgba(255,255,255,0.3); border-color: rgba(255,255,255,0.18); }
 
 /* ===== SKILLS MARQUEE ===== */
 #marquee-section {
   position: relative;
   z-index: 2;
-  padding: 64px 0;
+  padding: 80px 0;
   overflow: hidden;
   background: #080808;
   border-top: 1px solid rgba(255,255,255,0.06);
@@ -495,16 +489,16 @@ h1 {
 .marquee-label {
   text-align: center;
   font-size: 11px;
-  letter-spacing: 0.12em;
+  letter-spacing: .13em;
   text-transform: uppercase;
-  color: rgba(255,255,255,0.18);
-  margin-bottom: 32px;
+  color: rgba(255,255,255,0.13);
+  margin-bottom: 36px;
   font-family: 'DM Sans', sans-serif;
 }
 .marquee-track {
   display: flex;
   gap: 10px;
-  animation: marquee 25s linear infinite;
+  animation: marquee 30s linear infinite;
   width: max-content;
 }
 .marquee-track:nth-child(3) { animation-direction: reverse; margin-top: 10px; }
@@ -513,192 +507,219 @@ h1 {
   to { transform: translateX(-50%); }
 }
 .skill-pill {
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.08);
-  backdrop-filter: blur(8px);
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.07);
   padding: 9px 20px;
   border-radius: 100px;
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   white-space: nowrap;
-  color: rgba(255,255,255,0.28);
+  color: rgba(255,255,255,0.2);
   display: flex;
   align-items: center;
   gap: 8px;
-  transition: all 0.3s;
   font-family: 'DM Sans', sans-serif;
 }
-.skill-pill:nth-child(3n) {
-  border-color: rgba(139,92,246,0.22);
-  color: rgba(167,139,250,0.6);
-}
-.skill-pill:nth-child(5n) {
-  border-color: rgba(34,211,238,0.18);
-  color: rgba(103,232,249,0.55);
-}
-.skill-emoji { font-size: 0.95rem; }
+.skill-pill:nth-child(4n) { border-color: rgba(34,211,238,0.14); color: rgba(34,211,238,0.38); }
+.skill-emoji { font-size: 0.9rem; }
 
 /* ===== FEATURES ===== */
 #features {
   position: relative;
   z-index: 2;
-  padding: 120px 60px;
   background: #080808;
   border-top: 1px solid rgba(255,255,255,0.06);
 }
-.features-grid {
+.features-inner {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 160px 60px;
+}
+.feat-rows { }
+.feat-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin: 60px auto 0;
-  max-width: 1000px;
-}
-.feature-card {
-  padding: 36px;
-}
-.feature-card::after { display: none !important; }
-.feature-card.large {
-  grid-column: span 2;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 40px;
+  grid-template-columns: 52px 260px 1fr;
+  gap: 56px;
+  padding: 48px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
   align-items: center;
+  transition: padding .22s ease, background .22s ease;
+  cursor: default;
 }
-.feature-icon {
-  width: 40px; height: 40px;
-  border-radius: 10px;
-  backdrop-filter: blur(8px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 20px;
-  font-size: 1.1rem;
-  font-style: normal;
+.feat-row:first-child { border-top: 1px solid rgba(255,255,255,0.05); }
+.feat-row:hover {
+  background: rgba(255,255,255,0.02);
+  padding-left: 20px; padding-right: 20px;
+  margin-left: -20px; margin-right: -20px;
 }
-.feature-icon.violet {
-  background: rgba(139,92,246,0.1);
-  border: 1px solid rgba(139,92,246,0.22);
-  color: rgba(167,139,250,0.9);
-}
-.feature-icon.cyan {
-  background: rgba(34,211,238,0.07);
-  border: 1px solid rgba(34,211,238,0.18);
-  color: rgba(103,232,249,0.9);
-}
-.feature-title {
-  font-family: 'Syne', sans-serif;
-  font-size: 1.15rem;
+.feat-n {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: .8rem;
+  color: rgba(255,255,255,0.11);
   font-weight: 700;
-  margin-bottom: 10px;
-  color: #fff;
 }
-.feature-text {
-  font-size: 0.88rem;
-  color: rgba(255,255,255,0.3);
-  line-height: 1.65;
-  margin-bottom: 20px;
+.feat-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: -.028em;
+  color: rgba(255,255,255,0.78);
+  margin-bottom: 8px;
+  transition: color .22s;
 }
-.feature-tag {
-  display: inline-block;
+.feat-row:hover .feat-title { color: #fff; }
+.feat-tag-line {
   font-family: 'DM Sans', sans-serif;
   font-size: 10px;
-  letter-spacing: 0.06em;
+  letter-spacing: .1em;
   text-transform: uppercase;
-  padding: 3px 10px;
-  border-radius: 100px;
-  border: 1px solid;
+  color: rgba(255,255,255,0.15);
 }
-.feature-tag.violet { color: rgba(167,139,250,0.8); border-color: rgba(139,92,246,0.35); }
-.feature-tag.cyan { color: rgba(103,232,249,0.8); border-color: rgba(34,211,238,0.3); }
-.feature-tag.white { color: rgba(255,255,255,0.32); border-color: rgba(255,255,255,0.12); }
+.feat-desc {
+  font-size: .87rem;
+  color: rgba(255,255,255,0.24);
+  line-height: 1.75;
+  transition: color .22s;
+}
+.feat-row:hover .feat-desc { color: rgba(255,255,255,0.4); }
 
-/* ===== MINI PROFILE CARDS ===== */
-.profile-preview { display: flex; flex-direction: column; gap: 10px; }
-.mini-profile {
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 14px;
-  padding: 14px 18px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  animation: floatCard 4s ease-in-out infinite;
-  backdrop-filter: blur(8px);
+/* ===== MANIFESTO ===== */
+#manifesto {
+  position: relative;
+  z-index: 2;
+  background: #080808;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  padding: 180px 60px;
+  text-align: center;
+  overflow: hidden;
 }
-.mini-profile:nth-child(2) { animation-delay: -1.5s; margin-left: 16px; }
-.mini-profile:nth-child(3) { animation-delay: -3s; }
-@keyframes floatCard {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-5px); }
+#manifesto::before {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 700px; height: 350px;
+  background: radial-gradient(ellipse, rgba(255,255,255,0.022) 0%, transparent 70%);
+  pointer-events: none;
 }
-.mini-avatar {
-  width: 36px; height: 36px;
-  border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1.05rem;
-  flex-shrink: 0;
-}
-.mini-name { font-weight: 500; font-size: 0.88rem; color: #fff; }
-.mini-skill { font-size: 0.74rem; color: rgba(255,255,255,0.28); margin-top: 2px; }
-.mini-badge {
-  margin-left: auto;
-  font-size: 0.68rem;
-  padding: 3px 9px;
-  border-radius: 100px;
-  border: 1px solid rgba(255,255,255,0.1);
-  color: rgba(255,255,255,0.3);
+.manifesto-inner { position: relative; z-index: 2; }
+.manifesto-eyebrow {
   font-family: 'DM Sans', sans-serif;
-  white-space: nowrap;
+  font-size: 11px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.15);
+  margin-bottom: 44px;
+}
+.manifesto-text {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(2.1rem, 4.8vw, 4.2rem);
+  font-weight: 700;
+  letter-spacing: -.04em;
+  line-height: 1.1;
+  color: #fff;
+  margin: 0 auto 32px;
+  max-width: 860px;
+  border: none;
+  padding: 0;
+  font-style: normal;
+}
+.manifesto-rule {
+  width: 40px; height: 1px;
+  background: rgba(255,255,255,0.12);
+  margin: 0 auto 28px;
+}
+.manifesto-sub {
+  font-size: .92rem;
+  color: rgba(255,255,255,0.2);
+  max-width: 380px;
+  margin: 0 auto;
+  line-height: 1.72;
 }
 
 /* ===== CTA ===== */
 #cta {
   position: relative;
   z-index: 2;
-  padding: 160px 60px;
-  text-align: center;
   background: #080808;
   border-top: 1px solid rgba(255,255,255,0.06);
   overflow: hidden;
 }
-.cta-ring-1, .cta-ring-2 {
-  position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%,-50%);
-  border-radius: 50%;
-  border: 1px solid rgba(255,255,255,0.04);
-  pointer-events: none;
+.cta-inner {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 200px 60px;
+  text-align: center;
+  position: relative;
+  z-index: 2;
 }
-.cta-ring-1 { width: 520px; height: 520px; }
-.cta-ring-2 { width: 300px; height: 300px; }
 .cta-glow {
   position: absolute;
   top: 50%; left: 50%;
-  transform: translate(-50%,-50%);
-  width: 500px; height: 200px;
-  background: radial-gradient(ellipse, rgba(139,92,246,0.09), transparent 70%);
+  transform: translate(-50%, -50%);
+  width: 900px; height: 400px;
+  background: radial-gradient(ellipse, rgba(255,255,255,0.032) 0%, transparent 65%);
   pointer-events: none;
+  z-index: 1;
+}
+.cta-rings {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 1;
+}
+.cta-ring {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.032);
+  animation: ctaPulse 8s ease-in-out infinite;
+}
+.cta-ring:nth-child(1) { width: 720px; height: 720px; animation-delay: 0s; }
+.cta-ring:nth-child(2) { width: 460px; height: 460px; animation-delay: -2.6s; }
+.cta-ring:nth-child(3) { width: 220px; height: 220px; animation-delay: -5.2s; }
+@keyframes ctaPulse { 0%,100%{opacity:.5;} 50%{opacity:1;} }
+.cta-content { position: relative; z-index: 3; }
+.cta-eyebrow {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.15);
+  margin-bottom: 32px;
 }
 .cta-title {
   font-family: 'Space Grotesk', sans-serif;
-  font-size: clamp(2.2rem, 4.5vw, 4.2rem);
+  font-size: clamp(3.4rem, 7.5vw, 7.5rem);
   font-weight: 700;
-  letter-spacing: -0.04em;
-  line-height: 1.05;
-  margin-bottom: 24px;
-  position: relative;
-  z-index: 2;
+  letter-spacing: -.055em;
+  line-height: .96;
   color: #fff;
+  margin-bottom: 36px;
+}
+.cta-outline {
+  -webkit-text-stroke: 1.5px rgba(255,255,255,0.26);
+  -webkit-text-fill-color: transparent;
+  display: block;
 }
 .cta-sub {
-  color: rgba(255,255,255,0.26);
   font-size: 15px;
-  margin-bottom: 44px;
-  max-width: 380px;
-  margin-left: auto; margin-right: auto;
-  position: relative; z-index: 2;
-  line-height: 1.65;
+  color: rgba(255,255,255,0.2);
+  margin-bottom: 52px;
+  line-height: 1.68;
+  max-width: 340px;
+  margin-left: auto;
+  margin-right: auto;
 }
-#cta .btn-primary { position: relative; z-index: 2; padding: 16px 44px; font-size: 1rem; }
+.cta-btn { padding: 16px 48px; font-size: 1rem; border-radius: 100px; }
+.cta-note {
+  margin-top: 22px;
+  font-size: 11px;
+  color: rgba(255,255,255,0.11);
+  letter-spacing: .06em;
+  font-family: 'DM Sans', sans-serif;
+}
 
 /* ===== FOOTER ===== */
 footer {
@@ -712,25 +733,24 @@ footer {
   justify-content: space-between;
 }
 .footer-logo {
-  font-family: 'Syne', sans-serif;
+  font-family: 'Space Grotesk', sans-serif;
   font-weight: 700;
-  color: rgba(255,255,255,0.22);
+  color: rgba(255,255,255,0.2);
   font-size: 0.88rem;
-  letter-spacing: -0.01em;
 }
-.footer-copy { font-size: 0.78rem; color: rgba(255,255,255,0.16); }
+.footer-copy { font-size: 0.78rem; color: rgba(255,255,255,0.13); }
 .footer-links { display: flex; gap: 24px; }
 .footer-links a {
   font-size: 0.78rem;
-  color: rgba(255,255,255,0.2);
+  color: rgba(255,255,255,0.18);
   text-decoration: none;
   transition: color 0.2s;
   font-family: 'DM Sans', sans-serif;
 }
-.footer-links a:hover { color: rgba(255,255,255,0.55); }
+.footer-links a:hover { color: rgba(255,255,255,0.5); }
 
 /* ===== RESPONSIVE ===== */
-@media (max-width: 768px) {
+@media (max-width: 900px) {
   nav { padding: 16px 24px; }
   nav.scrolled { padding: 12px 24px; }
   .nav-links { display: none; }
@@ -738,16 +758,23 @@ footer {
   #ss-globe-hero { width: 300px !important; height: 300px !important; opacity: 0.35; }
   h1 { font-size: clamp(2.4rem, 8vw, 3rem); }
   .hero-stats { gap: 24px; flex-wrap: wrap; }
-  #how { padding: 80px 24px; }
-  .steps { grid-template-columns: 1fr; gap: 12px; max-width: 100%; }
-  #ss-globe-small { display: none !important; }
-  #features { padding: 80px 24px; }
-  .features-grid { grid-template-columns: 1fr; }
-  .feature-card.large { grid-column: span 1; grid-template-columns: 1fr; }
-  #cta { padding: 100px 24px; }
+  .how-inner, .features-inner { padding: 80px 24px; }
+  .cta-inner { padding: 120px 24px; }
+  #manifesto { padding: 100px 24px; }
+  .section-heading { margin-bottom: 52px; }
+  .how-step { grid-template-columns: 64px 1fr; gap: 24px; padding: 48px 0; }
+  .hs-num { font-size: 3.5rem; }
+  .hs-title { font-size: 1.55rem; }
+  .hs-badge { display: none; }
+  .feat-row { grid-template-columns: 1fr; gap: 10px; padding: 32px 0; }
+  .feat-n { display: none; }
+  .feat-row:hover { margin: 0; padding-left: 0; padding-right: 0; }
+  .cta-title { font-size: clamp(2.8rem, 9vw, 4.5rem); }
+  .cta-ring:nth-child(1) { width: 380px; height: 380px; }
+  .cta-ring:nth-child(2) { width: 230px; height: 230px; }
+  .cta-ring:nth-child(3) { width: 110px; height: 110px; }
+  .manifesto-text { font-size: clamp(1.8rem, 6vw, 2.6rem); }
   footer { padding: 28px 24px; flex-direction: column; gap: 14px; text-align: center; }
-  .cta-ring-1 { width: 280px; height: 280px; }
-  .cta-ring-2 { width: 160px; height: 160px; }
 }
 </style>
 </head>
@@ -835,27 +862,37 @@ footer {
 
 <!-- HOW IT WORKS -->
 <section id="how">
-  <canvas id="ss-globe-small" width="360" height="360"></canvas>
-  <div class="section-tag">How it works</div>
-  <div class="section-title">Three steps to your next skill</div>
-  <div class="steps">
-    <div class="step">
-      <div class="step-num">01</div>
-      <div class="step-title">Post your skill</div>
-      <div class="step-text">List what you can teach — design, coding, music, cooking, languages. Anything you're good at.</div>
-      <span class="step-tag violet">Start here</span>
+  <div class="how-inner">
+    <div data-reveal>
+      <div class="section-eyebrow">How it works</div>
+      <div class="section-heading">Three steps to<br><em>your next skill</em></div>
     </div>
-    <div class="step">
-      <div class="step-num">02</div>
-      <div class="step-title">Find a match</div>
-      <div class="step-text">Browse people who teach what you want to learn. Filter by skill, location, or availability.</div>
-      <span class="step-tag cyan">AI powered</span>
+    <div class="how-step" data-reveal>
+      <div class="hs-num">01</div>
+      <div class="hs-body">
+        <div class="hs-title">Post your skill</div>
+        <div class="hs-bar"></div>
+        <div class="hs-text">List what you can teach — design, coding, music, cooking, languages. Anything you're good at. Your skills are your currency.</div>
+      </div>
+      <span class="hs-badge">Start here</span>
     </div>
-    <div class="step">
-      <div class="step-num">03</div>
-      <div class="step-title">Start swapping</div>
-      <div class="step-text">Message them, agree on a swap, and start learning. No money exchanged — just knowledge.</div>
-      <span class="step-tag white">No cost</span>
+    <div class="how-step" data-reveal data-delay="1">
+      <div class="hs-num">02</div>
+      <div class="hs-body">
+        <div class="hs-title">Find a match</div>
+        <div class="hs-bar"></div>
+        <div class="hs-text">Browse people who teach what you want to learn. Filter by skill, location, or availability. Real people, real expertise.</div>
+      </div>
+      <span class="hs-badge">Smart matching</span>
+    </div>
+    <div class="how-step" data-reveal data-delay="2">
+      <div class="hs-num">03</div>
+      <div class="hs-body">
+        <div class="hs-title">Start swapping</div>
+        <div class="hs-bar"></div>
+        <div class="hs-text">Message them, agree on a swap, and start learning. No money exchanged — just knowledge, freely given and freely received.</div>
+      </div>
+      <span class="hs-badge">No cost ever</span>
     </div>
   </div>
 </section>
@@ -871,83 +908,96 @@ footer {
 
 <!-- FEATURES -->
 <section id="features">
-  <div class="section-tag">Why SkillSwap</div>
-  <div class="section-title">Everything you need to connect and grow</div>
-  <div class="features-grid">
-    <div class="feature-card large">
-      <div>
-        <div class="feature-icon violet">◈</div>
-        <div class="feature-title">Rich skill profiles</div>
-        <div class="feature-text">Showcase what you teach and what you want to learn. Add your experience level, availability, and languages. Your profile is your skill passport.</div>
-        <span class="feature-tag violet">Passport</span>
+  <div class="features-inner">
+    <div data-reveal>
+      <div class="section-eyebrow">Why SkillSwap</div>
+      <div class="section-heading">Built for real<br><em>knowledge exchange</em></div>
+    </div>
+    <div class="feat-rows">
+      <div class="feat-row" data-reveal>
+        <div class="feat-n">01</div>
+        <div>
+          <div class="feat-title">Rich skill profiles</div>
+          <div class="feat-tag-line">Your skill passport</div>
+        </div>
+        <div class="feat-desc">Showcase what you teach and what you want to learn. Add experience level, availability, and languages. Every profile tells a complete story.</div>
       </div>
-      <div class="profile-preview">
-        <div class="mini-profile">
-          <div class="mini-avatar" style="background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.2);">🎨</div>
-          <div>
-            <div class="mini-name">Sofia R.</div>
-            <div class="mini-skill">Teaching: UI Design → Learning: Python</div>
-          </div>
-          <div class="mini-badge">Active</div>
+      <div class="feat-row" data-reveal data-delay="1">
+        <div class="feat-n">02</div>
+        <div>
+          <div class="feat-title">Smart matching</div>
+          <div class="feat-tag-line">Powered by compatibility</div>
         </div>
-        <div class="mini-profile">
-          <div class="mini-avatar" style="background:rgba(34,211,238,0.07);border:1px solid rgba(34,211,238,0.15);">🎸</div>
-          <div>
-            <div class="mini-name">Marcus T.</div>
-            <div class="mini-skill">Teaching: Guitar → Learning: Spanish</div>
-          </div>
-          <div class="mini-badge">Online</div>
+        <div class="feat-desc">Our system surfaces the most compatible swap partners based on your skills, goals, and availability. No scrolling through irrelevant profiles.</div>
+      </div>
+      <div class="feat-row" data-reveal data-delay="2">
+        <div class="feat-n">03</div>
+        <div>
+          <div class="feat-title">Built-in messaging</div>
+          <div class="feat-tag-line">Everything in one place</div>
         </div>
-        <div class="mini-profile" style="background:rgba(255,255,255,0.02);">
-          <div class="mini-avatar" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);">💻</div>
-          <div>
-            <div class="mini-name">Aiko M.</div>
-            <div class="mini-skill">Teaching: React → Learning: Photography</div>
-          </div>
-          <div class="mini-badge">New</div>
+        <div class="feat-desc">Chat, plan sessions, share resources — no switching between apps. Emoji reactions, read receipts, and real-time delivery built right in.</div>
+      </div>
+      <div class="feat-row" data-reveal data-delay="3">
+        <div class="feat-n">04</div>
+        <div>
+          <div class="feat-title">Live video sessions</div>
+          <div class="feat-tag-line">Face-to-face learning</div>
         </div>
+        <div class="feat-desc">Crystal-clear video calls with screen share and recording. Built directly into SkillSwap — no Zoom, no friction, no extra cost.</div>
+      </div>
+      <div class="feat-row" data-reveal>
+        <div class="feat-n">05</div>
+        <div>
+          <div class="feat-title">Reviews &amp; trust</div>
+          <div class="feat-tag-line">Community-verified</div>
+        </div>
+        <div class="feat-desc">Every completed swap builds your reputation. Verified profiles and honest reviews keep the community safe and accountable.</div>
+      </div>
+      <div class="feat-row" data-reveal data-delay="1">
+        <div class="feat-n">06</div>
+        <div>
+          <div class="feat-title">Live webinars</div>
+          <div class="feat-tag-line">Teach the world</div>
+        </div>
+        <div class="feat-desc">Host skill sessions for hundreds of learners simultaneously. Monetize your expertise or offer free knowledge to the global community.</div>
       </div>
     </div>
-    <div class="feature-card">
-      <div class="feature-icon cyan">⚡</div>
-      <div class="feature-title">Smart matching</div>
-      <div class="feature-text">Our algorithm surfaces the most compatible swap partners based on your skills, goals, and schedule.</div>
-      <span class="feature-tag cyan">AI powered</span>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon violet">◈</div>
-      <div class="feature-title">Real-time messages</div>
-      <div class="feature-text">Chat, plan sessions, share resources — all in one place. No switching between apps.</div>
-      <span class="feature-tag white">Built-in</span>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon cyan">◉</div>
-      <div class="feature-title">Global community</div>
-      <div class="feature-text">Connect with skill-traders across 60+ countries. Language filters help you find the right match.</div>
-      <span class="feature-tag cyan">AI powered</span>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon violet">✦</div>
-      <div class="feature-title">Reviews &amp; trust</div>
-      <div class="feature-text">Every completed swap builds your reputation. Verified profiles and honest reviews keep the community safe.</div>
-      <span class="feature-tag violet">Verified</span>
-    </div>
+  </div>
+</section>
+
+<!-- MANIFESTO -->
+<section id="manifesto">
+  <div class="manifesto-inner" data-reveal>
+    <div class="manifesto-eyebrow">Our belief</div>
+    <blockquote class="manifesto-text">
+      Knowledge is the only currency that multiplies when you spend it.
+    </blockquote>
+    <div class="manifesto-rule"></div>
+    <p class="manifesto-sub">Every person alive knows something someone else needs. SkillSwap is where that exchange happens.</p>
   </div>
 </section>
 
 <!-- CTA -->
 <section id="cta">
-  <div class="cta-ring-1"></div>
-  <div class="cta-ring-2"></div>
-  <div class="cta-glow"></div>
-  <div class="cta-title">
-    Your next skill is<br>
-    <span class="h1-line2">one swap away.</span>
+  <div class="cta-rings">
+    <div class="cta-ring"></div>
+    <div class="cta-ring"></div>
+    <div class="cta-ring"></div>
   </div>
-  <p class="cta-sub">Join thousands of people trading knowledge worldwide.</p>
-  <a href="/signup" class="btn-primary">
-    Join SkillSwap →
-  </a>
+  <div class="cta-glow"></div>
+  <div class="cta-inner">
+    <div class="cta-content" data-reveal>
+      <div class="cta-eyebrow">Ready to start?</div>
+      <div class="cta-title">
+        Your next skill is<br>
+        <span class="cta-outline">one swap away.</span>
+      </div>
+      <p class="cta-sub">Join thousands of people trading knowledge worldwide. Free forever.</p>
+      <a href="/signup" class="btn-primary cta-btn">Join SkillSwap →</a>
+      <div class="cta-note">No credit card &nbsp;·&nbsp; No cost &nbsp;·&nbsp; Always free</div>
+    </div>
+  </div>
 </section>
 
 <!-- FOOTER -->
@@ -1390,13 +1440,29 @@ function makeDotGlobe(cvId,W,H,R){
 makeDotGlobe('ss-globe-hero',500,500,220);
 makeDotGlobe('ss-globe-small',360,360,160);
 
-// Scroll parallax for small globe
+// Scroll parallax for small globe (graceful no-op if canvas removed)
 const _howSec=document.getElementById('how'),_smGlobe=document.getElementById('ss-globe-small');
 window.addEventListener('scroll',()=>{
   if(!_howSec||!_smGlobe)return;
   const rect=_howSec.getBoundingClientRect();
   const progress=Math.max(0,-rect.top/_howSec.offsetHeight);
   _smGlobe.style.transform=`translateY(-50%) translateX(${progress*60}px)`;
+});
+</script>
+
+<script>
+// Scroll reveal — IntersectionObserver
+(function(){
+  const io=new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');io.unobserve(e.target);}});
+  },{threshold:0.08});
+  document.querySelectorAll('[data-reveal]').forEach(el=>io.observe(el));
+})();
+
+// Cursor hover on new interactive elements
+document.querySelectorAll('.how-step,.feat-row,.cta-btn').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{_cur.style.width='5px';_cur.style.height='5px';_ring.style.width='50px';_ring.style.height='50px';_ring.style.borderColor='rgba(255,255,255,0.25)';});
+  el.addEventListener('mouseleave',()=>{_cur.style.width='10px';_cur.style.height='10px';_ring.style.width='34px';_ring.style.height='34px';_ring.style.borderColor='rgba(255,255,255,0.35)';});
 });
 </script>
 </body>
