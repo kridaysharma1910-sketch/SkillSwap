@@ -177,10 +177,13 @@ const NEW_FN = `function makeDotGlobe(cvId,W,H,R){
     [55,-5],[54,-5],
   ];
 
-  const dots=RAW.map(([lat,lon])=>({
-    lat:lat+(Math.random()-.5)*1.2,lon:lon+(Math.random()-.5)*1.2,
-    ph:Math.random()*6.28,spd:.02+Math.random()*.03,pulse:Math.random()<.15
-  }));
+  const dots=[];
+  RAW.forEach(([lat,lon])=>{
+    for(let i=0;i<4;i++) dots.push({
+      lat:lat+(Math.random()-.5)*4.4,lon:lon+(Math.random()-.5)*4.4,
+      ph:Math.random()*6.28,spd:.02+Math.random()*.03,pulse:Math.random()<.08
+    });
+  });
 
   // 10 connection arcs between continent dots
   const conns=[],seen=new Set();let tries=0;
