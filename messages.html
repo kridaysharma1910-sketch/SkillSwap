@@ -72,7 +72,7 @@ body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;display:fl
 .convo-item{display:flex;align-items:center;gap:11px;padding:11px;border-radius:12px;cursor:none;transition:background .15s;position:relative;}
 .convo-item:hover{background:rgba(255,255,255,0.03);}
 .convo-item.active{background:rgba(139,92,246,0.08);border:1px solid rgba(139,92,246,0.15);}
-.convo-avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:700;flex-shrink:0;background:rgba(139,92,246,0.12);border:1px solid rgba(139,92,246,0.2);color:rgba(167,139,250,0.8);overflow:hidden;}
+.convo-avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:700;flex-shrink:0;background:rgba(139,92,246,0.12);border:1px solid rgba(139,92,246,0.2);color:rgba(167,139,250,0.8);overflow:hidden;position:relative;}
 .convo-info{flex:1;min-width:0;}
 .convo-name{font-weight:500;font-size:.86rem;margin-bottom:2px;}
 .convo-preview{font-size:.75rem;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -82,7 +82,10 @@ body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;display:fl
 /* CHAT WINDOW */
 .chat-panel{flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden;}
 .chat-header{padding:16px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:13px;flex-shrink:0;}
-.chat-peer-avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:700;background:rgba(139,92,246,0.12);border:1px solid rgba(139,92,246,0.2);color:rgba(167,139,250,0.8);flex-shrink:0;overflow:hidden;}
+.chat-peer-avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:700;background:rgba(139,92,246,0.12);border:1px solid rgba(139,92,246,0.2);color:rgba(167,139,250,0.8);flex-shrink:0;overflow:hidden;position:relative;}
+.online-dot{position:absolute;bottom:1px;right:1px;width:10px;height:10px;background:#22c55e;border-radius:50%;border:2px solid var(--bg);display:none;pointer-events:none;}
+.online-status-txt{color:#22c55e;font-size:.72rem;display:inline-flex;align-items:center;gap:4px;}
+.online-status-txt::before{content:'';width:5px;height:5px;background:#22c55e;border-radius:50%;display:inline-block;flex-shrink:0;}
 .chat-peer-info{flex:1;}
 .chat-peer-name{font-family:'Syne',sans-serif;font-weight:700;font-size:.92rem;}
 .chat-peer-sub{font-size:.75rem;color:var(--text-muted);}
@@ -312,7 +315,8 @@ function dismissCallBanner(){
 }
 
 function genRoomId(){return Math.random().toString(36).slice(2,9)+Math.random().toString(36).slice(2,9);}
-let currentUserId=null,currentMatchId=null,conversations=[],realtimeSub=null,pollInterval=null;
+let currentUserId=null,currentMatchId=null,currentPeerId=null,conversations=[],realtimeSub=null,pollInterval=null;
+let onlineUsers=new Set(),presenceChannel=null;
 // Cache of call invite statuses — populated before render so bubbleContent() is synchronous
 let cachedCallStatuses={}; // roomId → {status, created_at}
 
@@ -346,6 +350,7 @@ function renderConvosList(convos){
   }
   list.innerHTML=convos.map(c=>{
     const peer=c.sender_id===currentUserId?c.receiver:c.sender;
+    const peerId=c.sender_id===currentUserId?c.receiver_id:c.sender_id;
     const av=avatarHtml(peer);
     const name=peer?.full_name||peer?.username||'Skill Swapper';
     const lastMsg=c.last_msg||'';
@@ -357,8 +362,9 @@ function renderConvosList(convos){
     const preview=escHtml(rawPreview);
     const t=c.last_ts?timeAgo(c.last_ts):'';
     const isActive=c.id===currentMatchId;
-    return`<div class="convo-item${isActive?' active':''}" onclick="openConvo('${c.id}')">
-      <div class="convo-avatar">${av}</div>
+    const dotDisplay=onlineUsers.has(peerId)?'block':'none';
+    return`<div class="convo-item${isActive?' active':''}" data-peer-id="${peerId}" onclick="openConvo('${c.id}')">
+      <div class="convo-avatar">${av}<span class="online-dot" style="display:${dotDisplay}"></span></div>
       <div class="convo-info"><div class="convo-name">${escHtml(name)}</div><div class="convo-preview">${preview}</div></div>
       <span class="convo-time">${t}</span>
     </div>`;
@@ -371,10 +377,19 @@ async function openConvo(matchId){
   const match=conversations.find(c=>c.id===matchId);
   if(!match)return;
   const peer=match.sender_id===currentUserId?match.receiver:match.sender;
+  const peerId=match.sender_id===currentUserId?match.receiver_id:match.sender_id;
+  currentPeerId=peerId;
   const name=peer?.full_name||peer?.username||'Skill Swapper';
-  document.getElementById('chatPeerAvatar').innerHTML=avatarHtml(peer);
+  const chatAvEl=document.getElementById('chatPeerAvatar');
+  chatAvEl.innerHTML=avatarHtml(peer);
+  const hDot=document.createElement('span');
+  hDot.className='online-dot';hDot.id='chatPeerOnlineDot';
+  hDot.style.display=onlineUsers.has(peerId)?'block':'none';
+  chatAvEl.appendChild(hDot);
   document.getElementById('chatPeerName').textContent=name;
-  document.getElementById('chatPeerSub').textContent=`${match.skill_offered||'?'} ↔ ${match.skill_wanted||'?'}`;
+  const subEl=document.getElementById('chatPeerSub');
+  if(onlineUsers.has(peerId)){subEl.innerHTML='<span class="online-status-txt">Online</span>';}
+  else{subEl.textContent=`${match.skill_offered||'?'} ↔ ${match.skill_wanted||'?'}`;};
   document.getElementById('noChatState').style.display='none';
   const chatActive=document.getElementById('chatActive');
   chatActive.style.display='flex';
@@ -566,6 +581,44 @@ function startPolling(matchId){
   pollInterval=setInterval(async()=>{
     if(currentMatchId===matchId)await loadMessages(matchId);
   },3000);
+}
+
+// ── Online Presence ──
+async function initPresence(userId){
+  presenceChannel=sb.channel('online-users',{config:{presence:{key:userId}}});
+  presenceChannel
+    .on('presence',{event:'sync'},()=>{
+      const state=presenceChannel.presenceState();
+      onlineUsers=new Set(Object.keys(state));
+      updateOnlineUI();
+    })
+    .on('presence',{event:'join'},({key})=>{onlineUsers.add(key);updateOnlineUI();})
+    .on('presence',{event:'leave'},({key})=>{onlineUsers.delete(key);updateOnlineUI();})
+    .subscribe(async status=>{
+      if(status==='SUBSCRIBED')await presenceChannel.track({online_at:new Date().toISOString()});
+    });
+}
+
+function updateOnlineUI(){
+  // Update dots in convo list
+  document.querySelectorAll('.convo-item[data-peer-id]').forEach(item=>{
+    const dot=item.querySelector('.online-dot');
+    if(dot)dot.style.display=onlineUsers.has(item.dataset.peerId)?'block':'none';
+  });
+  // Update chat header if a convo is open
+  if(currentMatchId&&currentPeerId){
+    const match=conversations.find(c=>c.id===currentMatchId);
+    const subEl=document.getElementById('chatPeerSub');
+    if(match&&subEl){
+      if(onlineUsers.has(currentPeerId)){
+        subEl.innerHTML='<span class="online-status-txt">Online</span>';
+      }else{
+        subEl.textContent=`${match.skill_offered||'?'} ↔ ${match.skill_wanted||'?'}`;
+      }
+    }
+    const dot=document.getElementById('chatPeerOnlineDot');
+    if(dot)dot.style.display=onlineUsers.has(currentPeerId)?'block':'none';
+  }
 }
 
 function showToast(msg){
@@ -902,6 +955,7 @@ async function init(){
   const{data:{session}}=await sb.auth.getSession();
   if(!session){window.location.replace('/login');return;}
   currentUserId=session.user.id;
+  initPresence(currentUserId);
   const{data:me,error:meErr}=await sb.from('profiles').select('full_name,username,avatar_url').eq('id',currentUserId).single();
   if(meErr)console.error('Profile load error:',meErr);
   const name=me?.full_name||me?.username||session.user.email.split('@')[0];
