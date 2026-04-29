@@ -178,12 +178,13 @@ const NEW_FN = `function makeDotGlobe(cvId,W,H,R){
   ];
 
   const dots=[];
-  RAW.forEach(([lat,lon])=>{
-    for(let i=0;i<4;i++) dots.push({
-      lat:lat+(Math.random()-.5)*4.4,lon:lon+(Math.random()-.5)*4.4,
-      ph:Math.random()*6.28,spd:.02+Math.random()*.03,pulse:Math.random()<.08
-    });
-  });
+  const STEP=3,THRESH=4;
+  for(let la=-75;la<=75;la+=STEP){
+    for(let lo=-180;lo<180;lo+=STEP){
+      if(!RAW.some(([s,t])=>Math.abs(s-la)<THRESH&&Math.abs(t-lo)<THRESH))continue;
+      dots.push({lat:la,lon:lo,ph:Math.random()*6.28,spd:.02+Math.random()*.03,pulse:Math.random()<.08});
+    }
+  }
 
   // 10 connection arcs between continent dots
   const conns=[],seen=new Set();let tries=0;
@@ -236,8 +237,8 @@ const NEW_FN = `function makeDotGlobe(cvId,W,H,R){
       const p=proj(d.lat,d.lon);if(p.z<=0)return;
       d.ph+=d.spd;
       const pulse=d.pulse?(Math.sin(d.ph)+1)*.5:0;
-      const alpha=Math.min(1,(0.65+0.35*p.z)*(0.85+0.15*pulse));
-      const r=2.0*(0.65+0.35*p.z);
+      const alpha=Math.min(1,(0.60+0.40*p.z)*(0.85+0.15*pulse));
+      const r=1.4*(0.65+0.35*p.z);
       if(d.pulse&&pulse>.5){
         const grd=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,r*6);
         grd.addColorStop(0,\`rgba(210,180,255,\${(0.85*pulse*p.z).toFixed(2)})\`);
