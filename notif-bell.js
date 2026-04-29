@@ -121,7 +121,6 @@
     renderDropdown();
     positionDropdown();
     dd.style.display='block';
-    markAllSeen();
   }
 
   function closeDropdown(){
