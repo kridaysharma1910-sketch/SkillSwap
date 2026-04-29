@@ -135,6 +135,38 @@ body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;display:fl
 .no-chat p{font-size:.9rem;}
 
 @keyframes fadeUp{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+/* ── Context Menu ── */
+.msg-context-menu{position:fixed;background:#181818;border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:8px;z-index:2000;box-shadow:0 12px 40px rgba(0,0,0,0.8);min-width:172px;}
+.ctx-react-row{display:flex;gap:2px;padding:4px 6px 8px;border-bottom:1px solid rgba(255,255,255,0.07);margin-bottom:4px;}
+.ctx-react-btn{background:none;border:none;font-size:1.25rem;cursor:none;padding:5px 7px;border-radius:8px;transition:background .12s;line-height:1;}
+.ctx-react-btn:hover{background:rgba(255,255,255,0.09);}
+.ctx-react-btn.reacted{background:rgba(139,92,246,0.18);outline:1px solid rgba(139,92,246,0.38);}
+.ctx-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;color:rgba(255,255,255,0.82);font-size:.84rem;cursor:none;transition:background .12s;user-select:none;}
+.ctx-item:hover{background:rgba(255,255,255,0.05);}
+.ctx-item svg{width:14px;height:14px;flex-shrink:0;}
+.ctx-item.danger{color:rgba(239,68,68,0.85);}
+.ctx-item.danger:hover{background:rgba(239,68,68,0.07);}
+.ctx-del-confirm{padding:8px 12px;}
+.ctx-del-label{font-size:.82rem;color:rgba(255,255,255,.6);margin-bottom:8px;}
+.ctx-del-btns{display:flex;gap:6px;}
+.ctx-del-btn{flex:1;padding:7px;border-radius:8px;font-size:.78rem;font-weight:500;cursor:none;border:none;}
+.ctx-del-yes{background:rgba(239,68,68,0.14);color:#f87171;border:1px solid rgba(239,68,68,0.22) !important;}
+.ctx-del-no{background:rgba(255,255,255,0.07);color:rgba(255,255,255,.6);}
+/* ── Reactions ── */
+.msg-reactions{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px;}
+.rxn-pill{display:inline-flex;align-items:center;gap:3px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:100px;padding:2px 9px 2px 6px;font-size:.82rem;cursor:none;transition:all .15s;line-height:1.35;user-select:none;}
+.rxn-pill:hover{background:rgba(255,255,255,0.09);}
+.rxn-pill.mine{background:rgba(139,92,246,0.12);border-color:rgba(139,92,246,0.3);}
+.rxn-count{font-size:.7rem;color:rgba(255,255,255,0.5);font-family:'DM Sans',sans-serif;}
+/* ── Inline Edit ── */
+.edit-wrap{display:flex;flex-direction:column;gap:6px;min-width:180px;}
+.edit-ta{background:rgba(255,255,255,0.05);border:1px solid rgba(139,92,246,0.45);border-radius:10px;padding:10px 12px;color:#fff;font-family:'DM Sans',sans-serif;font-size:.86rem;line-height:1.5;resize:none;width:100%;outline:none;overflow-y:hidden;cursor:text;}
+.edit-actions{display:flex;gap:6px;}
+.edit-save{background:#fff;color:#080808;border:none;border-radius:8px;padding:5px 14px;font-size:.78rem;font-weight:600;cursor:none;}
+.edit-cancel-btn{background:rgba(255,255,255,0.07);border:none;color:rgba(255,255,255,.55);border-radius:8px;padding:5px 12px;font-size:.78rem;cursor:none;}
+.edited-tag{font-size:.63rem;color:var(--text-muted);margin-left:4px;font-style:italic;}
+.msg-bubble{transition:opacity .12s,transform .12s;}
+.msg-row.pressing .msg-bubble{opacity:.68;transform:scale(.975);}
 @media(max-width:900px){.sidebar{transform:translateX(-100%);transition:transform .3s;background:#0e0e0e !important;border-right:1px solid rgba(255,255,255,0.1) !important;}.sidebar.open{transform:translateX(0);}.sidebar .nav-link{color:#fff;opacity:1;}.chat-layout{margin-left:0;}.hamburger{display:flex;}}
 @media(max-width:660px){
   .convos-panel{width:100%;position:absolute;left:0;top:0;bottom:0;z-index:50;background:var(--bg);}
@@ -375,8 +407,8 @@ async function loadMessages(matchId){
     .order('created_at',{ascending:true});
   if(error){console.error('Load messages error:',error);return;}
   const msgs=data||[];
-  // Pre-fetch call invite statuses so bubbleContent() renders final state in one pass
   await fetchCallStatuses(msgs);
+  await fetchReactions(msgs.map(m=>m.id));
   renderMessages(msgs);
 }
 
@@ -453,12 +485,18 @@ function bubbleContent(content,isMine,matchId){
 }
 
 function renderMessages(msgs){
+  if(isEditing)return;
   const area=document.getElementById('messagesArea');
   if(!msgs.length){
     area.innerHTML=`<div style="text-align:center;padding:32px;color:var(--text-muted);font-size:.85rem;">No messages yet. Say hello!</div>`;
     return;
   }
-  // Find last index of my read messages for "Seen" indicator
+  // Rebuild content + edited caches
+  msgContentCache={};editedMsgs=new Set();
+  msgs.forEach(msg=>{
+    if(!isCallMsg(msg.content))msgContentCache[msg.id]=msg.content;
+    if(msg.edited_at)editedMsgs.add(msg.id);
+  });
   let lastReadMineIdx=-1;
   msgs.forEach((msg,i)=>{if(msg.sender_id===currentUserId&&msg.read)lastReadMineIdx=i;});
   let html='';let lastDate='';
@@ -469,16 +507,20 @@ function renderMessages(msgs){
     const av=avatarHtml(msg.sender);
     const t=new Date(msg.created_at).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
     const seenHtml=(isMine&&idx===lastReadMineIdx)?'<div class="msg-seen">Seen</div>':'';
-    html+=`<div class="msg-row${isMine?' mine':''}">
+    const isCall=isCallMsg(msg.content);
+    const editedHtml=msg.edited_at?'<span class="edited-tag">(edited)</span>':'';
+    html+=`<div class="msg-row${isMine?' mine':''}" data-msg-id="${msg.id}" data-sender-id="${msg.sender_id}" data-created-at="${msg.created_at}" data-is-call="${isCall?'true':'false'}">
       <div class="msg-av">${av}</div>
       <div>
-        <div class="msg-bubble">${bubbleContent(msg.content,isMine,currentMatchId)}</div>
+        <div class="msg-bubble">${bubbleContent(msg.content,isMine,currentMatchId)}${editedHtml}</div>
         <div class="msg-time">${t}</div>${seenHtml}
+        ${reactionPillsHtml(msg.id)}
       </div>
     </div>`;
   });
   area.innerHTML=html;
   area.scrollTop=area.scrollHeight;
+  addMessageListeners();
 }
 
 function appendMessage(msg){
@@ -486,12 +528,19 @@ function appendMessage(msg){
   const isMine=msg.sender_id===currentUserId;
   const av=msg.sender?avatarHtml(msg.sender):(isMine?'Me':'?');
   const t=new Date(msg.created_at).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+  const isCall=isCallMsg(msg.content);
+  if(!isCall)msgContentCache[msg.id]=msg.content;
   const div=document.createElement('div');
   div.className=`msg-row${isMine?' mine':''}`;
   div.style.animation='fadeUp .25s ease';
-  div.innerHTML=`<div class="msg-av">${av}</div><div><div class="msg-bubble">${bubbleContent(msg.content,isMine,currentMatchId)}</div><div class="msg-time">${t}</div></div>`;
+  div.dataset.msgId=msg.id;
+  div.dataset.senderId=msg.sender_id;
+  div.dataset.createdAt=msg.created_at;
+  div.dataset.isCall=isCall?'true':'false';
+  div.innerHTML=`<div class="msg-av">${av}</div><div><div class="msg-bubble">${bubbleContent(msg.content,isMine,currentMatchId)}</div><div class="msg-time">${t}</div>${reactionPillsHtml(msg.id)}</div>`;
   area.appendChild(div);
   area.scrollTop=area.scrollHeight;
+  addMessageListeners();
 }
 
 function subscribeToMessages(matchId){
@@ -629,6 +678,225 @@ document.addEventListener('click',()=>{
   document.getElementById('emojiPicker')?.classList.remove('open');
 });
 
+// ── Context menu / edit / delete / reactions ──
+const QUICK_REACTIONS=['❤️','😂','😮','😢','😡','👍'];
+let cachedReactions={}; // msgId → [{message_id,user_id,emoji}]
+let msgContentCache={}; // msgId → raw text (non-call messages only)
+let editedMsgs=new Set(); // msgIds edited this session
+let isEditing=false; // blocks poll re-render while user is editing
+let ctxMsgId=null,ctxMsgEl=null;
+
+function isCallMsg(c){return!!(c&&(c.startsWith('CALL_INVITE::')||c.startsWith('VOICE_INVITE::')));}
+
+async function fetchReactions(msgIds){
+  if(!msgIds||!msgIds.length)return;
+  const{data}=await sb.from('message_reactions')
+    .select('message_id,user_id,emoji')
+    .in('message_id',msgIds);
+  cachedReactions={};
+  (data||[]).forEach(r=>{
+    if(!cachedReactions[r.message_id])cachedReactions[r.message_id]=[];
+    cachedReactions[r.message_id].push(r);
+  });
+}
+
+function reactionPillsHtml(msgId){
+  const rxns=cachedReactions[msgId]||[];
+  if(!rxns.length)return`<div class="msg-reactions" data-rxn-for="${msgId}"></div>`;
+  const groups={};
+  rxns.forEach(r=>{if(!groups[r.emoji])groups[r.emoji]=[];groups[r.emoji].push(r.user_id);});
+  const pills=Object.entries(groups).map(([em,users])=>{
+    const mine=users.includes(currentUserId)?'mine':'';
+    const count=users.length>1?`<span class="rxn-count">${users.length}</span>`:'';
+    return`<span class="rxn-pill ${mine}" onclick="toggleReaction('${msgId}','${em}')">${em}${count}</span>`;
+  }).join('');
+  return`<div class="msg-reactions" data-rxn-for="${msgId}">${pills}</div>`;
+}
+
+function addMessageListeners(){
+  document.querySelectorAll('.msg-row[data-msg-id]').forEach(row=>{
+    if(row.dataset.lpInit)return;
+    row.dataset.lpInit='1';
+    let lpTimer=null,lpX=0,lpY=0;
+    const start=e=>{
+      if(e.target.closest('a,button,.rxn-pill,.edit-ta,.edit-save,.edit-cancel-btn'))return;
+      lpX=e.clientX||(e.touches&&e.touches[0]?e.touches[0].clientX:0);
+      lpY=e.clientY||(e.touches&&e.touches[0]?e.touches[0].clientY:0);
+      row.classList.add('pressing');
+      lpTimer=setTimeout(()=>{
+        lpTimer=null;
+        row.classList.remove('pressing');
+        showMsgContextMenu(row,lpX,lpY);
+      },500);
+    };
+    const move=e=>{
+      if(!lpTimer)return;
+      const x=e.clientX||(e.touches&&e.touches[0]?e.touches[0].clientX:0);
+      const y=e.clientY||(e.touches&&e.touches[0]?e.touches[0].clientY:0);
+      if(Math.hypot(x-lpX,y-lpY)>10){row.classList.remove('pressing');clearTimeout(lpTimer);lpTimer=null;}
+    };
+    const end=()=>{row.classList.remove('pressing');if(lpTimer){clearTimeout(lpTimer);lpTimer=null;}};
+    row.addEventListener('pointerdown',start);
+    row.addEventListener('pointermove',move);
+    row.addEventListener('pointerup',end);
+    row.addEventListener('pointercancel',end);
+    row.addEventListener('contextmenu',e=>{e.preventDefault();showMsgContextMenu(row,e.clientX,e.clientY);});
+  });
+}
+
+function showMsgContextMenu(row,x,y){
+  ctxMsgId=row.dataset.msgId;
+  ctxMsgEl=row;
+  const isMine=row.classList.contains('mine');
+  const isCall=row.dataset.isCall==='true';
+  const ageMs=Date.now()-new Date(row.dataset.createdAt).getTime();
+  const canEdit=isMine&&!isCall&&ageMs<15*60*1000;
+
+  const myRxns=new Set((cachedReactions[ctxMsgId]||[]).filter(r=>r.user_id===currentUserId).map(r=>r.emoji));
+  document.getElementById('ctxReactRow').innerHTML=QUICK_REACTIONS.map(em=>
+    `<button class="ctx-react-btn${myRxns.has(em)?' reacted':''}" onclick="toggleReaction('${ctxMsgId}','${em}');closeMsgContextMenu();">${em}</button>`
+  ).join('');
+
+  const editItem=document.getElementById('ctxEditItem');
+  const delItem=document.getElementById('ctxDeleteItem');
+  document.getElementById('ctxDeleteConfirm').style.display='none';
+  delItem.style.display='flex';
+
+  if(isMine&&!isCall){
+    editItem.style.display='flex';
+    editItem.style.opacity=canEdit?'1':'0.35';
+    editItem.style.pointerEvents=canEdit?'':'none';
+    editItem.title=canEdit?'':'Can only edit within 15 minutes of sending';
+  }else{
+    editItem.style.display='none';
+  }
+  delItem.style.display=isMine?'flex':'none';
+
+  const menu=document.getElementById('msgContextMenu');
+  menu.style.display='block';
+  requestAnimationFrame(()=>{
+    const mw=menu.offsetWidth,mh=menu.offsetHeight;
+    let left=x+8,top=y+8;
+    if(left+mw>window.innerWidth-8)left=x-mw-8;
+    if(top+mh>window.innerHeight-8)top=y-mh-8;
+    menu.style.left=Math.max(8,left)+'px';
+    menu.style.top=Math.max(8,top)+'px';
+  });
+}
+
+function closeMsgContextMenu(){
+  const m=document.getElementById('msgContextMenu');
+  if(m)m.style.display='none';
+  ctxMsgId=null;ctxMsgEl=null;
+}
+
+// Close menu when clicking outside
+document.addEventListener('pointerdown',e=>{
+  if(!e.target.closest('#msgContextMenu'))closeMsgContextMenu();
+},{capture:true});
+
+function ctxEditMsg(){
+  if(!ctxMsgId||!ctxMsgEl)return;
+  const msgId=ctxMsgId,row=ctxMsgEl;
+  closeMsgContextMenu();
+  const bubble=row.querySelector('.msg-bubble');
+  if(!bubble)return;
+  const raw=msgContentCache[msgId]||'';
+  isEditing=true;
+  bubble.innerHTML=`<div class="edit-wrap">
+    <textarea class="edit-ta" rows="2">${escHtml(raw)}</textarea>
+    <div class="edit-actions">
+      <button class="edit-save" onclick="saveEdit('${msgId}',this)">Save</button>
+      <button class="edit-cancel-btn" onclick="cancelEdit('${msgId}')">Cancel</button>
+    </div>
+  </div>`;
+  const ta=bubble.querySelector('textarea');
+  ta.style.height=ta.scrollHeight+'px';
+  ta.focus();ta.selectionStart=ta.selectionEnd=ta.value.length;
+  ta.addEventListener('input',()=>{ta.style.height='auto';ta.style.height=ta.scrollHeight+'px';});
+  ta.addEventListener('keydown',e=>{
+    if(e.key==='Enter'&&(e.ctrlKey||e.metaKey))saveEdit(msgId,bubble.querySelector('.edit-save'));
+    if(e.key==='Escape')cancelEdit(msgId);
+  });
+}
+
+function cancelEdit(msgId){
+  isEditing=false;
+  const row=document.querySelector(`.msg-row[data-msg-id="${msgId}"]`);
+  if(!row)return;
+  const bubble=row.querySelector('.msg-bubble');
+  const raw=msgContentCache[msgId]||'';
+  const isMine=row.classList.contains('mine');
+  bubble.innerHTML=bubbleContent(raw,isMine,currentMatchId)+(editedMsgs.has(msgId)?'<span class="edited-tag">(edited)</span>':'');
+}
+
+async function saveEdit(msgId,btn){
+  const row=document.querySelector(`.msg-row[data-msg-id="${msgId}"]`);
+  if(!row)return;
+  const bubble=row.querySelector('.msg-bubble');
+  const ta=bubble&&bubble.querySelector('textarea');
+  if(!ta)return;
+  const newContent=ta.value.trim();
+  if(!newContent){showToast('Message cannot be empty.');return;}
+  if(!InputValidator.text(newContent,5000)){showToast('Message too long (max 5000 chars).');return;}
+  if(btn){btn.disabled=true;btn.style.opacity='.5';}
+  const{error}=await sb.from('messages')
+    .update({content:newContent,edited_at:new Date().toISOString()})
+    .eq('id',msgId).eq('sender_id',currentUserId);
+  if(btn){btn.disabled=false;btn.style.opacity='';}
+  if(error){showToast('Failed to save edit.');return;}
+  isEditing=false;
+  msgContentCache[msgId]=newContent;
+  editedMsgs.add(msgId);
+  const isMine=row.classList.contains('mine');
+  bubble.innerHTML=bubbleContent(newContent,isMine,currentMatchId)+'<span class="edited-tag">(edited)</span>';
+  showToast('Message updated.');
+}
+
+function ctxShowDeleteConfirm(){
+  document.getElementById('ctxDeleteItem').style.display='none';
+  document.getElementById('ctxEditItem').style.display='none';
+  document.getElementById('ctxDeleteConfirm').style.display='block';
+}
+
+function cancelDeleteConfirm(){closeMsgContextMenu();}
+
+async function confirmDelete(){
+  if(!ctxMsgId||!ctxMsgEl)return;
+  const msgId=ctxMsgId,el=ctxMsgEl;
+  closeMsgContextMenu();
+  const{error}=await sb.from('messages').delete().eq('id',msgId).eq('sender_id',currentUserId);
+  if(error){showToast('Failed to delete message.');return;}
+  delete msgContentCache[msgId];
+  editedMsgs.delete(msgId);
+  delete cachedReactions[msgId];
+  el.style.transition='opacity .25s,transform .25s';
+  el.style.opacity='0';el.style.transform='scale(.95)';
+  setTimeout(()=>el.remove(),250);
+  showToast('Message deleted.');
+}
+
+async function toggleReaction(msgId,emoji){
+  const list=cachedReactions[msgId]||[];
+  const existing=list.find(r=>r.user_id===currentUserId&&r.emoji===emoji);
+  if(existing){
+    const{error}=await sb.from('message_reactions')
+      .delete().eq('message_id',msgId).eq('user_id',currentUserId).eq('emoji',emoji);
+    if(!error)cachedReactions[msgId]=list.filter(r=>!(r.user_id===currentUserId&&r.emoji===emoji));
+  }else{
+    const{error}=await sb.from('message_reactions')
+      .insert({message_id:msgId,user_id:currentUserId,emoji});
+    if(!error){
+      if(!cachedReactions[msgId])cachedReactions[msgId]=[];
+      cachedReactions[msgId].push({message_id:msgId,user_id:currentUserId,emoji});
+    }
+  }
+  const row=document.querySelector(`.msg-row[data-msg-id="${msgId}"]`);
+  if(!row)return;
+  const rxnDiv=row.querySelector('.msg-reactions');
+  if(rxnDiv)rxnDiv.outerHTML=reactionPillsHtml(msgId);
+}
+
 async function init(){
   if(window.innerWidth>900&&localStorage.getItem('ss_sidebar')==='0')document.body.classList.add('sidebar-collapsed');
   const{data:{session}}=await sb.auth.getSession();
@@ -673,6 +941,23 @@ init();
 </script>
 <!-- Floating compose button (mobile) -->
 <a href="/matches" class="compose-fab" id="composeFab" title="Start new conversation"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></a>
+<!-- Message context menu -->
+<div id="msgContextMenu" class="msg-context-menu" style="display:none;">
+  <div class="ctx-react-row" id="ctxReactRow"></div>
+  <div class="ctx-item" id="ctxEditItem" onclick="ctxEditMsg()">
+    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Edit
+  </div>
+  <div class="ctx-item danger" id="ctxDeleteItem" onclick="ctxShowDeleteConfirm()">
+    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>Delete
+  </div>
+  <div class="ctx-del-confirm" id="ctxDeleteConfirm" style="display:none;">
+    <div class="ctx-del-label">Delete this message?</div>
+    <div class="ctx-del-btns">
+      <button class="ctx-del-btn ctx-del-yes" onclick="confirmDelete()">Delete</button>
+      <button class="ctx-del-btn ctx-del-no" onclick="cancelDeleteConfirm()">Cancel</button>
+    </div>
+  </div>
+</div>
 <script src="notif-bell.js"></script>
 <script src="call-notify.js"></script>
 </body>
