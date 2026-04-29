@@ -170,6 +170,14 @@ Start by telling me: what's the current state per CLAUDE.md, and what are we bui
 
 ## Session Log
 
+### [Session 28 — 2026-04-29]
+- **signup.html — mobile skill tags fix**: skill tag inputs (teach/learn) were not working on mobile — `keydown` events are unreliable on iOS/Android virtual keyboards
+- Added a `+ Add` pill button that appears inline inside each skills wrap whenever the user has typed text; tapping it adds the tag (same logic as Enter/comma on desktop)
+- Desktop keyboard behavior (Enter/comma to add, Backspace to remove last) unchanged
+- Added `.skill-add-btn` CSS (violet-tinted pill, matches existing tag style, `touch-action: manipulation`)
+- Refactored `setupTagInput` to extract `addCurrentTag()` helper shared by both button click and keydown handlers
+- `renderTags` updated to re-append the add button after re-rendering (since `wrap.innerHTML = ''` clears it)
+
 ### [Session 27 — 2026-04-26]
 - **Go-live prep**: cleared test webinar data from Supabase (DELETE webinar_attendees + webinars)
 - **Security hardening — XSS**: fixed unescaped `avatar_url` interpolated into `innerHTML` across all 13 locations in dashboard, discover, matches, messages, analytics, user, webinar-host, webinars, pricing, videocall, profile, notif-bell.js — wrapped with `escHtml()` or switched to DOM `createElement`; added `escHtml()` to webinars.html (previously only had partial `escPartHtml`)
